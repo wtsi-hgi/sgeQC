@@ -10,16 +10,10 @@ round_any <- function(x, accuracy, f = round) {
     f(x / accuracy) * accuracy
 }
 
-#' ggpairs extended function
+#' not in function
 #'
-#' the extension function of ggpair
-#'
-#' @param data Data
-#' @param mapping Mapping
-#' @import gplots
+#' @param x X
+#' @param y Y
+#' @return True or False
 #' @export
-ggpairs_ext <- function(data, mapping, pts = list(), smt = list(), ...) {
-    ggplot(data = data, mapping = mapping, ...) +
-        do.call(geom_point, pts) +
-        do.call(geom_smooth, smt)
-}
+`%nin%` <- function(x, y) !(x %in% y)
