@@ -2,10 +2,12 @@
 
 export("%nin%")
 export(create_sge_object)
+export(format_count)
 export(read_count_file)
 export(read_sge_file)
 export(round_any)
 exportClasses(SGE)
+exportMethods(show)
 importFrom(S4Vectors,DataFrame)
 importFrom(methods,setMethod)
 importFrom(stats,lm)

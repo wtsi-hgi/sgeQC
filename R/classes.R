@@ -5,15 +5,17 @@
 #' @importFrom S4Vectors DataFrame
 #' @importFrom stats lm
 #' @name SGE
-#' @slot sample name
-#' @slot library type
-#' @slot library name
-#' @slot QUANTS library-dependent count file, per sequence per count
-#' @slot QUANTS library-independent count file, per sequence per count
-#' @slot VaLiAnT meta file
+#' @slot samples sample names
+#' @slot targetons targeton ids
+#' @slot libtype library type
+#' @slot libname library name
+#' @slot libcounts QUANTS library-dependent count file, per sequence per count
+#' @slot allcounts QUANTS library-independent count file, per sequence per count
+#' @slot valiant_meta VaLiAnT meta file
 setClass("SGE",
     slots = list(
-        samplename = "character",
+        samples = "character",
+        targetons = "character",
         libtype = "character",
         libname = "character",
         libcounts = "data.frame",
@@ -21,7 +23,8 @@ setClass("SGE",
         valiant_meta = "data.frame"
     ),
     prototype = list(
-        samplename = "",
+        samples = "",
+        targetons = "",
         libtype = "",
         libname = "",
         libcounts = data.frame(),
@@ -33,16 +36,16 @@ setClass("SGE",
 #' Create a new SGE object
 #'
 #' @export
+#' @name create_sge_object
 #' @param libcount QUANTS library-dependent count file, per sequence per count
 #' @param allcount QUANTS library-independent count file, per sequence per count
 #' @param valiant_meta VaLiAnT meta file
 #' @return An object of class SGE
 create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta) {
     # Read files
-
     libread <- read_count_file(file_libcount, "lib", 3)
     allcounts <- read_count_file(file_allcount, "all", 3)
-    valiant_meta <- read_sge_file(file_valiant_meta)
+    valiant_meta <- read_sge_file(file_valiant_meta, TRUE)
 
     # Create the object
     sge_object <- new("SGE",

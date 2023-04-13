@@ -9,11 +9,11 @@ reading extra comment info}
 read_count_file(file_path, file_type, hline)
 }
 \arguments{
+\item{file_path}{file path}
+
+\item{file_type}{library-dependent (lib) or library-independent (all)}
+
 \item{hline}{header line number}
-
-\item{file}{file path}
-
-\item{type}{library-dependent (lib) or library-independent (all)}
 }
 \value{
 a dataframe

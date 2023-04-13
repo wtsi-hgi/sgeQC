@@ -10,16 +10,18 @@ A class representing a SGE object
 \section{Slots}{
 
 \describe{
-\item{\code{sample}}{name}
+\item{\code{samples}}{sample names}
 
-\item{\code{library}}{type}
+\item{\code{targetons}}{targeton ids}
 
-\item{\code{library}}{name}
+\item{\code{libtype}}{library type}
 
-\item{\code{QUANTS}}{library-dependent count file, per sequence per count}
+\item{\code{libname}}{library name}
 
-\item{\code{QUANTS}}{library-independent count file, per sequence per count}
+\item{\code{libcounts}}{QUANTS library-dependent count file, per sequence per count}
 
-\item{\code{VaLiAnT}}{meta file}
+\item{\code{allcounts}}{QUANTS library-independent count file, per sequence per count}
+
+\item{\code{valiant_meta}}{VaLiAnT meta file}
 }}
 

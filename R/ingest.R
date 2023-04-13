@@ -3,23 +3,28 @@
 #' ignore all the comments
 #'
 #' @export
-#' @param file file path
+#' @name read_sge_file
+#' @param file_path file path
+#' @param file_header TRUE or FALSE, default is TRUE
 #' @return a dataframe
-read_sge_file <- function(file_path) {
+read_sge_file <- function(file_path, file_header) {
     # check input format
     if (!file.exists(file_path)) {
         stop(paste0("====> Error: ", file_path, " doesn't exist"))
     }
+    if (missing(file_header)) {
+        file_header <- TRUE
+    }
 
-    csv_pattern <- "\\.csv$"
-    tsv_pattern <- "\\.tsv$"
+    csv_pattern <- "\\.csv(\\.gz)?$"
+    tsv_pattern <- "\\.tsv(\\.gz)?$"
 
     if (grepl(csv_pattern, file_path)) {
-        filedata <- read.table(file_path, header = TRUE, sep = ",", comment.char = "#")
+        filedata <- read.table(file_path, header = file_header, sep = ",", comment.char = "#")
     } else if (grepl(tsv_pattern, file_path)) {
-        filedata <- read.table(file_path, header = TRUE, sep = "\t", comment.char = "#")
+        filedata <- read.table(file_path, header = file_header, sep = "\t", comment.char = "#")
     } else {
-        stop(paste0("====> Error: wrong format, ", file_path, " is not csv or tsv!"))
+        stop(paste0("====> Error: wrong format, ", file_path, " is not .csv(.gz) or .tsv(.gz)!"))
     }
 
     filedata <- data.frame(filedata)
@@ -31,8 +36,9 @@ read_sge_file <- function(file_path) {
 #' reading extra comment info
 #'
 #' @export
-#' @param file file path
-#' @param type library-dependent (lib) or library-independent (all)
+#' @name read_count_file
+#' @param file_path file path
+#' @param file_type library-dependent (lib) or library-independent (all)
 #' @param hline header line number
 #' @return a dataframe
 read_count_file <- function(file_path, file_type, hline) {
@@ -47,8 +53,8 @@ read_count_file <- function(file_path, file_type, hline) {
         stop(paste0("====> Error: ", hline, " must be > 0"))
     }
 
-    csv_pattern <- "\\.csv$"
-    tsv_pattern <- "\\.tsv$"
+    csv_pattern <- "\\.csv(\\.gz)?$"
+    tsv_pattern <- "\\.tsv(\\.gz)?$"
 
     # read data first and check file is csv or tsv
     if (grepl(csv_pattern, file_path)) {
@@ -56,7 +62,7 @@ read_count_file <- function(file_path, file_type, hline) {
     } else if (grepl(tsv_pattern, file_path)) {
         filedata <- read.table(file_path, sep = "\t", comment.char = "#")
     } else {
-        stop(paste0("====> Error: wrong format, ", file_path, " is not csv or tsv!"))
+        stop(paste0("====> Error: wrong format, ", file_path, " is not .csv(.gz) or .tsv(.gz)!"))
     }
 
     # read comments until the header, header line must be specified
@@ -77,6 +83,8 @@ read_count_file <- function(file_path, file_type, hline) {
         stop("====> Error: wrong format, header line must begin with '#', otherwise please use read_sge_file instead")
     }
 
+    libtype <- ""
+    libname <- ""
     # return dataframe with correct header
     if (file_type == "lib") {
         for (comm in comments) {

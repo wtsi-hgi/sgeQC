@@ -6,10 +6,12 @@
 file has header but without # at the beginning
 ignore all the comments}
 \usage{
-read_sge_file(file_path)
+read_sge_file(file_path, file_header)
 }
 \arguments{
-\item{file}{file path}
+\item{file_path}{file path}
+
+\item{file_header}{TRUE or FALSE, default is TRUE}
 }
 \value{
 a dataframe
