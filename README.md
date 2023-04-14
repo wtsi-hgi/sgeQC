@@ -41,6 +41,10 @@ install.packages("/path/of/sgeQC.tar.gz", type = "source")
 
 ```sh
 library(sgeQC)
+myobj <- create_sge_object(file_libcount = "test/library_dependent_counts.tsv.gz",
+                           file_allcount = "test/library_independent_counts.tsv.gz",
+                           file_valiant_meta = "test/valiant_meta.csv.gz")
+myobj
 ```
 
 <p align="right">(<a href="#top">TOP</a>)</p>
