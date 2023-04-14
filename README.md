@@ -7,8 +7,8 @@
 <details open>
 <summary><b>(click to expand or hide)</b></summary>
 
-1. [Installation](#install)
-2. [Dependecies](#depend)
+1. [Installation](#installation)
+2. [Dependecies](#dependencies)
 3. [Import Data](#import-data)
 4. [Plasmid QC](#plasmid-qc)
     - [QC 1: ](#qc1)
