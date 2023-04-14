@@ -8,7 +8,7 @@
 <summary><b>(click to expand or hide)</b></summary>
 
 1. [Installation](#installation)
-2. [Dependecies](#dependencies)
+2. [Dependencies](#dependencies)
 3. [Import Data](#import-data)
 4. [Plasmid QC](#plasmid-qc)
     - [QC 1: ](#qc1)
@@ -19,8 +19,21 @@
 <!-- Installation-->
 ## Installation
 
-<!-- Dependecies-->
-## Dependecies
+Install from github
+```sh
+install.packages("devtools")
+
+library(devtools)
+install_github("wtsi-hgi/sgeQC")
+```
+
+Install from source file
+```sh
+install.packages("/path/of/sgeQC.tar.gz", type = "source")
+```
+
+<!-- Dependencies-->
+## Dependencies
 
 <!-- Import Data-->
 ## Import Data
