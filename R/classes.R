@@ -3,30 +3,35 @@
 #' @export
 #' @importFrom methods setMethod
 #' @importFrom S4Vectors DataFrame
-#' @importFrom stats lm
 #' @name SGE
 #' @slot samples sample names
 #' @slot targetons targeton ids
 #' @slot libtype library type
 #' @slot libname library name
+#' @slot refseq reference sequence
+#' @slot pamseq sequence with pam variants
 #' @slot libcounts QUANTS library-dependent count file, per sequence per count
 #' @slot allcounts QUANTS library-independent count file, per sequence per count
 #' @slot valiant_meta VaLiAnT meta file
 setClass("SGE",
     slots = list(
-        samples = "character",
-        targetons = "character",
+        samples = "list",
+        targetons = "list",
         libtype = "character",
         libname = "character",
+        refseq = "character",
+        pamseq = "character",
         libcounts = "data.frame",
         allcounts = "data.frame",
         valiant_meta = "data.frame"
     ),
     prototype = list(
-        samples = "",
-        targetons = "",
-        libtype = "",
-        libname = "",
+        samples = list(),
+        targetons = list(),
+        libtype = character(),
+        libname = character(),
+        refseq = character(),
+        pamseq = character(),
         libcounts = data.frame(),
         allcounts = data.frame(),
         valiant_meta = data.frame()

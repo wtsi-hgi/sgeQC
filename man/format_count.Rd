@@ -2,16 +2,10 @@
 % Please edit documentation in R/process.R
 \name{format_count}
 \alias{format_count}
-\title{format counts with extra info and remove duplicate/useless info}
+\title{initialize function}
 \usage{
-format_count(df_count)
-}
-\arguments{
-\item{df_count}{input count dataframe}
-}
-\value{
-a dataframe
+format_count(object, ...)
 }
 \description{
-format counts with extra info and remove duplicate/useless info
+initialize function
 }

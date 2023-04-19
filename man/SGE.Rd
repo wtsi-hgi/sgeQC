@@ -18,6 +18,10 @@ A class representing a SGE object
 
 \item{\code{libname}}{library name}
 
+\item{\code{refseq}}{reference sequence}
+
+\item{\code{pamseq}}{sequence with pam variants}
+
 \item{\code{libcounts}}{QUANTS library-dependent count file, per sequence per count}
 
 \item{\code{allcounts}}{QUANTS library-independent count file, per sequence per count}

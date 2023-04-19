@@ -19,3 +19,18 @@ round_any <- function(x, accuracy, f = round) {
 #' @param y Y
 #' @return True or False
 `%nin%` <- function(x, y) !(x %in% y)
+
+#' reverse complement 
+#'
+#' @export
+#' @name revcomp
+#' @param seq sequence
+#' @return string
+revcomp <- function(seq) {
+    seq <- toupper(seq)
+    splits <- strsplit(seq, "")[[1]]
+    reversed <- rev(splits)
+    seq_rev <- paste(reversed, collapse = "")
+    seq_rev_comp <- chartr("ATCG", "TAGC", seq_rev)
+    return(seq_rev_comp)
+}
