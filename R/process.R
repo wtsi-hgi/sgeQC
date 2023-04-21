@@ -50,9 +50,54 @@ setMethod(
         #------------------------------#
 
         # may be changed/discarded in the future, now independent format is different from dependent
-        colnames(object@allcounts) <- c("sgrna_seqs", "oligo_count")
+        colnames(object@allcounts) <- c("sgrna_seqs", "read_count")
         object@allcounts$is_ref <- unlist(lapply(object@allcounts$sgrna_seqs, function(s) ifelse(s == object@refseq, 1, 0)))
         object@allcounts$is_pam <- unlist(lapply(object@allcounts$sgrna_seqs, function(s) ifelse(s == object@pamseq, 1, 0)))
+
+        return(object)
+    }
+)
+
+#' initialize function
+setGeneric("sge_stats", function(object, ...) {
+  standardGeneric("sge_stats")
+})
+
+#' format library dependent and independent counts with extra info and remove duplicate/useless info
+#'
+#' @export
+#' @param object SGE object
+#' @param lowcut cutoff which determines the oligo count is low, user's definition
+#' @return object
+setMethod(
+    "sge_stats",
+    signature = "SGE",
+    definition = function(object, lowcut = 10) {
+        # library dependent counts
+        object@libstats$total_no_oligos <- nrow(object@libcounts)
+        object@libstats$total_no_unique_oligos <- nrow(object@libcounts[object@libcounts$unique == 1, ])
+        object@libstats$total_counts <- sum(object@libcounts$oligo_count)
+        object@libstats$max_counts <- max(object@libcounts$oligo_count)
+        object@libstats$min_counts <- min(object@libcounts$oligo_count)
+        object@libstats$median_counts <- median(object@libcounts$oligo_count)
+        object@libstats$mean_counts <- mean(object@libcounts$oligo_count)
+        object@libstats$no_oligos_nocount <- nrow(object@libcounts[object@libcounts$oligo_count == 0, ])
+        object@libstats$no_oligos_lowcount <- nrow(object@libcounts[object@libcounts$oligo_count <= lowcut, ])
+
+        # library independent counts
+        object@allstats$total_no_reads <- nrow(object@allcounts)
+        if ("unique" %in% colnames(object@allcounts)) {
+            object@allstats$total_no_unique_reads <- nrow(object@allcounts[object@allcounts$unique == 1, ])
+        }
+        object@allstats$total_counts <- sum(object@allcounts$read_count)
+        object@allstats$max_counts <- max(object@allcounts$read_count)
+        object@allstats$min_counts <- min(object@allcounts$read_count)
+        object@allstats$median_counts <- median(object@allcounts$read_count)
+        object@allstats$mean_counts <- mean(object@allcounts$read_count)
+        object@allstats$no_reads_nocount <- nrow(object@allcounts[object@allcounts$read_count == 0, ])
+        object@allstats$no_reads_lowcount <- nrow(object@allcounts[object@allcounts$read_count <= lowcut, ])
+        object@allstats$max_len_reads <- max(nchar(object@allcounts$sgrna_seqs))
+        object@allstats$min_len_reads <- min(nchar(object@allcounts$sgrna_seqs))
 
         return(object)
     }

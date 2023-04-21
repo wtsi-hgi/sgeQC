@@ -14,9 +14,9 @@ A class representing a SGE object
 
 \item{\code{targetons}}{targeton ids}
 
-\item{\code{libtype}}{library type}
-
 \item{\code{libname}}{library name}
+
+\item{\code{libtype}}{library type}
 
 \item{\code{refseq}}{reference sequence}
 
@@ -27,5 +27,9 @@ A class representing a SGE object
 \item{\code{allcounts}}{QUANTS library-independent count file, per sequence per count}
 
 \item{\code{valiant_meta}}{VaLiAnT meta file}
+
+\item{\code{libstats}}{summaries of library dependent counts}
+
+\item{\code{allstats}}{summaries of library independent counts}
 }}
 
