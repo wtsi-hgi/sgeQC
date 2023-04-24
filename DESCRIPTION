@@ -5,6 +5,9 @@ Authors@R:
     person("Fei", "Sang", , "fei.sang@sanger.ac.uk", 
             role = c("aut", "cre"),
             comment = c(ORCID = "YOUR-ORCID-ID"))
+    person("Mark", "Thomas", , "mt4@sanger.ac.uk", 
+            role = c("aut", "cre"),
+            comment = c(ORCID = "YOUR-ORCID-ID"))   
 Description: A R package for SGE QC.
 License: `use_mit_license()`
 Encoding: UTF-8
