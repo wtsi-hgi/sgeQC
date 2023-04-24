@@ -9,24 +9,24 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 
 ## Ingestion
 ### 1. Ingestion of library-independent counts
-<span style="color:darkred;">**Essential:**</span>
-- [x] read count tsv file
-- [x] returns a data frame 
+**Essential:** <br />
+:white_check_mark: read count tsv file <br />
+:white_check_mark: returns a data frame <br />
 
-<span style="color:darkgreen;">**Preferable:**</span>
-- [x] can read in uncompressed and compressed input files
-- [x] user can define column delimiter (e.g. tab, comma)
-- [x] user can define any number of comment lines at the start which can be skipped
-- [x] user can define whether the file has a header (or not)
-- [ ] column containing read sequence and counts is configurable
-- [ ] allows sample (column) names which start with or are numeric values
+**Preferable:** <br />
+:white_check_mark: can read in uncompressed and compressed input files <br />
+:white_check_mark:  user can define column delimiter (e.g. tab, comma)  <br />
+:white_check_mark:  user can define any number of comment lines at the start which can be skipped  <br />
+:white_check_mark:  user can define whether the file has a header (or not)  <br />
+:o: column containing read sequence and counts is configurable  <br />
+:o: allows sample (column) names which start with or are numeric values  <br />
 
 ### 2. Ingestion of library dependent counts
-<span style="color:darkred;">**Essential:**</span>
+**Essential:**
 - [x] read count tsv file
 - [x] returns a data frame 
 
-<span style="color:darkgreen;">**Preferable:**</span>
+**Preferable:**
 - [x] can read in uncompressed and compressed input files
 - [x] user can define column delimiter (e.g. tab, comma)
 - [x] user can define any number of comment lines at the start which can be skipped
@@ -35,11 +35,11 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 - [ ] allows sample (column) names which start with or are numeric values
 
 ### 3. Ingestion of library annotation
-<span style="color:darkred;">**Essential:**</span>
+**Essential:**
 - [x] read meta csv file
 - [x] returns a data frame 
 
-<span style="color:darkgreen;">**Preferable:**</span>
+**Preferable:**
 - [x] user can define column delimiter (e.g. tab, comma)
 - [x] user can define any number of comment lines at the start which can be skipped
 - [x] user can define whether the file has a header (or not)
@@ -49,12 +49,12 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 
 ## Processing
 ### 1. Summary statistics per sample for library-independent counts
-<span style="color:darkred;">**Essential:**</span>
+**Essential:**
 - [x] Total number of quantified reads (sum of all unique read sequence counts)
 - [x] Number of unique read sequences
 - [x] Output as a dataframe (column: statistics, row: sample)
 
-<span style="color:darkgreen;">**Preferable:**</span>
+**Preferable:**
 - [x] Maximum unique read sequence length
 - [x] Minimum unique read sequence length
 - [x] Mean unique read count
@@ -63,12 +63,12 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 - [ ] User-defined output format: dataframe, list or JSON
 
 ### 2. Summary statistics per sample for library-dependent counts
-<span style="color:darkred;">**Essential:**</span>
+**Essential:**
 - [x] Total number of quantified reads (sum of all unique read sequence counts)
 - [x] Number of unique read sequences
 - [x] Output as a dataframe (column: statistics, row: sample)
 
-<span style="color:darkgreen;">**Preferable:**</span>
+**Preferable:**
 - [x] Maximum unique read sequence length
 - [x] Minimum unique read sequence length
 - [x] Mean unique read count
