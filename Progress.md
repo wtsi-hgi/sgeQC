@@ -9,17 +9,17 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 
 ## Ingestion
 ### 1. Ingestion of library-independent counts
-**Essential:** <br />
-:white_check_mark: read count tsv file <br />
-:white_check_mark: returns a data frame <br />
+**Essential:**
+- [x] read count tsv file
+- [x] returns a data frame 
 
-**Preferable:** <br />
-:white_check_mark: can read in uncompressed and compressed input files <br />
-:white_check_mark:  user can define column delimiter (e.g. tab, comma)  <br />
-:white_check_mark:  user can define any number of comment lines at the start which can be skipped  <br />
-:white_check_mark:  user can define whether the file has a header (or not)  <br />
-:o: column containing read sequence and counts is configurable  <br />
-:o: allows sample (column) names which start with or are numeric values  <br />
+**Preferable:**
+- [x] can read in uncompressed and compressed input files
+- [x] user can define column delimiter (e.g. tab, comma)
+- [x] user can define any number of comment lines at the start which can be skipped
+- [x] user can define whether the file has a header (or not)
+- [ ] column containing read sequence and counts is configurable
+- [ ] allows sample (column) names which start with or are numeric values
 
 ### 2. Ingestion of library dependent counts
 **Essential:**
