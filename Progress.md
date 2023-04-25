@@ -8,7 +8,7 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 - [ ] not available yet
 
 ## Ingestion
-### 1. Ingestion of library-independent counts
+#### 1. Ingestion of library-independent counts
 **Essential:**
 - [x] read count tsv file
 - [x] returns a data frame 
@@ -75,3 +75,92 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 - [x] Median unique read count
 - [x] Number of unique reads with count > user-defined value (library-independent low counts)
 - [ ] User-defined output format: dataframe, list or JSON
+
+### 3. Summary of unique read sequence length distribution
+**Essential:**
+- [ ] User can define a list of sequence length bins
+- [ ] Function returns number of reads in each sequence length bin
+
+### 4. Percentage of reads mapping to REF 
+**Essential:**
+- [ ] percentage of REF reads
+- [ ] sample ID or reference
+
+**Preferable:**
+- [ ] flag to exclude sample, based on predefined threshold
+
+### 5. Percentage of reads mapping to PAM 
+**Essential:**
+- [ ] percentage of PAM reads
+- [ ] sample ID or reference
+
+**Preferable:**
+- [ ] flag to exclude sample, based on predefined threshold
+
+### 6. Percentage of reads mapping to library
+**Essential:**
+- [ ] percentage of ""Effective"" library reads
+- [ ] sample ID or reference
+
+**Preferable:**
+- [ ] flag to exclude sample, based on predefined threshold
+
+### 7. Percentage of unmapped reads
+**Essential:**
+- [ ] percentage of unmappped reads
+- [ ] sample ID or reference
+
+**Preferable:**
+- [ ] flag to exclude sample, based on predefined threshold
+
+### 8. Percentage of variants missing
+**Essential:**
+- [ ] percentage of variants missing
+- [ ] sample ID or reference
+
+**Preferable:**
+- [ ] flag to exclude sample, based on predefined threshold
+
+### 9. Gini coefficient
+**Essential:**
+- [ ] gini-coefficient
+- [ ] sample ID or reference
+
+**Preferable:**
+- [ ] flag to exclude sample, based on predefined threshold
+
+### 10. Percentage of adapters
+**Essential:**
+
+**Preferable:**
+
+### 11. Percentage of paired reads with correct insert size
+**Essential:**
+
+**Preferable:**
+
+### 12. Reads per sample
+**Essential:**
+- [ ] number of reads
+- [ ] sample ID or reference
+
+**Preferable:**
+- [ ] flag to exclude sample, based on predefined threshold
+
+### 13. Mapping statistic
+**Essential:**
+- [ ] mapping score
+- [ ] percentage of samples passing QC
+- [ ] distribution of samples passing QC
+- [ ] experiment ID or reference
+
+**Preferable:**
+- [ ] flag to exclude experiment, based on predefined criteria
+
+### 14. Beeswarm
+**Essential:**
+- [ ] percentage of mutants with no functional impact
+- [ ] experiment ID or reference
+
+**Preferable:**
+- [ ] flag to exclude experiment, based on predefined criteria

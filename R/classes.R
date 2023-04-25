@@ -8,6 +8,8 @@
 #' @slot targetons targeton ids
 #' @slot libname library name
 #' @slot libtype library type
+#' @slot adapt5 adaptor sequence at 5 prime end
+#' @slot adapt3 adaptor sequence at 3 prime end
 #' @slot refseq reference sequence
 #' @slot pamseq sequence with pam variants
 #' @slot libcounts QUANTS library-dependent count file, per sequence per count
@@ -21,6 +23,8 @@ setClass("SGE",
         targetons = "list",
         libtype = "character",
         libname = "character",
+        adapt5 = "character",
+        adapt3 = "character",
         refseq = "character",
         pamseq = "character",
         libcounts = "data.frame",
@@ -34,6 +38,8 @@ setClass("SGE",
         targetons = list(),
         libtype = character(),
         libname = character(),
+        adapt5 = character(),
+        adapt3 = character(),
         refseq = character(),
         pamseq = character(),
         libcounts = data.frame(),
@@ -48,14 +54,18 @@ setClass("SGE",
 #'
 #' @export
 #' @name create_sge_object
-#' @param libcount QUANTS library-dependent count file, per sequence per count
-#' @param allcount QUANTS library-independent count file, per sequence per count
-#' @param valiant_meta VaLiAnT meta file
+#' @param file_libcount QUANTS library-dependent count file, per sequence per count
+#' @param file_allcount QUANTS library-independent count file, per sequence per count
+#' @param file_valiant_meta VaLiAnT meta file
+#' @param file_libcount_hline line number of header in library-dependent count file
+#' @param file_allcount_hline line number of header in library-independent count file
+#' @param file_valiant_meta_hline line number of header in VaLiAnT meta file
 #' @return An object of class SGE
-create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta) {
+create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta,
+                              file_libcount_hline = 3, file_allcount_hline = 3, file_valiant_meta_hline = 1) {
     # Read files
-    libread <- read_count_file(file_libcount, "lib", 3)
-    allcounts <- read_count_file(file_allcount, "all", 3)
+    libread <- read_count_file(file_libcount, "lib", file_libcount_hline)
+    allcounts <- read_count_file(file_allcount, "all", file_allcount_hline)
     valiant_meta <- read_sge_file(file_valiant_meta, TRUE)
 
     df_libstats <- data.frame(matrix(NA, 1, 9))

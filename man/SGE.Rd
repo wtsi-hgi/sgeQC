@@ -18,6 +18,10 @@ A class representing a SGE object
 
 \item{\code{libtype}}{library type}
 
+\item{\code{adapt5}}{adaptor sequence at 5 prime end}
+
+\item{\code{adapt3}}{adaptor sequence at 3 prime end}
+
 \item{\code{refseq}}{reference sequence}
 
 \item{\code{pamseq}}{sequence with pam variants}

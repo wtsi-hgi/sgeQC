@@ -12,6 +12,13 @@ setMethod(
     "format_count",
     signature = "SGE",
     definition = function(object) {
+        #----------#
+        # checking #
+        #----------#
+        if (length(object@adapt5) == 0 || length(object@adapt3) == 0) {
+            stop(paste0("====> Error: please provide adaptor sequences first!"))
+        }
+
         #----------------------------#
         # 1. library dependent count #
         #----------------------------#
@@ -40,6 +47,9 @@ setMethod(
         if (length(object@pamseq) == 0) {
             stop(paste0("====> Error: no pam sequence in ", object@libname))
         }
+
+        object@refseq <- trim_adaptor(object@refseq, object@adapt5, object@adapt3)
+        object@pamseq <- trim_adaptor(object@pamseq, object@adapt5, object@adapt3)
 
         # need to change, valiant meta sequence may have prime/adaptor, Jamie's valiant description is clean
         object@libcounts$is_ref <- unlist(lapply(object@libcounts$sgrna_seqs, function(s) ifelse(s == object@refseq, 1, 0)))

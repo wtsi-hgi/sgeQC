@@ -16,6 +16,8 @@ setMethod(
         }
         cat("|--> library type: ", object@libtype, "\n", sep = "")
         cat("|--> library name: ", object@libname, "\n", sep = "")
+        cat("    |--> 5' adaptor: ", object@adapt5, "\n", sep = "")
+        cat("    |--> 3' adaptor: ", object@adapt3, "\n", sep = "")
         cat("    |--> ref seq: ", object@refseq, "\n", sep = "")
         cat("    |--> pam seq: ", object@pamseq, "\n", sep = "")
         cat("    |--> No. of library-dependent counts: ", nrow(object@libcounts), "\n", sep = "")

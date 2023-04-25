@@ -4,14 +4,27 @@
 \alias{create_sge_object}
 \title{Create a new SGE object}
 \usage{
-create_sge_object(file_libcount, file_allcount, file_valiant_meta)
+create_sge_object(
+  file_libcount,
+  file_allcount,
+  file_valiant_meta,
+  file_libcount_hline = 3,
+  file_allcount_hline = 3,
+  file_valiant_meta_hline = 1
+)
 }
 \arguments{
-\item{libcount}{QUANTS library-dependent count file, per sequence per count}
+\item{file_libcount}{QUANTS library-dependent count file, per sequence per count}
 
-\item{allcount}{QUANTS library-independent count file, per sequence per count}
+\item{file_allcount}{QUANTS library-independent count file, per sequence per count}
 
-\item{valiant_meta}{VaLiAnT meta file}
+\item{file_valiant_meta}{VaLiAnT meta file}
+
+\item{file_libcount_hline}{line number of header in library-dependent count file}
+
+\item{file_allcount_hline}{line number of header in library-independent count file}
+
+\item{file_valiant_meta_hline}{line number of header in VaLiAnT meta file}
 }
 \value{
 An object of class SGE
