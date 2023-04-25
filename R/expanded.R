@@ -49,14 +49,14 @@ trim_adaptor <- function(seq, adapt5, adapt3) {
 
     is_revcomp <- FALSE
     # ? could adaptor revcomp ?
-    if (adapt5_pos < 0 && adapt3_pos < 0) {
+    if (adapt5_pos < 0 & adapt3_pos < 0) {
         adapt5_revcomp <- revcomp(adapt5)
         adapt3_revcomp <- revcomp(adapt3)
 
         adapt5_revcomp_pos <- regexpr(adapt5_revcomp, seq, fixed = TRUE)[1]
         adapt3_revcomp_pos <- regexpr(adapt3_revcomp, seq, fixed = TRUE)[1]
 
-        if (adapt3_revcomp_pos < 0 && adapt5_revcomp_pos < 0) {
+        if (adapt3_revcomp_pos < 0 & adapt5_revcomp_pos < 0) {
             return(seq)
         } else {
             is_revcomp <- TRUE
@@ -65,11 +65,11 @@ trim_adaptor <- function(seq, adapt5, adapt3) {
 
     if (is_revcomp == FALSE) {
         if (adapt3_pos > adapt5_pos) {
-            if (adapt5_pos > 0 && adapt3_pos > 0) {
+            if (adapt5_pos > 0 & adapt3_pos > 0) {
                 return(substr(seq, adapt5_pos + nchar(adapt5), adapt3_pos - 1))
-            } else if (adapt5_pos > 0 && adapt3_pos < 0) {
+            } else if (adapt5_pos > 0 & adapt3_pos < 0) {
                 return(substr(seq, adapt5_pos + nchar(adapt5), nchar(seq)))
-            } else if (adapt5_pos < 0 && adapt3_pos > 0) {
+            } else if (adapt5_pos < 0 & adapt3_pos > 0) {
                 return(substr(seq, 1, adapt3_pos - 1))
             }
         } else {
@@ -77,11 +77,11 @@ trim_adaptor <- function(seq, adapt5, adapt3) {
         }
     } else {
         if (adapt5_revcomp_pos > adapt3_revcomp_pos) {
-            if (adapt3_revcomp_pos > 0 && adapt5_revcomp_pos > 0) {
+            if (adapt3_revcomp_pos > 0 & adapt5_revcomp_pos > 0) {
                 return(substr(seq, adapt3_revcomp_pos + nchar(adapt3_revcomp), adapt5_revcomp_pos - 1))
-            } else if (adapt3_revcomp_pos > 0 && adapt5_revcomp_pos < 0) {
+            } else if (adapt3_revcomp_pos > 0 & adapt5_revcomp_pos < 0) {
                 return(substr(seq, adapt3_revcomp_pos + nchar(adapt3_revcomp), nchar(seq)))
-            } else if (adapt3_revcomp_pos < 0 && adapt5_revcomp_pos > 0) {
+            } else if (adapt3_revcomp_pos < 0 & adapt5_revcomp_pos > 0) {
                 return(substr(seq, 1, adapt3_revcomp_pos - 1))
             }
         } else {

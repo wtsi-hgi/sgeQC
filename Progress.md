@@ -109,7 +109,7 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 
 ### 4. Percentage of reads mapping to REF 
 **Essential:**
-- [ ] percentage of REF reads
+- [x] percentage of REF reads
 - [ ] sample ID or reference
 
 **Preferable:**
@@ -117,7 +117,7 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 
 ### 5. Percentage of reads mapping to PAM 
 **Essential:**
-- [ ] percentage of PAM reads
+- [x] percentage of PAM reads
 - [ ] sample ID or reference
 
 **Preferable:**
@@ -125,7 +125,7 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 
 ### 6. Percentage of reads mapping to library
 **Essential:**
-- [ ] percentage of ""Effective"" library reads
+- [x] percentage of Effective library reads
 - [ ] sample ID or reference
 
 **Preferable:**
@@ -133,7 +133,7 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 
 ### 7. Percentage of unmapped reads
 **Essential:**
-- [ ] percentage of unmappped reads
+- [x] percentage of unmappped reads
 - [ ] sample ID or reference
 
 **Preferable:**

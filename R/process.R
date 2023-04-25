@@ -15,7 +15,7 @@ setMethod(
         #----------#
         # checking #
         #----------#
-        if (length(object@adapt5) == 0 || length(object@adapt3) == 0) {
+        if (length(object@adapt5) == 0 | length(object@adapt3) == 0) {
             stop(paste0("====> Error: please provide adaptor sequences first!"))
         }
 
@@ -108,6 +108,62 @@ setMethod(
         object@allstats$no_reads_lowcount <- nrow(object@allcounts[object@allcounts$read_count <= lowcut, ])
         object@allstats$max_len_reads <- max(nchar(object@allcounts$sgrna_seqs))
         object@allstats$min_len_reads <- min(nchar(object@allcounts$sgrna_seqs))
+
+        return(object)
+    }
+)
+
+#' initialize function
+setGeneric("sge_qc_stats", function(object, ...) {
+  standardGeneric("sge_qc_stats")
+})
+
+#' format library dependent and independent counts with extra info and remove duplicate/useless info
+#'
+#' @export
+#' @param object SGE object
+#' @param lowcut cutoff which determines the oligo count is low, user's definition
+#' @return object
+setMethod(
+    "sge_qc_stats",
+    signature = "SGE",
+    definition = function(object) {
+
+        # issue: total_counts is counts, not no. of seqeunced reads, need from qc report
+
+        # library dependent counts
+        qc_count <- object@libcounts[object@libcounts$is_ref == 1, "oligo_count"]
+        object@libstats_qc$no_ref_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
+        object@libstats_qc$per_ref_reads <- object@libstats_qc$no_ref_reads / object@libstats$total_counts * 100
+
+        qc_count <- object@libcounts[object@libcounts$is_pam == 1, "oligo_count"]
+        object@libstats_qc$no_pam_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
+        object@libstats_qc$per_pam_reads <- object@libstats_qc$no_pam_reads / object@libstats$total_counts * 100
+
+        qc_count <- sum(object@libcounts[object@libcounts$is_ref == 0 & object@libcounts$is_pam == 0, "oligo_count"])
+        object@libstats_qc$no_eff_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
+        object@libstats_qc$per_eff_reads <- object@libstats_qc$no_eff_reads / object@libstats$total_counts * 100
+
+        qc_count <- object@libstats$total_counts - object@libstats_qc$no_ref_reads - object@libstats_qc$no_pam_reads - object@libstats_qc$no_eff_reads
+        object@libstats_qc$no_unmapped_reads <- qc_count
+        object@libstats_qc$per_unmapped_reads <- object@libstats_qc$no_unmapped_reads / object@libstats$total_counts * 100
+
+        # library independent counts
+        qc_count <- object@allcounts[object@allcounts$is_ref == 1, "read_count"]
+        object@allstats_qc$no_ref_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
+        object@allstats_qc$per_ref_reads <- object@allstats_qc$no_ref_reads / object@allstats$total_counts * 100
+
+        qc_count <- object@allcounts[object@allcounts$is_pam == 1, "read_count"]
+        object@allstats_qc$no_pam_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
+        object@allstats_qc$per_pam_reads <- object@allstats_qc$no_pam_reads / object@allstats$total_counts * 100
+
+        qc_count <- sum(object@allcounts[object@allcounts$is_ref == 0 & object@allcounts$is_pam == 0, "read_count"])
+        object@allstats_qc$no_eff_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
+        object@allstats_qc$per_eff_reads <- object@allstats_qc$no_eff_reads / object@allstats$total_counts * 100
+
+        qc_count <- object@allstats$total_counts - object@allstats_qc$no_ref_reads - object@allstats_qc$no_pam_reads - object@allstats_qc$no_eff_reads
+        object@allstats_qc$no_unmapped_reads <- qc_count
+        object@allstats_qc$per_unmapped_reads <- object@allstats_qc$no_unmapped_reads / object@allstats$total_counts * 100
 
         return(object)
     }

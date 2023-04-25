@@ -35,5 +35,9 @@ A class representing a SGE object
 \item{\code{libstats}}{summaries of library dependent counts}
 
 \item{\code{allstats}}{summaries of library independent counts}
+
+\item{\code{libstats_qc}}{qc stats of library dependent counts}
+
+\item{\code{allstats_qc}}{qc stats of library independent counts}
 }}
 

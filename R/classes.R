@@ -17,6 +17,8 @@
 #' @slot valiant_meta VaLiAnT meta file
 #' @slot libstats summaries of library dependent counts
 #' @slot allstats summaries of library independent counts
+#' @slot libstats_qc qc stats of library dependent counts
+#' @slot allstats_qc qc stats of library independent counts
 setClass("SGE",
     slots = list(
         samples = "list",
@@ -31,7 +33,9 @@ setClass("SGE",
         allcounts = "data.frame",
         valiant_meta = "data.frame",
         libstats = "data.frame",
-        allstats = "data.frame"
+        allstats = "data.frame",
+        libstats_qc = "data.frame",
+        allstats_qc = "data.frame"
     ),
     prototype = list(
         samples = list(),
@@ -46,7 +50,9 @@ setClass("SGE",
         allcounts = data.frame(),
         valiant_meta = data.frame(),
         libstats = data.frame(),
-        allstats = data.frame()
+        allstats = data.frame(),
+        libstats_qc = data.frame(),
+        allstats_qc = data.frame()
     )
 )
 
@@ -68,6 +74,7 @@ create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta,
     allcounts <- read_count_file(file_allcount, "all", file_allcount_hline)
     valiant_meta <- read_sge_file(file_valiant_meta, TRUE)
 
+    # initializing
     df_libstats <- data.frame(matrix(NA, 1, 9))
     colnames(df_libstats) <- c("total_no_oligos",
                                "total_no_unique_oligos",
@@ -92,6 +99,32 @@ create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta,
                                "max_len_reads",
                                "min_len_reads")
 
+    df_libstats_qc <- data.frame(matrix(NA, 1, 11))
+    colnames(df_libstats_qc) <- c("no_ref_reads",
+                                  "per_ref_reads",
+                                  "no_pam_reads",
+                                  "per_pam_reads",
+                                  "no_eff_reads",
+                                  "per_eff_reads",
+                                  "no_unmapped_reads",
+                                  "per_unmapped_reads",
+                                  "no_missing_var",
+                                  "per_missing_var",
+                                  "gini_coeff")
+
+    df_allstats_qc <- data.frame(matrix(NA, 1, 11))
+    colnames(df_allstats_qc) <- c("no_ref_reads",
+                                  "per_ref_reads",
+                                  "no_pam_reads",
+                                  "per_pam_reads",
+                                  "no_eff_reads",
+                                  "per_eff_reads",
+                                  "no_unmapped_reads",
+                                  "per_unmapped_reads",
+                                  "no_missing_var",
+                                  "per_missing_var",
+                                  "gini_coeff")
+
     # Create the object
     sge_object <- new("SGE",
         libtype = libread[[1]],
@@ -100,7 +133,9 @@ create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta,
         allcounts = allcounts,
         valiant_meta = valiant_meta,
         libstats = df_libstats,
-        allstats = df_allstats)
+        allstats = df_allstats,
+        libstats_qc = df_libstats_qc,
+        allstats_qc = df_allstats_qc)
 
     # Return the object
     return(sge_object)
