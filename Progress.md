@@ -7,6 +7,32 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 - [x] tested and passed
 - [ ] not available yet
 
+## Table of Contents
+<details hide>
+<summary><b>(click to expand or hide)</b></summary>
+
+- [Ingestion](#ingestion)
+  + [1. Ingestion of library-independent counts](#1-ingestion-of-library-independent-counts)
+  + [2. Ingestion of library dependent counts](#2-ingestion-of-library-dependent-counts)
+  + [3. Ingestion of library annotation](#3-ingestion-of-library-annotation)
+- [Processing](#processing)
+  + [1. Summary statistics per sample for library-independent counts](#1-summary-statistics-per-sample-for-library-independent-counts)
+  + [2. Summary statistics per sample for library-dependent counts](#2-summary-statistics-per-sample-for-library-dependent-counts)
+  + [3. Summary of unique read sequence length distribution](#3-summary-of-unique-read-sequence-length-distribution)
+  + [4. Percentage of reads mapping to REF](#4-percentage-of-reads-mapping-to-ref)
+  + [5. Percentage of reads mapping to PAM](#5-percentage-of-reads-mapping-to-pam)
+  + [6. Percentage of reads mapping to library](#6-percentage-of-reads-mapping-to-library)
+  + [7. Percentage of unmapped reads](#7-percentage-of-unmapped-reads)
+  + [8. Percentage of variants missing](#8-percentage-of-variants-missing)
+  + [9. Gini coefficient](#9-gini-coefficient)
+  + [10. Percentage of adapters](#10-percentage-of-adapters)
+  + [11. Percentage of paired reads with correct insert size](#11-percentage-of-paired-reads-with-correct-insert-size)
+  + [12. Reads per sample](#12-reads-per-sample)
+  + [13. Mapping statistic](#13-mapping-statistic)
+  + [14. Beeswarm](#14-beeswarm)
+
+</details>
+
 ## Ingestion
 #### 1. Ingestion of library-independent counts
 **Essential:**
