@@ -103,6 +103,9 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 - [ ] User-defined output format: dataframe, list or JSON
 
 ### 3. Summary of unique read sequence length distribution
+```diff
++ need mulitqc report of read length
+```
 **Essential:**
 - [ ] User can define a list of sequence length bins
 - [ ] Function returns number of reads in each sequence length bin

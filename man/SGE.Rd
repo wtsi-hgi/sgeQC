@@ -10,7 +10,7 @@ A class representing a SGE object
 \section{Slots}{
 
 \describe{
-\item{\code{samples}}{sample names}
+\item{\code{sample}}{a sample name}
 
 \item{\code{targetons}}{targeton ids}
 

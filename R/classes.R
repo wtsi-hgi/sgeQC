@@ -4,7 +4,7 @@
 #' @importFrom methods setMethod
 #' @importFrom S4Vectors DataFrame
 #' @name SGE
-#' @slot samples sample names
+#' @slot sample a sample name
 #' @slot targetons targeton ids
 #' @slot libname library name
 #' @slot libtype library type
@@ -21,8 +21,7 @@
 #' @slot allstats_qc qc stats of library independent counts
 setClass("SGE",
     slots = list(
-        samples = "list",
-        targetons = "list",
+        sample = "character",
         libtype = "character",
         libname = "character",
         adapt5 = "character",
@@ -38,8 +37,7 @@ setClass("SGE",
         allstats_qc = "data.frame"
     ),
     prototype = list(
-        samples = list(),
-        targetons = list(),
+        sample = character(),
         libtype = character(),
         libname = character(),
         adapt5 = character(),
@@ -75,7 +73,7 @@ create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta,
     valiant_meta <- read_sge_file(file_valiant_meta, TRUE)
 
     # initializing
-    df_libstats <- data.frame(matrix(NA, 1, 9))
+    df_libstats <- data.frame(matrix(NA, 1, 11))
     colnames(df_libstats) <- c("total_no_oligos",
                                "total_no_unique_oligos",
                                "total_counts",
@@ -84,20 +82,22 @@ create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta,
                                "median_counts",
                                "mean_counts",
                                "no_oligos_nocount",
-                               "no_oligos_lowcount")
+                               "no_oligos_lowcount",
+                               "max_len_oligos",
+                               "min_len_oligos")
 
     df_allstats <- data.frame(matrix(NA, 1, 11))
-    colnames(df_allstats) <- c("total_no_reads",
-                               "total_no_unique_reads",
+    colnames(df_allstats) <- c("total_no_oligos",
+                               "total_no_unique_oligos",
                                "total_counts",
                                "max_counts",
                                "min_counts",
                                "median_counts",
                                "mean_counts",
-                               "no_reads_nocount",
-                               "no_reads_lowcount",
-                               "max_len_reads",
-                               "min_len_reads")
+                               "no_oligos_nocount",
+                               "no_oligos_lowcount",
+                               "max_len_oligos",
+                               "min_len_oligos")
 
     df_libstats_qc <- data.frame(matrix(NA, 1, 11))
     colnames(df_libstats_qc) <- c("no_ref_reads",

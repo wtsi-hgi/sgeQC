@@ -6,14 +6,7 @@ setMethod(
     signature = "SGE",
     definition = function(object) {
         cat("An object of class ", class(object), "\n", sep = "")
-        cat("|--> No. of samples: ", length(object@samples), "\n", sep = "")
-        for (s in object@samples) {
-            cat("    |--> ", s, "\n", sep = "")
-        }
-        cat("|--> No. of targetons: ", length(object@targetons), "\n", sep = "")
-        for (t in object@targetons) {
-            cat("    |--> ", t, "\n", sep = "")
-        }
+        cat("|--> sample name: ", object@sample, "\n", sep = "")
         cat("|--> library type: ", object@libtype, "\n", sep = "")
         cat("|--> library name: ", object@libname, "\n", sep = "")
         cat("    |--> 5' adaptor: ", object@adapt5, "\n", sep = "")
