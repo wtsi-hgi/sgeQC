@@ -34,7 +34,7 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 </details>
 
 ## Ingestion
-#### 1. Ingestion of library-independent counts
+### 1. Ingestion of library-independent counts
 **Essential:**
 - [x] read count tsv file
 - [x] returns a data frame 

@@ -45,6 +45,13 @@ myobj <- create_sge_object(file_libcount = "test/library_dependent_counts.tsv.gz
                            file_allcount = "test/library_independent_counts.tsv.gz",
                            file_valiant_meta = "test/valiant_meta.csv.gz")
 myobj
+
+myobj@adapt5 <- "AGCAGCAGCTGACACAAAGT"
+myobj@adapt3 <- "CCTCCTCCCCACTCCCTG"
+
+myobj <- format_count(myobj)
+myobj <- sge_stats(myobj) 
+myobj <- sge_qc_stats(myobj) 
 ```
 
 <p align="right">(<a href="#top">TOP</a>)</p>
