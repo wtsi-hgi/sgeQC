@@ -2,7 +2,6 @@
 
 export("%nin%")
 export(create_sge_object)
-export(read_count_file)
 export(read_sge_file)
 export(revcomp)
 export(round_any)

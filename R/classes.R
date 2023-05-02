@@ -64,13 +64,17 @@ setClass("SGE",
 #' @param file_libcount_hline line number of header in library-dependent count file
 #' @param file_allcount_hline line number of header in library-independent count file
 #' @param file_valiant_meta_hline line number of header in VaLiAnT meta file
+#' @param file_libcount_cols a vector of numbers of selected columns in library-dependent count file, default is none
+#' @param file_allcount_cols a vector of numbers of selected columns in library-independent count file, default is none
+#' @param file_valiant_meta_cols a vector of numbers of selected columns in VaLiAnT meta file, default is none
 #' @return An object of class SGE
 create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta,
-                              file_libcount_hline = 3, file_allcount_hline = 3, file_valiant_meta_hline = 1) {
+                              file_libcount_hline = 3, file_allcount_hline = 3, file_valiant_meta_hline = 1,
+                              file_libcount_cols = vector(), file_allcount_cols = vector(), file_valiant_meta_cols = vector()) {
     # Read files
-    libread <- read_count_file(file_libcount, "lib", file_libcount_hline)
-    allcounts <- read_count_file(file_allcount, "all", file_allcount_hline)
-    valiant_meta <- read_sge_file(file_valiant_meta, TRUE)
+    libread <- read_sge_file(file_libcount, "lib", file_libcount_hline, file_libcount_cols)
+    allcounts <- read_sge_file(file_allcount, "all", file_allcount_hline, file_allcount_cols)
+    valiant_meta <- read_sge_file(file_valiant_meta, "val", file_valiant_meta_hline, file_valiant_meta_cols)
 
     # initializing
     df_libstats <- data.frame(matrix(NA, 1, 11))

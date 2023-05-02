@@ -3,21 +3,25 @@
 \name{read_sge_file}
 \alias{read_sge_file}
 \title{check file format and read it
-file has header but without # at the beginning
-ignore all the comments}
+file has header but beginning with #
+reading extra comment info}
 \usage{
-read_sge_file(file_path, file_header)
+read_sge_file(file_path, file_type, hline = 0, colnums = vector())
 }
 \arguments{
 \item{file_path}{file path}
 
-\item{file_header}{TRUE or FALSE, default is TRUE}
+\item{file_type}{library-dependent (lib) or library-independent (all) or valiant meta (val)}
+
+\item{hline}{header line number, default is 0}
+
+\item{colnums}{a vector of selected colummns, default is none}
 }
 \value{
 a dataframe
 }
 \description{
 check file format and read it
-file has header but without # at the beginning
-ignore all the comments
+file has header but beginning with #
+reading extra comment info
 }
