@@ -6,6 +6,9 @@
 \usage{
 \S4method{show}{SGE}(object)
 }
+\arguments{
+\item{object}{SGE object}
+}
 \description{
 show basic info of the object
 }

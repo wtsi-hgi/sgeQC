@@ -52,6 +52,9 @@ myobj@adapt3 <- "CCTCCTCCCCACTCCCTG"
 myobj <- format_count(myobj)
 myobj <- sge_stats(myobj) 
 myobj <- sge_qc_stats(myobj) 
+
+show_stats(myobj)
+show_stats_qc(myobj)
 ```
 
 <p align="right">(<a href="#top">TOP</a>)</p>
