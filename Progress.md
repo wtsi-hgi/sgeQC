@@ -44,7 +44,7 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 - [x] user can define column delimiter (e.g. tab, comma)
 - [x] user can define any number of comment lines at the start which can be skipped
 - [x] user can define whether the file has a header (or not)
-- [ ] column containing read sequence and counts is configurable
+- [x] column containing read sequence and counts is configurable
 - [ ] allows sample (column) names which start with or are numeric values
 
 ### 2. Ingestion of library dependent counts
@@ -57,7 +57,7 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 - [x] user can define column delimiter (e.g. tab, comma)
 - [x] user can define any number of comment lines at the start which can be skipped
 - [x] user can define whether the file has a header (or not)
-- [ ] column containing read sequence and counts is configurable
+- [x] column containing read sequence and counts is configurable
 - [ ] allows sample (column) names which start with or are numeric values
 
 ### 3. Ingestion of library annotation
@@ -69,8 +69,8 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 - [x] user can define column delimiter (e.g. tab, comma)
 - [x] user can define any number of comment lines at the start which can be skipped
 - [x] user can define whether the file has a header (or not)
-- [ ] user can define whether to keep all columns or just a subset
-- [ ] user can define a column which contains the oligo identifiers and can check that identifiers have not been duplicated (i.e. unique ids)
+- [x] user can define whether to keep all columns or just a subset
+- [x] user can define a column which contains the oligo identifiers and can check that identifiers have not been duplicated (i.e. unique ids)
 - [ ] allows sample (column) names which start with or are numeric values
 
 ## Processing
