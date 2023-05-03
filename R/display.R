@@ -35,12 +35,24 @@ setMethod(
     signature = "SGE",
     definition = function(object) {
         colstrs <- colnames(object@libstats)
-        header_line <- "|--> type: library dependent counts | library independent counts"
+        dash_line <- paste0("|", strrep("-", 20 + nchar("type")), "-|-")
+        dash_line <- paste0(dash_line, strrep("-", nchar("library dependent counts")), "-|-")
+        dash_line <- paste0(dash_line, strrep("-", nchar("library independent counts")), "-|")
         cat("Basic stats of sample: ", object@sample, "\n", sep = "")
+        cat(dash_line, "\n", sep = "")
+        header_line <- paste0("|", strrep(" ", 20), "type | library dependent counts | library independent counts |")
         cat(header_line, "\n", sep = "")
+        cat(dash_line, "\n", sep = "")
         for (i in 1:length(colstrs)) {
-            cat("|--> ", colstrs[i], ": ", object@libstats[, i], " | ", object@allstats[, i], "\n", sep = "")
+            spacestr <- strrep(" ", 20 - nchar(colstrs[i]) + nchar("type"))
+            info_line <- paste0("|", spacestr, colstrs[i], " | ")
+            spacestr <- strrep(" ", nchar("library dependent counts") - nchar(toString(object@libstats[, i])))
+            info_line <- paste0(info_line, spacestr, object@libstats[, i], " | ")
+            spacestr <- strrep(" ", nchar("library independent counts") - nchar(toString(object@allstats[, i])))
+            info_line <- paste0(info_line, spacestr, object@allstats[, i], " | ")
+            cat(info_line, "\n", sep = "")
         }
+        cat(dash_line, "\n", sep = "")
     }
 )
 
@@ -58,11 +70,23 @@ setMethod(
     signature = "SGE",
     definition = function(object) {
         colstrs <- colnames(object@libstats_qc)
-        header_line <- "|--> type: library dependent counts | library independent counts"
+        dash_line <- paste0("|", strrep("-", 20 + nchar("type")), "-|-")
+        dash_line <- paste0(dash_line, strrep("-", nchar("library dependent counts")), "-|-")
+        dash_line <- paste0(dash_line, strrep("-", nchar("library independent counts")), "-|")
         cat("QC stats of sample: ", object@sample, "\n", sep = "")
+        cat(dash_line, "\n", sep = "")
+        header_line <- paste0("|", strrep(" ", 20), "type | library dependent counts | library independent counts |")
         cat(header_line, "\n", sep = "")
+        cat(dash_line, "\n", sep = "")
         for (i in 1:length(colstrs)) {
-            cat("|--> ", colstrs[i], ": ", object@libstats_qc[, i], " | ", object@allstats_qc[, i], "\n", sep = "")
+            spacestr <- strrep(" ", 20 - nchar(colstrs[i]) + nchar("type"))
+            info_line <- paste0("|", spacestr, colstrs[i], " | ")
+            spacestr <- strrep(" ", nchar("library dependent counts") - nchar(toString(object@libstats_qc[, i])))
+            info_line <- paste0(info_line, spacestr, object@libstats_qc[, i], " | ")
+            spacestr <- strrep(" ", nchar("library independent counts") - nchar(toString(object@allstats_qc[, i])))
+            info_line <- paste0(info_line, spacestr, object@allstats_qc[, i], " | ")
+            cat(info_line, "\n", sep = "")
         }
+        cat(dash_line, "\n", sep = "")
     }
 )

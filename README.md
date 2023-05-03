@@ -11,8 +11,11 @@
 2. [Dependencies](#dependencies)
 3. [Import Data](#import-data)
 4. [Plasmid QC](#plasmid-qc)
-    - [QC 1: ](#qc1)
-    - [QC 2: ](#qc2)
+    - [QC 1: ](#pqc1)
+    - [QC 2: ](#pqc2)
+5. [Screen QC](#screen-qc)
+    - [QC 1: ](#sqc1)
+    - [QC 2: ](#sqc2)
 
 </details>
 
@@ -62,8 +65,26 @@ show_stats_qc(myobj)
 <!-- Plasmid QC -->
 ## Plasmid QC
 
-<a id="qc1"></a>
+<a id="pqc1"></a>
 ### QC 1: 
+
+<p align="right">(<a href="#top">TOP</a>)</p>
+
+<a id="pqc2"></a>
+### QC 2: 
+
+<p align="right">(<a href="#top">TOP</a>)</p>
+
+<!-- Screen QC -->
+## Screen QC
+
+<a id="sqc1"></a>
+### QC 1: 
+
+<p align="right">(<a href="#top">TOP</a>)</p>
+
+<a id="sqc2"></a>
+### QC 2: 
 
 <p align="right">(<a href="#top">TOP</a>)</p>
 
