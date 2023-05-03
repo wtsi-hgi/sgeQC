@@ -57,8 +57,8 @@ setMethod(
 )
 
 #' initialize function
-setGeneric("show_stats_qc", function(object, ...) {
-  standardGeneric("show_stats_qc")
+setGeneric("show_qc_stats", function(object, ...) {
+  standardGeneric("show_qc_stats")
 })
 
 #' show qc stats of the object
@@ -66,7 +66,7 @@ setGeneric("show_stats_qc", function(object, ...) {
 #' @export
 #' @param object SGE object
 setMethod(
-    "show_stats_qc",
+    "show_qc_stats",
     signature = "SGE",
     definition = function(object) {
         colstrs <- colnames(object@libstats_qc)

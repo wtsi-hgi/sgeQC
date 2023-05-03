@@ -57,7 +57,7 @@ myobj <- sge_stats(myobj)
 myobj <- sge_qc_stats(myobj) 
 
 show_stats(myobj)
-show_stats_qc(myobj)
+show_qc_stats(myobj)
 ```
 
 <p align="right">(<a href="#top">TOP</a>)</p>
