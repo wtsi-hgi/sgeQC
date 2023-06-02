@@ -1,8 +1,9 @@
+library(methods)
+library(S4Vectors)
+
 #' A class representing a SGE object
 #'
 #' @export
-#' @importFrom methods setMethod
-#' @importFrom S4Vectors DataFrame
 #' @name SGE
 #' @slot sample a sample name
 #' @slot targetons targeton ids
@@ -143,4 +144,85 @@ create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta,
 
     # Return the object
     return(sge_object)
+}
+
+#' A class representing a primary qc object
+#'
+#' @export
+#' @name primaryQC
+#' @slot samples a list of SGE objects
+#' @slot samples_ref a list of SGE objects which are the references for screen QC
+#' @slot samples_ref_filtered_seqs a vector of sequences with counts > clustering cutoff for screen QC in the references
+#' @slot counts a list of sample counts
+#' @slot counts_filtered a data frame of filtered sample counts
+#' @slot seq_clusters 1D k-means clusters, a data frame of sequences and cluster IDs
+#' @slot stats a data frame of samples and stats, eg. total no, filtered no.
+setClass("primaryQC",
+    slots = list(
+        samples = "list",
+        samples_ref = "list",
+        samples_ref_filtered_seqs = "character",
+        counts = "list",
+        counts_filtered = "data.frame",
+        seq_clusters = "data.frame",
+        stats = "data.frame"
+    ),
+    prototype = list(
+        samples = list(),
+        samples_ref = list(),
+        samples_ref_filtered_seqs = character(),
+        counts = list(),
+        counts_filtered = data.frame(),
+        seq_clusters = data.frame(),
+        stats = data.frame()
+    )
+)
+
+#' Create a new primaryQC object
+#'
+#' @export
+#' @name create_primaryqc_object
+#' @param samples a list of SGE objects
+#' @return An object of class primaryQC
+create_primaryqc_object <- function(samples) {
+    # checking
+    if (length(samples) == 0) {
+         stop(paste0("====> Error: no sample found in the input!"))
+    }
+
+    # initializing
+    num_samples <- length(samples)
+    sample_names <- character()
+    for (s in samples) {
+        sample_names <- append(sample_names, s@sample)
+    }
+    if (anyDuplicated(sample_names) != 0) {
+        dup_names <- paste(unique(sample_names[duplicated(sample_names)]), collapse = ",")
+        stop(paste0("====> Error: duplicated sample names:", " ", dup_names))
+    }
+
+    list_counts <- list()
+    for (s in samples) {
+        counts <- s@allcounts[, c("sgrna_seqs", "oligo_count")]
+        rownames(counts) <- counts$sgrna_seqs
+        counts <- subset(counts, select = -sgrna_seqs)
+
+        list_counts[[s@sample]] <- counts
+    }
+
+    df_stats <- data.frame(matrix(NA, num_samples, 4))
+    rownames(df_stats) <- sample_names
+    colnames(df_stats) <- c("total_reads",
+                            "cluster_cutoff",
+                            "total_filtered_reads",
+                            "pass_qc")
+
+    # Create the object
+    primaryqc_object <- new("primaryQC",
+        samples = samples,
+        counts = list_counts,
+        stats = df_stats)
+
+    # Return the object
+    return(primaryqc_object)
 }

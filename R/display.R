@@ -90,3 +90,33 @@ setMethod(
         cat(dash_line, "\n", sep = "")
     }
 )
+
+#' show basic info of the object
+#'
+#' @export
+#' @param object primary object
+setMethod(
+    "show",
+    signature = "primaryQC",
+    definition = function(object) {
+        cat("An object of class ", class(object), "\n", sep = "")
+        cat("|--> samples: ", "\n", sep = "")
+        for (s in object@samples) {
+            cat("    |--> ", s@sample, "\n", sep = "")
+        }
+
+        cat("|--> reference samples: ", "\n", sep = "")
+        if (length(object@samples_ref) == 0) {
+            cat("    |--> no sample found", "\n", sep = "")
+        } else {
+            for (s in object@samples_ref) {
+                cat("    |--> ", s@sample, "\n", sep = "")
+            }
+        }
+
+        cat("|--> total number of reads: ", "\n", sep = "")
+        for (i in 1:length(object@counts)) {
+            cat("    |--> ", names(object@counts)[i], ":", sum(object@counts[[i]]), "\n", sep = "")
+        }
+    }
+)

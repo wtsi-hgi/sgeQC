@@ -1,14 +1,13 @@
-#' rounding function
-#'
-#' Original plyr function for rounding
+#' transparent color function
 #'
 #' @export
-#' @name round_any
-#' @param x X
-#' @param accuracy ACC
-#' @return rounded x
-round_any <- function(x, accuracy, f = round) {
-    f(x / accuracy) * accuracy
+#' @name t_col
+#' @param col color name
+#' @param rate alpha rate
+#' @return transparent color
+t_col <- function(col, rate) {
+    newcol <- rgb(col2rgb(col)["red",], col2rgb(col)["green",], col2rgb(col)["blue",], as.integer(rate*255), maxColorValue = 255)
+    return(newcol)
 }
 
 #' not in function
@@ -20,7 +19,7 @@ round_any <- function(x, accuracy, f = round) {
 #' @return True or False
 `%nin%` <- function(x, y) !(x %in% y)
 
-#' reverse complement 
+#' reverse complement
 #'
 #' @export
 #' @name revcomp

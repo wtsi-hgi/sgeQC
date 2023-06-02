@@ -44,20 +44,34 @@ install.packages("/path/of/sgeQC.tar.gz", type = "source")
 
 ```sh
 library(sgeQC)
-myobj <- create_sge_object(file_libcount = "test/library_dependent_counts.tsv.gz",
-                           file_allcount = "test/library_independent_counts.tsv.gz",
-                           file_valiant_meta = "test/valiant_meta.csv.gz")
-myobj
+objA <- create_sge_object(file_libcount = "test/A.library_dependent_counts.tsv.gz",
+                          file_allcount = "test/A.library_independent_counts.tsv.gz",
+                          file_valiant_meta = "test/A.valiant_meta.csv.gz")
+objA
 
-myobj@adapt5 <- "AGCAGCAGCTGACACAAAGT"
-myobj@adapt3 <- "CCTCCTCCCCACTCCCTG"
+objA@adapt5 <- "AGCAGCAGCTGACACAAAGT"
+objA@adapt3 <- "CCTCCTCCCCACTCCCTG"
+objA <- format_count(objA)
+objA <- sge_stats(objA) 
+objA <- sge_qc_stats(objA)
+objA@sample <- "A"
 
-myobj <- format_count(myobj)
-myobj <- sge_stats(myobj) 
-myobj <- sge_qc_stats(myobj) 
+show_stats(objA)
+show_qc_stats(objA)
 
-show_stats(myobj)
-show_qc_stats(myobj)
+objB <- create_sge_object(file_libcount = "test/B.library_dependent_counts.tsv.gz",
+                          file_allcount = "test/B.library_independent_counts.tsv.gz",
+                          file_valiant_meta = "test/B.valiant_meta.csv.gz")
+objB
+
+objB@adapt5 <- "AGCTCTTCAGGTGGTTTTTGGA"
+objB@adapt3 <- "TCTTACCAAGTTAAATGCATGATTCGT"
+objB@sample <- "B"
+objB <- format_count(objB)
+objB <- sge_stats(objB) 
+objB <- sge_qc_stats(objB)
+
+priqc <- create_primaryqc_object(list(objA, objB))
 ```
 
 <p align="right">(<a href="#top">TOP</a>)</p>
