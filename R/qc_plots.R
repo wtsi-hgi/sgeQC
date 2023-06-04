@@ -1,5 +1,3 @@
-library(ggplot2)
-
 #' initialize function
 setGeneric("qcplot_clusters", function(object, ...) {
   standardGeneric("qcplot_clusters")

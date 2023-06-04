@@ -1,6 +1,3 @@
-library(methods)
-library(S4Vectors)
-
 #' A class representing a SGE object
 #'
 #' @export

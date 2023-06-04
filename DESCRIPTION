@@ -16,3 +16,6 @@ RoxygenNote: 7.2.3
 Depends: 
     R (>= 4.2.3)
 Imports:
+    ggplot2 (>= 3.4.2),
+    Ckmeans.1d.dp (>= 4.3.4),
+
