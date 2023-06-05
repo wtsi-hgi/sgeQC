@@ -36,8 +36,11 @@ read_sge_file <- function(file_path, file_type, hline = 0, colnums = vector()) {
     if (hline > 0) {
         headers <- list()
         conn <- file(file_path, "r")
-        while (length(lines <- readLines(conn, n = hline)) > 0) {
-            headers <- append(headers, lines)
+        lines <- readLines(conn, n = hline)
+        for (l in lines) {
+            if (length(l) > 0) {
+                headers <- append(headers, lines)
+            }
         }
         close(conn)
 

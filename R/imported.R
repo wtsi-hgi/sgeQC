@@ -2,3 +2,4 @@
 #' @import S4Vectors
 #' @import Ckmeans.1d.dp
 #' @import ggplot2
+#' @import data.table

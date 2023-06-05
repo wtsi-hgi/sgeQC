@@ -49,20 +49,20 @@ setMethod(
         # 2. k-means clustering on screen QC or hard cutoff on Plasmid QC #
         #-----------------------------------------------------------------#
         if (qc_type == "screen") {
-            ref_allcounts <- data.frame()
-
-            # merging reference counts
-            # convert data.frame to data.table could be much faster
-            # but data.tale is problematic with setMethods as it is S4 object
+            # merging reference counts, data.table() to speed up
+            ref_allcounts <- data.table()
             for (s in object@samples_ref) {
                 ref_counts <- s@allcounts[, c("sgrna_seqs", "oligo_count")]
-                rownames(ref_counts) <- ref_counts$sgrna_seqs
-                ref_counts <- subset(ref_counts, select = -sgrna_seqs)
+                ref_counts <- as.data.table(ref_counts)
 
-                ref_allcounts <- merge(ref_allcounts, ref_counts, by = "row.names", all = TRUE)
-                rownames(ref_allcounts) <- ref_allcounts$Row.names
-                ref_allcounts <- subset(ref_allcounts, select = -Row.names)
+                if (nrow(ref_allcounts) == 0) {
+                    ref_allcounts <- ref_counts
+                } else {
+                    ref_allcounts <- merge(ref_allcounts, ref_counts, by = "sgrna_seqs", all = TRUE)
+                }
             }
+            ref_allcounts <- subset(ref_allcounts, select = -sgrna_seqs)
+            ref_allcounts <- as.data.frame(ref_allcounts)
 
             ref_allcounts_merged <- rowSums(ref_allcounts, na.rm = TRUE)
             ref_allcounts_merged_log2 <- log2(ref_allcounts_merged + 1)
