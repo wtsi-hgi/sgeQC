@@ -14,13 +14,15 @@ A class representing a primary qc object
 
 \item{\code{samples_ref}}{a list of SGE objects which are the references for screen QC}
 
-\item{\code{samples_ref_filtered_seqs}}{a vector of sequences with counts > clustering cutoff for screen QC in the references}
-
 \item{\code{counts}}{a list of sample counts}
 
-\item{\code{counts_filtered}}{a data frame of filtered sample counts}
-
 \item{\code{seq_clusters}}{1D k-means clusters, a data frame of sequences and cluster IDs}
+
+\item{\code{filtered_seqs}}{a vector of sequences with counts > clustering cutoff for screen QC in the references}
+
+\item{\code{filtered_counts}}{a data frame of filtered counts of all the samples}
+
+\item{\code{effective_counts}}{a data frame of effective counts of all the samples}
 
 \item{\code{stats}}{a data frame of samples and stats, eg. total no, filtered no.}
 }}

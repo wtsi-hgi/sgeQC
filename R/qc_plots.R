@@ -53,3 +53,48 @@ setMethod(
         dev.off()
     }
 )
+
+#' initialize function
+setGeneric("qcplot_stats", function(object, ...) {
+  standardGeneric("qcplot_stats")
+})
+
+#' create the sequence counts and clusters plot
+#'
+#' @export
+#' @param object primaryQC object
+#' @param plotdir the output plot directory
+setMethod(
+    "qcplot_stats",
+    signature = "primaryQC",
+    definition = function(object, plotdir) {
+        if (length(plotdir) == 0) {
+            stop(paste0("====> Error: plotdir is not provided, no output directory."))
+        }
+
+        df_total <- object@stats[, c("num_total_reads", "num_total_filtered_reads")]
+        df_total$num_unfiltered_reads <- df_total$num_total_reads - df_total$num_total_filtered_reads
+        df_total <- subset(df_total, select = -num_total_reads)
+        colnames(df_total) <- c("filtered_reads", "failed_reads")
+        df_total$samples <- rownames(df_total)
+        dt_total <- melt(as.data.table(df_total), id.vars = "samples", variable.name = "types", value.name = "counts")
+        dt_total$types <- factor(dt_total$types, levels = c("failed_reads", "filtered_reads"))
+
+        p1 <- ggplot(dt_total,  aes(x = samples, y = counts, fill = types)) +
+                geom_bar(stat="identity") +
+                scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
+                scale_color_manual(values = c("tomato", "royalblue")) +
+                labs(x = "samples", y = "counts", title = "Primary QC Stats") +
+                scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
+                theme(legend.position = "right", legend.title = element_blank()) +
+                theme(panel.background = element_rect(fill="ivory",colour="white")) +
+                theme(axis.title = element_text(size=16,face="bold",family="Arial")) +
+                theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
+                theme(axis.text = element_text(size=12,face="bold"))
+
+        png(paste0(plotdir, "/", "primary_qc_stats_total.point.png"), width = 1200, height = 1200, res = 240)
+        print(p1)
+        dev.off()
+
+    }
+)

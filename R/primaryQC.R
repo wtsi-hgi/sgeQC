@@ -8,11 +8,14 @@ setGeneric("run_primary_qc", function(object, ...) {
 #' @export
 #' @param object primaryQC object
 #' @param qc_type plasmid or screen
+#' @param cluster_count count cutoff only used in plasmid qc
+#' @param effect_count count cutoff of effective reads
+#' @param effect_per sample percentage cutoff of effective reads
 #' @return object
 setMethod(
     "run_primary_qc",
     signature = "primaryQC",
-    definition = function(object, qc_type, cluster_cutoff) {
+    definition = function(object, qc_type, cluster_count, effect_count = 5, effect_per = 0.25) {
         #----------#
         # checking #
         #----------#
@@ -29,7 +32,7 @@ setMethod(
                         stop(paste0("====> Error: samples_ref is empty! Screen QC must have reference samples."))
                     }
                 } else {
-                    if (length(cluster_cutoff) == 0) {
+                    if (length(cluster_count) == 0) {
                         stop(paste0("====> Error: cluster hard cutoff is not provided! Plasmid QC must have it."))
                     }
                 }
@@ -38,49 +41,114 @@ setMethod(
             }
         }
 
-        #-----------------------------------------------#
-        # 1. Get the total number of reads from objects #
-        #-----------------------------------------------#
+        #-------------------------------------------#
+        # 1. Filtering by the total number of reads #
+        #-------------------------------------------#
+        sample_names <- character()
         for (s in object@samples) {
-            object@stats[s@sample, ]$total_reads <- s@allstats$total_counts
+            sample_names <- append(sample_names, s@sample)
         }
 
-        #-----------------------------------------------------------------#
-        # 2. k-means clustering on screen QC or hard cutoff on Plasmid QC #
-        #-----------------------------------------------------------------#
+        for (s in object@samples) {
+            object@stats[s@sample, ]$num_total_reads <- s@allstats$total_counts
+            object@stats[s@sample, ]$num_ref_reads <- s@allstats_qc$num_ref_reads
+            object@stats[s@sample, ]$num_pam_reads <- s@allstats_qc$num_pam_reads
+        }
+
+        #---------------------------------------#
+        # 2. Filtering by low counts            #
+        #    a) k-means clustering on screen QC #
+        #    a) hard cutoff on Plasmid QC       #
+        #---------------------------------------#
         if (qc_type == "screen") {
             # merging reference counts, data.table() to speed up
-            ref_allcounts <- data.table()
+            ref_counts <- data.table()
             for (s in object@samples_ref) {
-                ref_counts <- s@allcounts[, c("sgrna_seqs", "oligo_count")]
-                ref_counts <- as.data.table(ref_counts)
+                tmp_counts <- s@allcounts[, c("sgrna_seqs", "oligo_count")]
+                tmp_counts <- as.data.table(tmp_counts)
 
-                if (nrow(ref_allcounts) == 0) {
-                    ref_allcounts <- ref_counts
+                if (nrow(ref_counts) == 0) {
+                    ref_counts <- tmp_counts
                 } else {
-                    ref_allcounts <- merge(ref_allcounts, ref_counts, by = "sgrna_seqs", all = TRUE)
+                    ref_counts <- merge(ref_counts, tmp_counts, by = "sgrna_seqs", all = TRUE)
                 }
             }
-            ref_allcounts <- subset(ref_allcounts, select = -sgrna_seqs)
-            ref_allcounts <- as.data.frame(ref_allcounts)
+            ref_counts <- as.data.frame(ref_counts)
+            rownames(ref_counts) <- ref_counts$sgrna_seqs
+            ref_counts <- subset(ref_counts, select = -sgrna_seqs)
 
-            ref_allcounts_merged <- rowSums(ref_allcounts, na.rm = TRUE)
-            ref_allcounts_merged_log2 <- log2(ref_allcounts_merged + 1)
+            ref_counts_merged <- rowSums(ref_counts, na.rm = TRUE)
+            ref_counts_merged_log2 <- log2(ref_counts_merged + 1)
 
             # create filtered set of sequences by k-means clustering
-            kmeans_res <- Ckmeans.1d.dp(ref_allcounts_merged_log2, k = 2, y = 1)
-            ref_clusters <- cbind(ref_allcounts_merged, ref_allcounts_merged_log2, kmeans_res$cluster)
+            kmeans_res <- Ckmeans.1d.dp(ref_counts_merged_log2, k = 2, y = 1)
+            ref_clusters <- cbind(ref_counts_merged, ref_counts_merged_log2, kmeans_res$cluster)
             colnames(ref_clusters) <- c("count", "count_log2", "cluster")
             ref_clusters <- data.frame(ref_clusters)
 
             object@seq_clusters <- ref_clusters
-            object@samples_ref_filtered_seqs <- rownames(ref_clusters[ref_clusters$cluster == 2, ])
+            object@filtered_seqs <- rownames(ref_clusters[ref_clusters$cluster == 2, ])
 
             # filtering sequences on input samples by filtered set
-            filtered_counts <- data.frame()
+            unfiltered_counts <- data.table()
+            for (s in object@samples) {
+                tmp_counts <- s@allcounts[, c("sgrna_seqs", "oligo_count")]
+                tmp_counts <- as.data.table(tmp_counts)
 
+                if (nrow(unfiltered_counts) == 0) {
+                    unfiltered_counts <- tmp_counts
+                } else {
+                    unfiltered_counts <- merge(unfiltered_counts, tmp_counts, by = "sgrna_seqs", all = TRUE)
+                }
+            }
+            unfiltered_counts <- as.data.frame(unfiltered_counts)
+            rownames(unfiltered_counts) <- unfiltered_counts$sgrna_seqs
+            unfiltered_counts <- subset(unfiltered_counts, select = -sgrna_seqs)
+            colnames(unfiltered_counts) <- sample_names
+
+            filtered_counts <- unfiltered_counts[object@filtered_seqs, ]
         } else {
+            filtered_counts <- data.table()
+            for (s in object@samples) {
+                tmp_counts <- s@allcounts[, c("sgrna_seqs", "oligo_count")]
+                tmp_counts <- as.data.table(tmp_counts)
+                tmp_counts_f <- tmp_counts[tmp_counts$oligo_count >= cluster_count, ]
 
+                if (nrow(filtered_counts) == 0) {
+                    filtered_counts <- tmp_counts_f
+                } else {
+                    filtered_counts <- merge(filtered_counts, tmp_counts_f, by = "sgrna_seqs", all = TRUE)
+                }
+            }
+
+            filtered_counts <- as.data.frame(filtered_counts)
+            rownames(filtered_counts) <- filtered_counts$sgrna_seqs
+            filtered_counts <- subset(filtered_counts, select = -sgrna_seqs)
+            colnames(filtered_counts) <- sample_names
+        }
+
+        #-------------------------------------#
+        # 3. Filtering by depth and samples   #
+        #    a) count >= X                    #
+        #    b) in >= X% of samples           #
+        #-------------------------------------#
+        filtered_counts_final <- cbind(filtered_counts, rowSums(filtered_counts >= effect_count, na.rm = TRUE))
+        filtered_counts_final <- cbind(filtered_counts_final, filtered_counts_final[, ncol(filtered_counts_final)] / length(sample_names))
+        colnames(filtered_counts_final) <- c(sample_names, "sample_number", "sample_percentage")
+
+        object@filtered_counts <- filtered_counts_final[filtered_counts_final$sample_percentage >= effect_per, sample_names]
+
+        #--------------------------------------#
+        # 4. Filtering by effective mapping    #
+        #    a) reads mapped to VaLiAnT output #
+        #--------------------------------------#
+
+
+
+        for (s in object@samples) {
+            samplename <- s@sample
+            object@stats[samplename, ]$num_total_filtered_reads <- sum(object@filtered_counts_final[, samplename], na.rm = TRUE)
+            object@stats[samplename, ]$num_total_effective_reads <- sum(object@effective_counts[, samplename], na.rm = TRUE)
         }
 
         return(object)

@@ -4,12 +4,24 @@
 \alias{run_primary_qc,primaryQC-method}
 \title{run primary QC for the list of samples}
 \usage{
-\S4method{run_primary_qc}{primaryQC}(object, qc_type, cluster_cutoff)
+\S4method{run_primary_qc}{primaryQC}(
+  object,
+  qc_type,
+  cluster_count,
+  effect_count = 5,
+  effect_per = 0.25
+)
 }
 \arguments{
 \item{object}{primaryQC object}
 
 \item{qc_type}{plasmid or screen}
+
+\item{cluster_count}{count cutoff only used in plasmid qc}
+
+\item{effect_count}{count cutoff of effective reads}
+
+\item{effect_per}{sample percentage cutoff of effective reads}
 }
 \value{
 object

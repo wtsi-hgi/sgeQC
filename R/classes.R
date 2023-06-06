@@ -3,16 +3,16 @@
 #' @export
 #' @name SGE
 #' @slot sample a sample name
-#' @slot targetons targeton ids
 #' @slot libname library name
 #' @slot libtype library type
 #' @slot adapt5 adaptor sequence at 5 prime end
 #' @slot adapt3 adaptor sequence at 3 prime end
 #' @slot refseq reference sequence
 #' @slot pamseq sequence with pam variants
-#' @slot libcounts QUANTS library-dependent count file, per sequence per count
-#' @slot allcounts QUANTS library-independent count file, per sequence per count
+#' @slot libcounts QUANTS library-dependent counts, per sequence per count
+#' @slot allcounts QUANTS library-independent counts, per sequence per count
 #' @slot valiant_meta VaLiAnT meta file
+#' @slot mseqs non-redundant mseq in VaLiAnT meta file
 #' @slot libstats summaries of library dependent counts
 #' @slot allstats summaries of library independent counts
 #' @slot libstats_qc qc stats of library dependent counts
@@ -20,8 +20,8 @@
 setClass("SGE",
     slots = list(
         sample = "character",
-        libtype = "character",
         libname = "character",
+        libtype = "character",
         adapt5 = "character",
         adapt3 = "character",
         refseq = "character",
@@ -29,6 +29,7 @@ setClass("SGE",
         libcounts = "data.frame",
         allcounts = "data.frame",
         valiant_meta = "data.frame",
+        mseqs = "character",
         libstats = "data.frame",
         allstats = "data.frame",
         libstats_qc = "data.frame",
@@ -36,8 +37,8 @@ setClass("SGE",
     ),
     prototype = list(
         sample = character(),
-        libtype = character(),
         libname = character(),
+        libtype = character(),
         adapt5 = character(),
         adapt3 = character(),
         refseq = character(),
@@ -45,6 +46,7 @@ setClass("SGE",
         libcounts = data.frame(),
         allcounts = data.frame(),
         valiant_meta = data.frame(),
+        mseqs = character(),
         libstats = data.frame(),
         allstats = data.frame(),
         libstats_qc = data.frame(),
@@ -76,54 +78,54 @@ create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta,
 
     # initializing
     df_libstats <- data.frame(matrix(NA, 1, 11))
-    colnames(df_libstats) <- c("total_no_oligos",
-                               "total_no_unique_oligos",
+    colnames(df_libstats) <- c("total_num_oligos",
+                               "total_num_unique_oligos",
                                "total_counts",
                                "max_counts",
                                "min_counts",
                                "median_counts",
                                "mean_counts",
-                               "no_oligos_nocount",
-                               "no_oligos_lowcount",
+                               "num_oligos_nocount",
+                               "num_oligos_lowcount",
                                "max_len_oligos",
                                "min_len_oligos")
 
     df_allstats <- data.frame(matrix(NA, 1, 11))
-    colnames(df_allstats) <- c("total_no_oligos",
-                               "total_no_unique_oligos",
+    colnames(df_allstats) <- c("total_num_oligos",
+                               "total_num_unique_oligos",
                                "total_counts",
                                "max_counts",
                                "min_counts",
                                "median_counts",
                                "mean_counts",
-                               "no_oligos_nocount",
-                               "no_oligos_lowcount",
+                               "num_oligos_nocount",
+                               "num_oligos_lowcount",
                                "max_len_oligos",
                                "min_len_oligos")
 
     df_libstats_qc <- data.frame(matrix(NA, 1, 11))
-    colnames(df_libstats_qc) <- c("no_ref_reads",
+    colnames(df_libstats_qc) <- c("num_ref_reads",
                                   "per_ref_reads",
-                                  "no_pam_reads",
+                                  "num_pam_reads",
                                   "per_pam_reads",
-                                  "no_eff_reads",
+                                  "num_eff_reads",
                                   "per_eff_reads",
-                                  "no_unmapped_reads",
+                                  "num_unmapped_reads",
                                   "per_unmapped_reads",
-                                  "no_missing_var",
+                                  "num_missing_var",
                                   "per_missing_var",
                                   "gini_coeff")
 
     df_allstats_qc <- data.frame(matrix(NA, 1, 11))
-    colnames(df_allstats_qc) <- c("no_ref_reads",
+    colnames(df_allstats_qc) <- c("num_ref_reads",
                                   "per_ref_reads",
-                                  "no_pam_reads",
+                                  "num_pam_reads",
                                   "per_pam_reads",
-                                  "no_eff_reads",
+                                  "num_eff_reads",
                                   "per_eff_reads",
-                                  "no_unmapped_reads",
+                                  "num_unmapped_reads",
                                   "per_unmapped_reads",
-                                  "no_missing_var",
+                                  "num_missing_var",
                                   "per_missing_var",
                                   "gini_coeff")
 
@@ -149,28 +151,34 @@ create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta,
 #' @name primaryQC
 #' @slot samples a list of SGE objects
 #' @slot samples_ref a list of SGE objects which are the references for screen QC
-#' @slot samples_ref_filtered_seqs a vector of sequences with counts > clustering cutoff for screen QC in the references
 #' @slot counts a list of sample counts
-#' @slot counts_filtered a data frame of filtered sample counts
+#' @slot effective_seqs a vector of sequences mapped to valiant output, not pam and not ref
 #' @slot seq_clusters 1D k-means clusters, a data frame of sequences and cluster IDs
+#' @slot filtered_seqs a vector of sequences with counts > clustering cutoff for screen QC in the references
+#' @slot filtered_counts a data frame of filtered counts of all the samples
+#' @slot effective_counts a data frame of effective counts of all the samples
 #' @slot stats a data frame of samples and stats, eg. total no, filtered no.
 setClass("primaryQC",
     slots = list(
         samples = "list",
         samples_ref = "list",
-        samples_ref_filtered_seqs = "character",
         counts = "list",
-        counts_filtered = "data.frame",
+        effective_seqs = "character",
         seq_clusters = "data.frame",
+        filtered_seqs = "character",
+        filtered_counts = "data.frame",
+        effective_counts = "data.frame",
         stats = "data.frame"
     ),
     prototype = list(
         samples = list(),
         samples_ref = list(),
-        samples_ref_filtered_seqs = character(),
         counts = list(),
-        counts_filtered = data.frame(),
+        effective_seqs = character(),
         seq_clusters = data.frame(),
+        filtered_seqs = character(),
+        filtered_counts = data.frame(),
+        effective_counts = data.frame(),
         stats = data.frame()
     )
 )
@@ -207,11 +215,13 @@ create_primaryqc_object <- function(samples) {
         list_counts[[s@sample]] <- counts
     }
 
-    df_stats <- data.frame(matrix(NA, num_samples, 4))
+    df_stats <- data.frame(matrix(NA, num_samples, 6))
     rownames(df_stats) <- sample_names
-    colnames(df_stats) <- c("total_reads",
-                            "cluster_cutoff",
-                            "total_filtered_reads",
+    colnames(df_stats) <- c("num_total_reads",
+                            "num_total_filtered_reads",
+                            "num_total_effective_reads",
+                            "num_ref_reads",
+                            "num_pam_reads",
                             "pass_qc")
 
     # Create the object
