@@ -72,13 +72,10 @@ setMethod(
             stop(paste0("====> Error: plotdir is not provided, no output directory."))
         }
 
-        df_total <- object@stats[, c("num_total_reads", "num_total_filtered_reads")]
-        df_total$num_unfiltered_reads <- df_total$num_total_reads - df_total$num_total_filtered_reads
-        df_total <- subset(df_total, select = -num_total_reads)
-        colnames(df_total) <- c("filtered_reads", "failed_reads")
+        df_total <- object@stats[, c("failed_reads", "filtered_reads")]
         df_total$samples <- rownames(df_total)
         dt_total <- melt(as.data.table(df_total), id.vars = "samples", variable.name = "types", value.name = "counts")
-        dt_total$types <- factor(dt_total$types, levels = c("failed_reads", "filtered_reads"))
+        #dt_total$types <- factor(dt_total$types, levels = c("failed_reads", "filtered_reads"))
 
         p1 <- ggplot(dt_total,  aes(x = samples, y = counts, fill = types)) +
                 geom_bar(stat="identity") +

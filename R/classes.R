@@ -217,11 +217,13 @@ create_primaryqc_object <- function(samples) {
 
     df_stats <- data.frame(matrix(NA, num_samples, 6))
     rownames(df_stats) <- sample_names
-    colnames(df_stats) <- c("num_total_reads",
-                            "num_total_filtered_reads",
-                            "num_total_effective_reads",
-                            "num_ref_reads",
-                            "num_pam_reads",
+    colnames(df_stats) <- c("total_reads",
+                            "failed_reads",
+                            "filtered_reads",
+                            "effective_reads",
+                            "unmapped_reads",
+                            "ref_reads",
+                            "pam_reads",
                             "pass_qc")
 
     # Create the object

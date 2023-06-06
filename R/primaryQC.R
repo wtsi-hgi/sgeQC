@@ -50,9 +50,9 @@ setMethod(
         }
 
         for (s in object@samples) {
-            object@stats[s@sample, ]$num_total_reads <- s@allstats$total_counts
-            object@stats[s@sample, ]$num_ref_reads <- s@allstats_qc$num_ref_reads
-            object@stats[s@sample, ]$num_pam_reads <- s@allstats_qc$num_pam_reads
+            object@stats[s@sample, ]$total_reads <- s@allstats$total_counts
+            object@stats[s@sample, ]$ref_reads <- s@allstats_qc$num_ref_reads
+            object@stats[s@sample, ]$pam_reads <- s@allstats_qc$num_pam_reads
         }
 
         #---------------------------------------#
@@ -142,13 +142,20 @@ setMethod(
         # 4. Filtering by effective mapping    #
         #    a) reads mapped to VaLiAnT output #
         #--------------------------------------#
+        valiant_mseqs <- vector()
+        for (s in object@samples) {
+            valiant_mseqs <- c(valiant_mseqs, s@mseqs)
+        }
+        valiant_mseqs <- unique(valiant_mseqs)
 
-
+        object@effective_counts <- object@filtered_counts[rownames(object@filtered_counts)%in%valiant_mseqs, ]
+        unmapped_counts <- object@filtered_counts[rownames(object@filtered_counts)%nin%valiant_mseqs, ]
 
         for (s in object@samples) {
             samplename <- s@sample
-            object@stats[samplename, ]$num_total_filtered_reads <- sum(object@filtered_counts_final[, samplename], na.rm = TRUE)
-            object@stats[samplename, ]$num_total_effective_reads <- sum(object@effective_counts[, samplename], na.rm = TRUE)
+            object@stats[samplename, ]$filtered_reads <- sum(object@filtered_counts[, samplename], na.rm = TRUE)
+            object@stats[samplename, ]$effective_reads <- sum(object@effective_counts[, samplename], na.rm = TRUE)
+            object@stats[samplename, ]$unmapped_reads <- sum(unmapped_counts[, samplename], na.rm = TRUE)
         }
 
         return(object)
