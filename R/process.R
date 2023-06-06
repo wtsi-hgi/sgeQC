@@ -66,8 +66,9 @@ setMethod(
         #--------------------------#
         # 3. mseq in valiant meta  #
         #--------------------------#
+        # slow step, any method to speed up?
         mseqs <- vector()
-        for (i in 1:dim(object@valiant_meta)) {
+        for (i in 1:dim(object@valiant_meta)[1]) {
             mseqs <- c(mseqs, trim_adaptor(object@valiant_meta$mseq, object@adapt5, object@adapt3))
         }
         object@mseqs <- unique(mseqs)

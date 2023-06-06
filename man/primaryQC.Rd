@@ -16,6 +16,8 @@ A class representing a primary qc object
 
 \item{\code{counts}}{a list of sample counts}
 
+\item{\code{effective_seqs}}{a vector of sequences mapped to valiant output, not pam and not ref}
+
 \item{\code{seq_clusters}}{1D k-means clusters, a data frame of sequences and cluster IDs}
 
 \item{\code{filtered_seqs}}{a vector of sequences with counts > clustering cutoff for screen QC in the references}

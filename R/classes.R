@@ -77,57 +77,61 @@ create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta,
     valiant_meta <- read_sge_file(file_valiant_meta, "val", file_valiant_meta_hline, file_valiant_meta_cols)
 
     # initializing
-    df_libstats <- data.frame(matrix(NA, 1, 11))
-    colnames(df_libstats) <- c("total_num_oligos",
-                               "total_num_unique_oligos",
-                               "total_counts",
-                               "max_counts",
-                               "min_counts",
-                               "median_counts",
-                               "mean_counts",
-                               "num_oligos_nocount",
-                               "num_oligos_lowcount",
-                               "max_len_oligos",
-                               "min_len_oligos")
+    cols <- c("total_num_oligos",
+              "total_num_unique_oligos",
+              "total_counts",
+              "max_counts",
+              "min_counts",
+              "median_counts",
+              "mean_counts",
+              "num_oligos_nocount",
+              "num_oligos_lowcount",
+              "max_len_oligos",
+              "min_len_oligos")
+    df_libstats <- data.frame(matrix(NA, 1, length(cols)))
+    colnames(df_libstats) <- cols
 
-    df_allstats <- data.frame(matrix(NA, 1, 11))
-    colnames(df_allstats) <- c("total_num_oligos",
-                               "total_num_unique_oligos",
-                               "total_counts",
-                               "max_counts",
-                               "min_counts",
-                               "median_counts",
-                               "mean_counts",
-                               "num_oligos_nocount",
-                               "num_oligos_lowcount",
-                               "max_len_oligos",
-                               "min_len_oligos")
+    cols <- c("total_num_oligos",
+              "total_num_unique_oligos",
+              "total_counts",
+              "max_counts",
+              "min_counts",
+              "median_counts",
+              "mean_counts",
+              "num_oligos_nocount",
+              "num_oligos_lowcount",
+              "max_len_oligos",
+              "min_len_oligos")
+    df_allstats <- data.frame(matrix(NA, 1, length(cols)))
+    colnames(df_allstats) <- cols
 
-    df_libstats_qc <- data.frame(matrix(NA, 1, 11))
-    colnames(df_libstats_qc) <- c("num_ref_reads",
-                                  "per_ref_reads",
-                                  "num_pam_reads",
-                                  "per_pam_reads",
-                                  "num_eff_reads",
-                                  "per_eff_reads",
-                                  "num_unmapped_reads",
-                                  "per_unmapped_reads",
-                                  "num_missing_var",
-                                  "per_missing_var",
-                                  "gini_coeff")
+    cols <- c("num_ref_reads",
+              "per_ref_reads",
+              "num_pam_reads",
+              "per_pam_reads",
+              "num_eff_reads",
+              "per_eff_reads",
+              "num_unmapped_reads",
+              "per_unmapped_reads",
+              "num_missing_var",
+              "per_missing_var",
+              "gini_coeff")
+    df_libstats_qc <- data.frame(matrix(NA, 1, length(cols)))
+    colnames(df_libstats_qc) <- cols
 
-    df_allstats_qc <- data.frame(matrix(NA, 1, 11))
-    colnames(df_allstats_qc) <- c("num_ref_reads",
-                                  "per_ref_reads",
-                                  "num_pam_reads",
-                                  "per_pam_reads",
-                                  "num_eff_reads",
-                                  "per_eff_reads",
-                                  "num_unmapped_reads",
-                                  "per_unmapped_reads",
-                                  "num_missing_var",
-                                  "per_missing_var",
-                                  "gini_coeff")
+    cols <- c("num_ref_reads",
+              "per_ref_reads",
+              "num_pam_reads",
+              "per_pam_reads",
+              "num_eff_reads",
+              "per_eff_reads",
+              "num_unmapped_reads",
+              "per_unmapped_reads",
+              "num_missing_var",
+              "per_missing_var",
+              "gini_coeff")
+    df_allstats_qc <- data.frame(matrix(NA, 1, length(cols)))
+    colnames(df_allstats_qc) <- cols
 
     # Create the object
     sge_object <- new("SGE",
@@ -215,16 +219,21 @@ create_primaryqc_object <- function(samples) {
         list_counts[[s@sample]] <- counts
     }
 
-    df_stats <- data.frame(matrix(NA, num_samples, 6))
+    cols <- c("total_reads",
+              "failed_reads",
+              "filtered_reads",
+              "effective_reads",
+              "per_effective_reads",
+              "unmapped_reads",
+              "per_unmapped_reads",
+              "ref_reads",
+              "per_ref_reads",
+              "pam_reads",
+              "per_pam_reads",
+              "pass_qc")
+    df_stats <- data.frame(matrix(NA, num_samples, length(cols)))
     rownames(df_stats) <- sample_names
-    colnames(df_stats) <- c("total_reads",
-                            "failed_reads",
-                            "filtered_reads",
-                            "effective_reads",
-                            "unmapped_reads",
-                            "ref_reads",
-                            "pam_reads",
-                            "pass_qc")
+    colnames(df_stats) <- cols
 
     # Create the object
     primaryqc_object <- new("primaryQC",

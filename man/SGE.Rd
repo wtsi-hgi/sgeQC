@@ -12,8 +12,6 @@ A class representing a SGE object
 \describe{
 \item{\code{sample}}{a sample name}
 
-\item{\code{targetons}}{targeton ids}
-
 \item{\code{libname}}{library name}
 
 \item{\code{libtype}}{library type}
@@ -26,11 +24,13 @@ A class representing a SGE object
 
 \item{\code{pamseq}}{sequence with pam variants}
 
-\item{\code{libcounts}}{QUANTS library-dependent count file, per sequence per count}
+\item{\code{libcounts}}{QUANTS library-dependent counts, per sequence per count}
 
-\item{\code{allcounts}}{QUANTS library-independent count file, per sequence per count}
+\item{\code{allcounts}}{QUANTS library-independent counts, per sequence per count}
 
 \item{\code{valiant_meta}}{VaLiAnT meta file}
+
+\item{\code{mseqs}}{non-redundant mseq in VaLiAnT meta file}
 
 \item{\code{libstats}}{summaries of library dependent counts}
 

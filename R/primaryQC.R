@@ -142,20 +142,38 @@ setMethod(
         # 4. Filtering by effective mapping    #
         #    a) reads mapped to VaLiAnT output #
         #--------------------------------------#
+        ref_seqs <- vector()
+        pam_seqs <- vector()
         valiant_mseqs <- vector()
         for (s in object@samples) {
+            ref_seqs <- c(ref_seqs, s@refseq)
+            pam_seqs <- c(pam_seqs, s@pamseq)
             valiant_mseqs <- c(valiant_mseqs, s@mseqs)
         }
+        ref_seqs <- unique(ref_seqs)
+        pam_seqs <- unique(pam_seqs)
         valiant_mseqs <- unique(valiant_mseqs)
 
-        object@effective_counts <- object@filtered_counts[rownames(object@filtered_counts)%in%valiant_mseqs, ]
+        # mapped to valiant but not ref/pam
+        effective_counts <- object@filtered_counts[rownames(object@filtered_counts)%in%valiant_mseqs, ]
+        effective_counts <- effective_counts[rownames(effective_counts)%nin%c(ref_seqs, pam_seqs), ]
+        object@effective_counts <- effective_counts
+
+        # not mapped to valiant but not ref/pam
         unmapped_counts <- object@filtered_counts[rownames(object@filtered_counts)%nin%valiant_mseqs, ]
+        unmapped_counts <- unmapped_counts[rownames(unmapped_counts)%nin%c(ref_seqs, pam_seqs), ]
 
         for (s in object@samples) {
             samplename <- s@sample
             object@stats[samplename, ]$filtered_reads <- sum(object@filtered_counts[, samplename], na.rm = TRUE)
             object@stats[samplename, ]$effective_reads <- sum(object@effective_counts[, samplename], na.rm = TRUE)
             object@stats[samplename, ]$unmapped_reads <- sum(unmapped_counts[, samplename], na.rm = TRUE)
+            object@stats[samplename, ]$failed_reads <- object@stats[samplename, ]$total_reads - object@stats[samplename, ]$filtered_reads
+
+            object@stats[samplename, ]$per_effective_reads <- object@stats[samplename, ]$effective_reads / object@stats[samplename, ]$filtered_reads
+            object@stats[samplename, ]$per_unmapped_reads <- object@stats[samplename, ]$unmapped_reads / object@stats[samplename, ]$filtered_reads
+            object@stats[samplename, ]$per_ref_reads <- object@stats[samplename, ]$ref_reads / object@stats[samplename, ]$filtered_reads
+            object@stats[samplename, ]$per_pam_reads <- object@stats[samplename, ]$pam_reads / object@stats[samplename, ]$filtered_reads
         }
 
         return(object)
