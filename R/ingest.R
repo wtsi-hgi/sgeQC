@@ -6,10 +6,13 @@
 #' @name read_sge_file
 #' @param file_path file path
 #' @param file_type library-dependent (lib) or library-independent (all) or valiant meta (val)
-#' @param hline header line number, default is 0
-#' @param colnums a vector of selected colummns, default is none
+#' @param hline     header line number, default is 0
+#' @param colnums   a vector of selected colummns, default is none
 #' @return a dataframe
-read_sge_file <- function(file_path, file_type, hline = 0, colnums = vector()) {
+read_sge_file <- function(file_path,
+                          file_type,
+                          hline = 0,
+                          colnums = vector()) {
     # check input format
     if (!file.exists(file_path)) {
         stop(paste0("====> Error: ", file_path, " doesn't exist"))

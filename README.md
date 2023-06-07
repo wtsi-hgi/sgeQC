@@ -102,5 +102,3 @@ priqc <- create_primaryqc_object(list(objA, objB))
 
 <p align="right">(<a href="#top">TOP</a>)</p>
 
-
-

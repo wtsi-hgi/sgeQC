@@ -10,7 +10,7 @@ A class representing a SGE object
 \section{Slots}{
 
 \describe{
-\item{\code{sample}}{a sample name}
+\item{\code{sample}}{the sample name}
 
 \item{\code{libname}}{library name}
 
@@ -30,7 +30,9 @@ A class representing a SGE object
 
 \item{\code{valiant_meta}}{VaLiAnT meta file}
 
-\item{\code{mseqs}}{non-redundant mseq in VaLiAnT meta file}
+\item{\code{meta_mseqs}}{non-redundant mseq in VaLiAnT meta file}
+
+\item{\code{missing_meta_seqs}}{missing sequenced in library compared to VaLiAnT meta file}
 
 \item{\code{libstats}}{summaries of library dependent counts}
 

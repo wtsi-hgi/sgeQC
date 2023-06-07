@@ -67,11 +67,13 @@ setMethod(
         # 3. mseq in valiant meta  #
         #--------------------------#
         # slow step, any method to speed up?
-        mseqs <- vector()
+        meta_mseqs <- vector()
         for (i in 1:dim(object@valiant_meta)[1]) {
-            mseqs <- c(mseqs, trim_adaptor(object@valiant_meta$mseq, object@adapt5, object@adapt3))
+            meta_mseqs <- c(meta_mseqs, trim_adaptor(object@valiant_meta$mseq, object@adapt5, object@adapt3))
         }
-        object@mseqs <- unique(mseqs)
+        object@meta_mseqs <- unique(meta_mseqs)
+
+        object@missing_meta_seqs <- object@meta_mseqs[object@meta_mseqs %nin% object@allcounts$sgrna_seqs]
 
         return(object)
     }
@@ -91,7 +93,8 @@ setGeneric("sge_stats", function(object, ...) {
 setMethod(
     "sge_stats",
     signature = "SGE",
-    definition = function(object, lowcut = 10) {
+    definition = function(object,
+                          lowcut = 10) {
         # library dependent counts
         object@libstats$total_num_oligos <- nrow(object@libcounts)
         if ("unique" %in% colnames(object@libcounts)) {

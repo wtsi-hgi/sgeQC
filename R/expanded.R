@@ -2,7 +2,7 @@
 #'
 #' @export
 #' @name t_col
-#' @param col color name
+#' @param col  color name
 #' @param rate alpha rate
 #' @return transparent color
 t_col <- function(col, rate) {
@@ -38,7 +38,7 @@ revcomp <- function(seq) {
 #'
 #' @export
 #' @name trim_adaptor
-#' @param seq sequence
+#' @param seq    sequence
 #' @param adapt5 5 prime adaptor sequence
 #' @param adapt3 3 prime adaptor sequence
 #' @return string

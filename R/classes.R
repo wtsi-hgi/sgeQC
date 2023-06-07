@@ -2,21 +2,22 @@
 #'
 #' @export
 #' @name SGE
-#' @slot sample a sample name
-#' @slot libname library name
-#' @slot libtype library type
-#' @slot adapt5 adaptor sequence at 5 prime end
-#' @slot adapt3 adaptor sequence at 3 prime end
-#' @slot refseq reference sequence
-#' @slot pamseq sequence with pam variants
-#' @slot libcounts QUANTS library-dependent counts, per sequence per count
-#' @slot allcounts QUANTS library-independent counts, per sequence per count
-#' @slot valiant_meta VaLiAnT meta file
-#' @slot mseqs non-redundant mseq in VaLiAnT meta file
-#' @slot libstats summaries of library dependent counts
-#' @slot allstats summaries of library independent counts
-#' @slot libstats_qc qc stats of library dependent counts
-#' @slot allstats_qc qc stats of library independent counts
+#' @slot sample            the sample name
+#' @slot libname           library name
+#' @slot libtype           library type
+#' @slot adapt5            adaptor sequence at 5 prime end
+#' @slot adapt3            adaptor sequence at 3 prime end
+#' @slot refseq            reference sequence
+#' @slot pamseq            sequence with pam variants
+#' @slot libcounts         QUANTS library-dependent counts, per sequence per count
+#' @slot allcounts         QUANTS library-independent counts, per sequence per count
+#' @slot valiant_meta      VaLiAnT meta file
+#' @slot meta_mseqs             non-redundant mseq in VaLiAnT meta file
+#' @slot missing_meta_seqs missing sequenced in library compared to VaLiAnT meta file
+#' @slot libstats          summaries of library dependent counts
+#' @slot allstats          summaries of library independent counts
+#' @slot libstats_qc       qc stats of library dependent counts
+#' @slot allstats_qc       qc stats of library independent counts
 setClass("SGE",
     slots = list(
         sample = "character",
@@ -29,7 +30,8 @@ setClass("SGE",
         libcounts = "data.frame",
         allcounts = "data.frame",
         valiant_meta = "data.frame",
-        mseqs = "character",
+        meta_mseqs = "character",
+        missing_meta_seqs = "character",
         libstats = "data.frame",
         allstats = "data.frame",
         libstats_qc = "data.frame",
@@ -46,7 +48,8 @@ setClass("SGE",
         libcounts = data.frame(),
         allcounts = data.frame(),
         valiant_meta = data.frame(),
-        mseqs = character(),
+        meta_mseqs = character(),
+        missing_meta_seqs = character(),
         libstats = data.frame(),
         allstats = data.frame(),
         libstats_qc = data.frame(),
@@ -58,19 +61,25 @@ setClass("SGE",
 #'
 #' @export
 #' @name create_sge_object
-#' @param file_libcount QUANTS library-dependent count file, per sequence per count
-#' @param file_allcount QUANTS library-independent count file, per sequence per count
-#' @param file_valiant_meta VaLiAnT meta file
-#' @param file_libcount_hline line number of header in library-dependent count file
-#' @param file_allcount_hline line number of header in library-independent count file
+#' @param file_libcount           QUANTS library-dependent count file, per sequence per count
+#' @param file_allcount           QUANTS library-independent count file, per sequence per count
+#' @param file_valiant_meta       VaLiAnT meta file
+#' @param file_libcount_hline     line number of header in library-dependent count file
+#' @param file_allcount_hline     line number of header in library-independent count file
 #' @param file_valiant_meta_hline line number of header in VaLiAnT meta file
-#' @param file_libcount_cols a vector of numbers of selected columns in library-dependent count file, default is none
-#' @param file_allcount_cols a vector of numbers of selected columns in library-independent count file, default is none
-#' @param file_valiant_meta_cols a vector of numbers of selected columns in VaLiAnT meta file, default is none
+#' @param file_libcount_cols      a vector of numbers of selected columns in library-dependent count file, default is none
+#' @param file_allcount_cols      a vector of numbers of selected columns in library-independent count file, default is none
+#' @param file_valiant_meta_cols  a vector of numbers of selected columns in VaLiAnT meta file, default is none
 #' @return An object of class SGE
-create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta,
-                              file_libcount_hline = 3, file_allcount_hline = 3, file_valiant_meta_hline = 1,
-                              file_libcount_cols = vector(), file_allcount_cols = vector(), file_valiant_meta_cols = vector()) {
+create_sge_object <- function(file_libcount,
+                              file_allcount,
+                              file_valiant_meta,
+                              file_libcount_hline = 3,
+                              file_allcount_hline = 3,
+                              file_valiant_meta_hline = 1,
+                              file_libcount_cols = vector(),
+                              file_allcount_cols = vector(),
+                              file_valiant_meta_cols = vector()) {
     # Read files
     libread <- read_sge_file(file_libcount, "lib", file_libcount_hline, file_libcount_cols)
     allcounts <- read_sge_file(file_allcount, "all", file_allcount_hline, file_allcount_cols)
@@ -153,15 +162,16 @@ create_sge_object <- function(file_libcount, file_allcount, file_valiant_meta,
 #'
 #' @export
 #' @name primaryQC
-#' @slot samples a list of SGE objects
-#' @slot samples_ref a list of SGE objects which are the references for screen QC
-#' @slot counts a list of sample counts
-#' @slot effective_seqs a vector of sequences mapped to valiant output, not pam and not ref
-#' @slot seq_clusters 1D k-means clusters, a data frame of sequences and cluster IDs
-#' @slot filtered_seqs a vector of sequences with counts > clustering cutoff for screen QC in the references
-#' @slot filtered_counts a data frame of filtered counts of all the samples
+#' @slot samples          a list of SGE objects
+#' @slot samples_ref      a list of SGE objects which are the references for screen QC
+#' @slot counts           a list of sample counts
+#' @slot effective_seqs   a vector of sequences mapped to valiant output, not pam and not ref
+#' @slot seq_clusters     1D k-means clusters, a data frame of sequences and cluster IDs
+#' @slot filtered_seqs    a vector of sequences with counts > clustering cutoff for screen QC in the references
+#' @slot filtered_counts  a data frame of filtered counts of all the samples
 #' @slot effective_counts a data frame of effective counts of all the samples
-#' @slot stats a data frame of samples and stats, eg. total no, filtered no.
+#' @slot stats            a data frame of samples and stats, eg. total no, filtered no.
+#' @slot filtered_samples a list of filtered sample objects
 setClass("primaryQC",
     slots = list(
         samples = "list",
@@ -172,7 +182,8 @@ setClass("primaryQC",
         filtered_seqs = "character",
         filtered_counts = "data.frame",
         effective_counts = "data.frame",
-        stats = "data.frame"
+        stats = "data.frame",
+        filtered_samples = "list"
     ),
     prototype = list(
         samples = list(),
@@ -183,7 +194,8 @@ setClass("primaryQC",
         filtered_seqs = character(),
         filtered_counts = data.frame(),
         effective_counts = data.frame(),
-        stats = data.frame()
+        stats = data.frame(),
+        filtered_samples = list()
     )
 )
 
@@ -230,7 +242,12 @@ create_primaryqc_object <- function(samples) {
               "per_ref_reads",
               "pam_reads",
               "per_pam_reads",
-              "pass_qc")
+              "missing_meta_seqs",
+              "qcpass_filtered_reads",
+              "qcpass_mapping_per",
+              "qcpass_effective_per",
+              "qcpass_effective_cov",
+              "qcpass")
     df_stats <- data.frame(matrix(NA, num_samples, length(cols)))
     rownames(df_stats) <- sample_names
     colnames(df_stats) <- cols

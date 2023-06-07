@@ -6,16 +6,28 @@ setGeneric("run_primary_qc", function(object, ...) {
 #' run primary QC for the list of samples
 #'
 #' @export
-#' @param object primaryQC object
-#' @param qc_type plasmid or screen
-#' @param cluster_count count cutoff only used in plasmid qc
-#' @param effect_count count cutoff of effective reads
-#' @param effect_per sample percentage cutoff of effective reads
+#' @param object          primaryQC object
+#' @param qc_type         plasmid or screen
+#' @param cluster_count   count cutoff only used in plasmid qc
+#' @param effect_count    count cutoff of effective reads
+#' @param effect_per      sample percentage cutoff of effective reads
+#' @param cutoff_filtered qc cutoff of the total filtered reads
+#' @param cutoff_mapping  qc cutoff of mapping percentage (ref + pam + effect)
+#' @param cutoff_effect   qc cutoff of effective reads percentage
+#' @param cutoff_cov      qc cutoff of effective coverage
 #' @return object
 setMethod(
     "run_primary_qc",
     signature = "primaryQC",
-    definition = function(object, qc_type, cluster_count, effect_count = 5, effect_per = 0.25) {
+    definition = function(object,
+                          qc_type,
+                          cluster_count,
+                          effect_count = 5,
+                          effect_per = 0.25,
+                          cutoff_filtered = 1000000,
+                          cutoff_mapping = 0.6,
+                          cutoff_effect = 0.4,
+                          cutoff_cov = 100) {
         #----------#
         # checking #
         #----------#
@@ -144,23 +156,23 @@ setMethod(
         #--------------------------------------#
         ref_seqs <- vector()
         pam_seqs <- vector()
-        valiant_mseqs <- vector()
+        meta_mseqs <- vector()
         for (s in object@samples) {
             ref_seqs <- c(ref_seqs, s@refseq)
             pam_seqs <- c(pam_seqs, s@pamseq)
-            valiant_mseqs <- c(valiant_mseqs, s@mseqs)
+            meta_mseqs <- c(meta_mseqs, s@meta_mseqs)
         }
         ref_seqs <- unique(ref_seqs)
         pam_seqs <- unique(pam_seqs)
-        valiant_mseqs <- unique(valiant_mseqs)
+        meta_mseqs <- unique(meta_mseqs)
 
         # mapped to valiant but not ref/pam
-        effective_counts <- object@filtered_counts[rownames(object@filtered_counts)%in%valiant_mseqs, ]
+        effective_counts <- object@filtered_counts[rownames(object@filtered_counts)%in%meta_mseqs, ]
         effective_counts <- effective_counts[rownames(effective_counts)%nin%c(ref_seqs, pam_seqs), ]
         object@effective_counts <- effective_counts
 
         # not mapped to valiant but not ref/pam
-        unmapped_counts <- object@filtered_counts[rownames(object@filtered_counts)%nin%valiant_mseqs, ]
+        unmapped_counts <- object@filtered_counts[rownames(object@filtered_counts)%nin%meta_mseqs, ]
         unmapped_counts <- unmapped_counts[rownames(unmapped_counts)%nin%c(ref_seqs, pam_seqs), ]
 
         for (s in object@samples) {
@@ -174,6 +186,8 @@ setMethod(
             object@stats[samplename, ]$per_unmapped_reads <- object@stats[samplename, ]$unmapped_reads / object@stats[samplename, ]$filtered_reads
             object@stats[samplename, ]$per_ref_reads <- object@stats[samplename, ]$ref_reads / object@stats[samplename, ]$filtered_reads
             object@stats[samplename, ]$per_pam_reads <- object@stats[samplename, ]$pam_reads / object@stats[samplename, ]$filtered_reads
+
+            object@stats[samplename, ]$missing_meta_seqs <- length(s@missing_meta_seqs)
         }
 
         return(object)

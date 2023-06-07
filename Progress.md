@@ -113,34 +113,34 @@ Based on user stories from [the google sheet](https://docs.google.com/spreadshee
 ### 4. Percentage of reads mapping to REF 
 **Essential:**
 - [x] percentage of REF reads
-- [ ] sample ID or reference
+- [x] sample ID or reference
 
 **Preferable:**
-- [ ] flag to exclude sample, based on predefined threshold
+- [x] flag to exclude sample, based on predefined threshold
 
 ### 5. Percentage of reads mapping to PAM 
 **Essential:**
 - [x] percentage of PAM reads
-- [ ] sample ID or reference
+- [x] sample ID or reference
 
 **Preferable:**
-- [ ] flag to exclude sample, based on predefined threshold
+- [x] flag to exclude sample, based on predefined threshold
 
 ### 6. Percentage of reads mapping to library
 **Essential:**
 - [x] percentage of Effective library reads
-- [ ] sample ID or reference
+- [x] sample ID or reference
 
 **Preferable:**
-- [ ] flag to exclude sample, based on predefined threshold
+- [x] flag to exclude sample, based on predefined threshold
 
 ### 7. Percentage of unmapped reads
 **Essential:**
 - [x] percentage of unmappped reads
-- [ ] sample ID or reference
+- [x] sample ID or reference
 
 **Preferable:**
-- [ ] flag to exclude sample, based on predefined threshold
+- [x] flag to exclude sample, based on predefined threshold
 
 ### 8. Percentage of variants missing
 **Essential:**

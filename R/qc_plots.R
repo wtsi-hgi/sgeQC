@@ -6,12 +6,13 @@ setGeneric("qcplot_clusters", function(object, ...) {
 #' create the sequence counts and clusters plot
 #'
 #' @export
-#' @param object primaryQC object
+#' @param object  primaryQC object
 #' @param plotdir the output plot directory
 setMethod(
     "qcplot_clusters",
     signature = "primaryQC",
-    definition = function(object, plotdir) {
+    definition = function(object,
+                          plotdir) {
         if (length(plotdir) == 0) {
             stop(paste0("====> Error: plotdir is not provided, no output directory."))
         }
@@ -76,12 +77,13 @@ setGeneric("qcplot_stats", function(object, ...) {
 #' create the sequence counts and clusters plot
 #'
 #' @export
-#' @param object primaryQC object
+#' @param object  primaryQC object
 #' @param plotdir the output plot directory
 setMethod(
     "qcplot_stats",
     signature = "primaryQC",
-    definition = function(object, plotdir) {
+    definition = function(object,
+                          plotdir) {
         if (length(plotdir) == 0) {
             stop(paste0("====> Error: plotdir is not provided, no output directory."))
         }

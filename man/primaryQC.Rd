@@ -27,5 +27,7 @@ A class representing a primary qc object
 \item{\code{effective_counts}}{a data frame of effective counts of all the samples}
 
 \item{\code{stats}}{a data frame of samples and stats, eg. total no, filtered no.}
+
+\item{\code{filtered_samples}}{a list of filtered sample objects}
 }}
 

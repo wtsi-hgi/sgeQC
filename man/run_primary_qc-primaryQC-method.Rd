@@ -9,7 +9,11 @@
   qc_type,
   cluster_count,
   effect_count = 5,
-  effect_per = 0.25
+  effect_per = 0.25,
+  cutoff_filtered = 1e+06,
+  cutoff_mapping = 0.6,
+  cutoff_effect = 0.4,
+  cutoff_cov = 100
 )
 }
 \arguments{
@@ -22,6 +26,14 @@
 \item{effect_count}{count cutoff of effective reads}
 
 \item{effect_per}{sample percentage cutoff of effective reads}
+
+\item{cutoff_filtered}{qc cutoff of the total filtered reads}
+
+\item{cutoff_mapping}{qc cutoff of mapping percentage (ref + pam + effect)}
+
+\item{cutoff_effect}{qc cutoff of effective reads percentage}
+
+\item{cutoff_cov}{qc cutoff of effective coverage}
 }
 \value{
 object
