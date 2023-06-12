@@ -270,27 +270,46 @@ setMethod(
         }
 
         sample_names <- character()
-        effcounts_pos <- data.table()
+        effcounts_pos <- data.frame()
         for (s in object@samples) {
             sample_names <- append(sample_names, s@sample)
 
-            tmp_effcounts <- data.table()
-            tmp_effcounts$mseqs <- s@meta_mseqs
-            tmp_effcounts$counts <- 0
+            obj_effcounts <- object@effective_counts[, s@sample, drop = FALSE]
+            obj_effcounts <- obj_effcounts[!is.na(obj_effcounts[, 1]), 1, drop = FALSE]
 
-            tmp_effcounts[rownames(object@effective_counts), ] <- object@effective_counts[, s@sample]
+            tmp_effcounts <- data.frame(matrix(NA, length(s@meta_mseqs), 1))
+            colnames(tmp_effcounts) <- s@sample
+            rownames(tmp_effcounts) <- s@meta_mseqs
+            tmp_effcounts[, 1] <- 0
 
-            if (nrow(effecounts_pos) == 0) {
-                effcounts_pos <- tmp_effcounts$counts
+            tmp_effcounts[rownames(obj_effcounts), 1] <- obj_effcounts[, 1]
+            rownames(tmp_effcounts) <- 1:length(s@meta_mseqs)
+
+            if (nrow(effcounts_pos) == 0) {
+                effcounts_pos <- tmp_effcounts
             } else {
-                effcount_pos <- cbind.fill(effcount_pos, tmp_effcounts$counts)
+                effcounts_pos <- cbind.fill(effcounts_pos, tmp_effcounts)
             }
         }
-        colnames(effcount_pos) <- sample_names
+        rownames(effcounts_pos) <- 1:dim(effcounts_pos)[1]
+        colnames(effcounts_pos) <- sample_names
 
-        effcount_pos <- apply(effcount_pos, 2, function(x) x / (sum(x, na.rm = TRUE) / 1000000))
-        effcount_pos_log <- log2(effcount_pos + 1)
-
-        # heatmap here
+        effcounts_pos <- apply(effcounts_pos, 2, function(x) x / (sum(x, na.rm = TRUE) / 1000000))
+        effcounts_pos_log <- log2(effcounts_pos + 1)
+q
+        pwidth <- 300 * length(sample_names)
+        png(paste0(plotdir, "/", "primary_qc_position_cov.png"), width = pwidth, height = 1800, res = 240)
+        heatmap.2(as.matrix(effcounts_pos_log),
+                  distfun=function(x) dist(x, method = "euclidean"),
+                  hclustfun=function(x) hclust(x, method = "ward.D2"),
+                  col = colorpanel(100, "royalblue", "ivory", "tomato"),
+                  na.color = "grey",
+                  breaks = seq(0, 10, length.out = 101),
+                  density.info = "none", trace = "none", dendrogram = "none",
+                  Rowv = FALSE, Colv = FALSE,
+                  labRow = FALSE, cexRow = 1,
+                  key.xlab = "Log2(count+1)", key.title = "", key.par = list(cex.lab = 1.2),
+                  margins = c(8, 2), colsep = 1:length(sample_names))
+        dev.off()
     }
 )
