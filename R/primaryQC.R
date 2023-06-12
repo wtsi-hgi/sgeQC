@@ -8,7 +8,6 @@ setGeneric("run_primary_qc", function(object, ...) {
 #' @export
 #' @param object          primaryQC object
 #' @param qc_type         plasmid or screen
-#' @param cluster_count   count cutoff only used in plasmid qc
 #' @param effect_count    count cutoff of effective reads
 #' @param effect_per      sample percentage cutoff of effective reads
 #' @param cutoff_filtered qc cutoff of the total filtered reads
@@ -21,7 +20,6 @@ setMethod(
     signature = "primaryQC",
     definition = function(object,
                           qc_type,
-                          cluster_count,
                           effect_count = 5,
                           effect_per = 0.25,
                           cutoff_filtered = 1000000,
@@ -43,10 +41,6 @@ setMethod(
                     if (length(object@samples_ref) == 0) {
                         stop(paste0("====> Error: samples_ref is empty! Screen QC must have reference samples."))
                     }
-                } else {
-                    if (length(cluster_count) == 0) {
-                        stop(paste0("====> Error: cluster hard cutoff is not provided! Plasmid QC must have it."))
-                    }
                 }
             } else {
                 stop(paste0("====> Error: wrong QC type! Please use plasmid or screen."))
@@ -59,9 +53,7 @@ setMethod(
         sample_names <- character()
         for (s in object@samples) {
             sample_names <- append(sample_names, s@sample)
-        }
 
-        for (s in object@samples) {
             object@stats[s@sample, ]$total_reads <- s@allstats$total_counts
             object@stats[s@sample, ]$ref_reads <- s@allstats_qc$num_ref_reads
             object@stats[s@sample, ]$pam_reads <- s@allstats_qc$num_pam_reads
@@ -98,7 +90,7 @@ setMethod(
             colnames(ref_clusters) <- c("count", "count_log2", "cluster")
             ref_clusters <- data.frame(ref_clusters)
 
-            object@seq_clusters <- ref_clusters
+            object@seq_clusters[["ref"]] <- ref_clusters
             object@filtered_seqs <- rownames(ref_clusters[ref_clusters$cluster == 2, ])
 
             # filtering sequences on input samples by filtered set
@@ -122,17 +114,27 @@ setMethod(
         } else {
             filtered_counts <- data.table()
             for (s in object@samples) {
-                tmp_counts <- s@allcounts[, c("sgrna_seqs", "oligo_count")]
-                tmp_counts <- as.data.table(tmp_counts)
-                tmp_counts_f <- tmp_counts[tmp_counts$oligo_count >= cluster_count, ]
+                tmp_counts <- s@allcounts$oligo_count
+                names(tmp_counts) <- s@allcounts$sgrna_seqs
+
+                tmp_counts_log2 <- log2(tmp_counts + 1)
+                kmeans_res <- Ckmeans.1d.dp(tmp_counts_log2, k = 2, y = 1)
+                tmp_clusters <- cbind(tmp_counts, tmp_counts_log2, kmeans_res$cluster)
+                colnames(tmp_clusters) <- c("count", "count_log2", "cluster")
+                tmp_clusters <- data.frame(tmp_clusters)
+
+                object@seq_clusters[[s@sample]] <- tmp_clusters
+
+                tmp_counts_filtered <- tmp_clusters[tmp_clusters$cluster == 2, "count", drop = FALSE]
+                tmp_counts_filtered$sgrna_seqs <- rownames(tmp_counts_filtered)
+                tmp_counts_filtered <- as.data.table(tmp_counts_filtered)
 
                 if (nrow(filtered_counts) == 0) {
-                    filtered_counts <- tmp_counts_f
+                    filtered_counts <- tmp_counts_filtered
                 } else {
-                    filtered_counts <- merge(filtered_counts, tmp_counts_f, by = "sgrna_seqs", all = TRUE)
+                    filtered_counts <- merge(filtered_counts, tmp_counts_filtered, by = "sgrna_seqs", all = TRUE)
                 }
             }
-
             filtered_counts <- as.data.frame(filtered_counts)
             rownames(filtered_counts) <- filtered_counts$sgrna_seqs
             filtered_counts <- subset(filtered_counts, select = -sgrna_seqs)
@@ -189,6 +191,27 @@ setMethod(
 
             object@stats[samplename, ]$missing_meta_seqs <- length(s@missing_meta_seqs)
         }
+
+        #----------------------------------------#
+        # 5. Filtering by effective coverage     #
+        #    a) effective reads / oligos in meta #
+        #----------------------------------------#
+
+        for (s in object@samples) {
+            samplename <- s@sample
+            object@stats[samplename, ]$effective_cov <- object@stats[samplename, ]$effective_reads / length(s@meta_mseqs)
+        }
+
+        #------------------#
+        # 6. QC results    #
+        #------------------#
+        object@stats$qcpass_filtered_reads <- unlist(lapply(object@stats$filtered_reads, function(x) ifelse(x >= cutoff_filtered, TRUE, FALSE)))
+        object@stats$qcpass_mapping_per <- unlist(lapply(object@stats$per_unmapped_reads, function(x) ifelse(x < (1 - cutoff_mapping), TRUE, FALSE)))
+        object@stats$qcpass_effective_per <- unlist(lapply(object@stats$per_effective_reads, function(x) ifelse(x >= cutoff_effect, TRUE, FALSE)))
+        object@stats$qcpass_effective_cov <- unlist(lapply(object@stats$effective_cov, function(x) ifelse(x >= cutoff_cov, TRUE, FALSE)))
+
+        qc_lables <- c("qcpass_filtered_reads", "qcpass_mapping_per", "qcpass_effective_per", "qcpass_effective_cov")
+        object@stats$qcpass <- apply(object@stats[, qc_lables], 1, function(x) all(x))
 
         return(object)
     }

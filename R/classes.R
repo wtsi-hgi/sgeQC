@@ -165,8 +165,8 @@ create_sge_object <- function(file_libcount,
 #' @slot samples          a list of SGE objects
 #' @slot samples_ref      a list of SGE objects which are the references for screen QC
 #' @slot counts           a list of sample counts
-#' @slot effective_seqs   a vector of sequences mapped to valiant output, not pam and not ref
-#' @slot seq_clusters     1D k-means clusters, a data frame of sequences and cluster IDs
+#' @slot lengths          a list of sequence lengths
+#' @slot seq_clusters     a list of dataframes of sequences and cluster IDs
 #' @slot filtered_seqs    a vector of sequences with counts > clustering cutoff for screen QC in the references
 #' @slot filtered_counts  a data frame of filtered counts of all the samples
 #' @slot effective_counts a data frame of effective counts of all the samples
@@ -177,8 +177,8 @@ setClass("primaryQC",
         samples = "list",
         samples_ref = "list",
         counts = "list",
-        effective_seqs = "character",
-        seq_clusters = "data.frame",
+        lengths = "list",
+        seq_clusters = "list",
         filtered_seqs = "character",
         filtered_counts = "data.frame",
         effective_counts = "data.frame",
@@ -189,8 +189,8 @@ setClass("primaryQC",
         samples = list(),
         samples_ref = list(),
         counts = list(),
-        effective_seqs = character(),
-        seq_clusters = data.frame(),
+        lengths = list(),
+        seq_clusters = list(),
         filtered_seqs = character(),
         filtered_counts = data.frame(),
         effective_counts = data.frame(),
@@ -223,17 +223,23 @@ create_primaryqc_object <- function(samples) {
     }
 
     list_counts <- list()
+    list_lengths <- list()
     for (s in samples) {
         counts <- s@allcounts[, c("sgrna_seqs", "oligo_count")]
         rownames(counts) <- counts$sgrna_seqs
         counts <- subset(counts, select = -sgrna_seqs)
 
+        lengths <- s@allcounts[, "sgrna_seqs", drop = FALSE]
+        lengths$length <- nchar(lengths$sgrna_seqs)
+
         list_counts[[s@sample]] <- counts
+        list_lengths[[s@sample]] <- lengths
     }
 
     cols <- c("total_reads",
               "failed_reads",
               "filtered_reads",
+              "missing_meta_seqs",
               "effective_reads",
               "per_effective_reads",
               "unmapped_reads",
@@ -242,7 +248,7 @@ create_primaryqc_object <- function(samples) {
               "per_ref_reads",
               "pam_reads",
               "per_pam_reads",
-              "missing_meta_seqs",
+              "effective_cov",
               "qcpass_filtered_reads",
               "qcpass_mapping_per",
               "qcpass_effective_per",
@@ -256,6 +262,7 @@ create_primaryqc_object <- function(samples) {
     primaryqc_object <- new("primaryQC",
         samples = samples,
         counts = list_counts,
+        lengths = list_lengths,
         stats = df_stats)
 
     # Return the object

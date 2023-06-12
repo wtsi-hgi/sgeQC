@@ -1,4 +1,51 @@
 #' initialize function
+setGeneric("qcplot_readlens", function(object, ...) {
+  standardGeneric("qcplot_readlens")
+})
+
+#' create the read length plot
+#'
+#' @export
+#' @param object  primaryQC object
+#' @param plotdir the output plot directory
+setMethod(
+    "qcplot_readlens",
+    signature = "primaryQC",
+    definition = function(object,
+                          plotdir) {
+        if (length(plotdir) == 0) {
+            stop(paste0("====> Error: plotdir is not provided, no output directory."))
+        }
+
+        read_lens <- data.table()
+        for (i in 1:length(object@lengths)) {
+            tmp_lens <- object@lengths[[i]][, "length", drop = FALSE]
+            tmp_lens$samples <- names(object@lengths)[i]
+            tmp_lens <- as.data.table(tmp_lens)
+
+            if (nrow(read_lens) == 0) {
+                read_lens <- tmp_lens
+            } else {
+                read_lens <- rbind(read_lens, tmp_lens)
+            }
+        }
+
+        p1 <- ggplot(read_lens, aes(x = factor(samples), y = length, color = samples, fill = samples)) +
+                geom_violin(alpha = 0.3, scale = "width") +
+                labs(x = "read length", y = "frequency", title = "Primary QC read lengths") +
+                theme(panel.background = element_rect(fill="ivory",colour="white")) +
+                theme(axis.title = element_text(size=16,face="bold",family="Arial")) +
+                theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
+                theme(axis.text = element_text(size=12,face="bold"))
+
+        pwidth <- 300 * length(object@lengths)
+        png(paste0(plotdir, "/", "primary_qc_read_length.violin.png"), width = pwidth, height = 1200, res = 240)
+        print(p1)
+        dev.off()
+    }
+)
+
+#' initialize function
 setGeneric("qcplot_clusters", function(object, ...) {
   standardGeneric("qcplot_clusters")
 })
@@ -7,65 +54,109 @@ setGeneric("qcplot_clusters", function(object, ...) {
 #'
 #' @export
 #' @param object  primaryQC object
+#' @param qctype  qc type for plot
 #' @param plotdir the output plot directory
 setMethod(
     "qcplot_clusters",
     signature = "primaryQC",
     definition = function(object,
+                          qctype,
                           plotdir) {
+        if (length(qctype) == 0) {
+            stop(paste0("====> Error: qctype is not provided, plasmid or screen."))
+        } else {
+            if (qctype %nin% c("plasmid", "screen")) {
+                stop(paste0("====> Error: wrong qctype, plasmid or screen."))
+            } else {
+                if (qctype == "screen") {
+                    if (is.null(object@seq_clusters[["ref"]])) {
+                        stop(paste0("====> Error: selected wrong qctype, no ref in object seq_clusters."))
+                    }
+                }
+            }
+        }
+
         if (length(plotdir) == 0) {
             stop(paste0("====> Error: plotdir is not provided, no output directory."))
         }
 
-        seq_clusters <- object@seq_clusters
-        seq_clusters_1 <- seq_clusters[seq_clusters$cluster==1, ]
-        seq_clusters_2 <- seq_clusters[seq_clusters$cluster==2, ]
-        seq_clusters_new <- rbind(seq_clusters_1, seq_clusters_2)
+        if (qctype == "screen") {
+            seq_clusters <- object@seq_clusters[["ref"]]
+            seq_clusters_1 <- seq_clusters[seq_clusters$cluster==1, ]
+            seq_clusters_2 <- seq_clusters[seq_clusters$cluster==2, ]
+            seq_clusters_new <- rbind(seq_clusters_1, seq_clusters_2)
 
-        p1 <- ggplot(seq_clusters_new, aes(x = 1:dim(seq_clusters_new)[1], y = count_log2, color = factor(cluster))) +
-                geom_point(shape = 21, size = 1, aes(fill = factor(cluster), color = factor(cluster))) +
-                scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
-                scale_color_manual(values = c("tomato", "royalblue")) +
-                labs(x = "sequence index", y = "log2(count+1)", title = "Primary QC clusters") +
-                theme(legend.position = "none", panel.grid.major = element_blank()) +
-                theme(panel.background = element_rect(fill="ivory",colour="white")) +
-                theme(axis.title = element_text(size=16,face="bold",family="Arial")) +
-                theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
-                theme(axis.text = element_text(size=12,face="bold"))
+            p1 <- ggplot(seq_clusters_new, aes(x = 1:dim(seq_clusters_new)[1], y = count_log2, color = factor(cluster))) +
+                    geom_point(shape = 21, size = 1, aes(fill = factor(cluster), color = factor(cluster))) +
+                    scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
+                    scale_color_manual(values = c("tomato", "royalblue")) +
+                    labs(x = "sequence index", y = "log2(count+1)", title = "Primary QC clusters") +
+                    theme(legend.position = "none", panel.grid.major = element_blank()) +
+                    theme(panel.background = element_rect(fill="ivory",colour="white")) +
+                    theme(axis.title = element_text(size=16,face="bold",family="Arial")) +
+                    theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
+                    theme(axis.text = element_text(size=12,face="bold"))
 
-        png(paste0(plotdir, "/", "primary_qc_seq_clusters.point.png"), width = 1200, height = 1200, res = 240)
-        print(p1)
-        dev.off()
+            png(paste0(plotdir, "/", "primary_qc_seq_clusters.point.png"), width = 1200, height = 1200, res = 240)
+            print(p1)
+            dev.off()
 
-        p2 <- ggplot(seq_clusters_new, aes(x = count_log2, color = factor(cluster))) +
-                geom_histogram(aes(fill = factor(cluster), color = factor(cluster))) +
-                scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
-                scale_color_manual(values = c("tomato", "royalblue")) +
-                labs(x = "log2(count+1)", y = "frequency", title = "Primary QC clusters") +
-                theme(legend.position = "none", panel.grid.major = element_blank()) +
-                theme(panel.background = element_rect(fill="ivory",colour="white")) +
-                theme(axis.title = element_text(size=16,face="bold",family="Arial")) +
-                theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
-                theme(axis.text = element_text(size=12,face="bold"))
+            p2 <- ggplot(seq_clusters_new, aes(x = count_log2, color = factor(cluster))) +
+                    geom_histogram(aes(fill = factor(cluster), color = factor(cluster))) +
+                    scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
+                    scale_color_manual(values = c("tomato", "royalblue")) +
+                    labs(x = "log2(count+1)", y = "frequency", title = "Primary QC clusters") +
+                    theme(legend.position = "none", panel.grid.major = element_blank()) +
+                    theme(panel.background = element_rect(fill="ivory",colour="white")) +
+                    theme(axis.title = element_text(size=16,face="bold",family="Arial")) +
+                    theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
+                    theme(axis.text = element_text(size=12,face="bold"))
 
-        png(paste0(plotdir, "/", "primary_qc_seq_clusters.hist.png"), width = 1200, height = 1200, res = 240)
-        print(p2)
-        dev.off()
+            #png(paste0(plotdir, "/", "primary_qc_seq_clusters.hist.png"), width = 1200, height = 1200, res = 240)
+            #print(p2)
+            #dev.off()
 
-        p3 <- ggplot(seq_clusters_new, aes(x = count_log2, color = factor(cluster))) +
-                geom_density(aes(fill = factor(cluster), color = factor(cluster))) +
-                scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
-                scale_color_manual(values = c("tomato", "royalblue")) +
-                labs(x = "log2(count+1)", y = "frequency", title = "Primary QC clusters") +
-                theme(legend.position = "none", panel.grid.major = element_blank()) +
-                theme(panel.background = element_rect(fill="ivory",colour="white")) +
-                theme(axis.title = element_text(size=16,face="bold",family="Arial")) +
-                theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
-                theme(axis.text = element_text(size=12,face="bold"))
+            p3 <- ggplot(seq_clusters_new, aes(x = count_log2, color = factor(cluster))) +
+                    geom_density(aes(fill = factor(cluster), color = factor(cluster))) +
+                    scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
+                    scale_color_manual(values = c("tomato", "royalblue")) +
+                    labs(x = "log2(count+1)", y = "frequency", title = "Primary QC clusters") +
+                    theme(legend.position = "none", panel.grid.major = element_blank()) +
+                    theme(panel.background = element_rect(fill="ivory",colour="white")) +
+                    theme(axis.title = element_text(size=16,face="bold",family="Arial")) +
+                    theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
+                    theme(axis.text = element_text(size=12,face="bold"))
 
-        png(paste0(plotdir, "/", "primary_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 240)
-        print(p3)
-        dev.off()
+            png(paste0(plotdir, "/", "primary_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 240)
+            print(p3)
+            dev.off()
+        } else {
+            seq_clusters <- data.table()
+            for (i in 1:length(object@seq_clusters)) {
+                tmp_cluster <- object@seq_clusters[[i]][, c("count_log2", "cluster")]
+                tmp_cluster$samples <- names(object@seq_clusters)[i]
+                tmp_cluster <- as.data.table(tmp_cluster)
+
+                if (nrow(seq_clusters) == 0) {
+                    seq_clusters <- tmp_cluster
+                } else {
+                    seq_clusters <- rbind(clusters, tmp_cluster)
+                }
+            }
+
+            p1 <- ggplot(seq_clusters, aes(x = count_log2, color = samples, fill = samples)) +
+                    geom_density(alpha = 0.2) +
+                    labs(x = "log2(count+1)", y = "frequency", title = "Primary QC clusters") +
+                    theme(panel.background = element_rect(fill="ivory",colour="white")) +
+                    theme(axis.title = element_text(size=16,face="bold",family="Arial")) +
+                    theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
+                    theme(axis.text = element_text(size=12,face="bold")) +
+                    facet_wrap(~cluster, scales = "free")
+
+            png(paste0(plotdir, "/", "primary_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 240)
+            print(p1)
+            dev.off()
+        }
     }
 )
 
@@ -74,7 +165,7 @@ setGeneric("qcplot_stats", function(object, ...) {
   standardGeneric("qcplot_stats")
 })
 
-#' create the sequence counts and clusters plot
+#' create the stats plot
 #'
 #' @export
 #' @param object  primaryQC object
@@ -104,7 +195,8 @@ setMethod(
                 theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
                 theme(axis.text = element_text(size=12,face="bold"))
 
-        png(paste0(plotdir, "/", "primary_qc_stats_total.png"), width = 1200, height = 1200, res = 240)
+        pwidth <- 300 * nrow(df_total)
+        png(paste0(plotdir, "/", "primary_qc_stats_total.png"), width = pwidth, height = 1200, res = 240)
         print(p1)
         dev.off()
 
@@ -127,10 +219,78 @@ setMethod(
                 theme(axis.title = element_text(size=16,face="bold",family="Arial")) +
                 theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
                 theme(axis.text = element_text(size=12,face="bold")) +
-                geom_text(aes(label = paste0(dt_filtered$percent,"%")), position = position_fill(vjust = 0.5))
+                geom_text(aes(label = paste0(dt_filtered$percent,"%")), position = position_fill(vjust = 0.5), size = 3)
 
-        png(paste0(plotdir, "/", "primary_qc_stats_filtered.png"), width = 1200, height = 1200, res = 240)
+        pwidth <- 300 * nrow(df_filtered)
+        png(paste0(plotdir, "/", "primary_qc_stats_filtered.png"), width = pwidth, height = 1200, res = 240)
         print(p2)
         dev.off()
+
+        df_cov <- object@stats[, c("effective_cov"), drop = FALSE]
+        df_cov$samples <- rownames(df_cov)
+        dt_cov <- melt(as.data.table(df_cov), id.vars = "samples", variable.name = "types", value.name = "cov")
+
+        p3 <- ggplot(dt_cov,  aes(x = samples, y = cov, fill = types)) +
+                geom_bar(stat = "identity") +
+                scale_fill_manual(values = t_col("royalblue", 0.5)) +
+                scale_color_manual(values = "royalblue") +
+                labs(x = "samples", y = "effective coverage", title = "Primary QC Stats") +
+                scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
+                theme(legend.position = "right", legend.title = element_blank()) +
+                theme(panel.background = element_rect(fill="ivory", colour="white")) +
+                theme(axis.title = element_text(size=16,face="bold",family="Arial")) +
+                theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
+                theme(axis.text = element_text(size=12,face="bold")) +
+                geom_text(aes(label = as.integer(dt_cov$cov)), position = position_fill(vjust = 0.5), size = 3)
+
+        pwidth <- 300 * nrow(df_cov)
+        png(paste0(plotdir, "/", "primary_qc_stats_cov.png"), width = pwidth, height = 1200, res = 240)
+        print(p3)
+        dev.off()
+    }
+)
+
+#' initialize function
+setGeneric("qcplot_position", function(object, ...) {
+  standardGeneric("qcplot_position")
+})
+
+#' create the position plot
+#'
+#' @export
+#' @param object  primaryQC object
+#' @param plotdir the output plot directory
+setMethod(
+    "qcplot_position",
+    signature = "primaryQC",
+    definition = function(object,
+                          plotdir) {
+        if (length(plotdir) == 0) {
+            stop(paste0("====> Error: plotdir is not provided, no output directory."))
+        }
+
+        sample_names <- character()
+        effcounts_pos <- data.table()
+        for (s in object@samples) {
+            sample_names <- append(sample_names, s@sample)
+
+            tmp_effcounts <- data.table()
+            tmp_effcounts$mseqs <- s@meta_mseqs
+            tmp_effcounts$counts <- 0
+
+            tmp_effcounts[rownames(object@effective_counts), ] <- object@effective_counts[, s@sample]
+
+            if (nrow(effecounts_pos) == 0) {
+                effcounts_pos <- tmp_effcounts$counts
+            } else {
+                effcount_pos <- cbind.fill(effcount_pos, tmp_effcounts$counts)
+            }
+        }
+        colnames(effcount_pos) <- sample_names
+
+        effcount_pos <- apply(effcount_pos, 2, function(x) x / (sum(x, na.rm = TRUE) / 1000000))
+        effcount_pos_log <- log2(effcount_pos + 1)
+
+        # heatmap here
     }
 )
