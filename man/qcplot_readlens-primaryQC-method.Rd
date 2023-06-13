@@ -4,7 +4,7 @@
 \alias{qcplot_readlens,primaryQC-method}
 \title{create the read length plot}
 \usage{
-\S4method{qcplot_readlens}{primaryQC}(object, plotdir)
+\S4method{qcplot_readlens}{primaryQC}(object, plotdir = "plotdir")
 }
 \arguments{
 \item{object}{primaryQC object}

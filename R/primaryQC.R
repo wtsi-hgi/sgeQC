@@ -201,6 +201,7 @@ setMethod(
             samplename <- s@sample
             object@stats[samplename, ]$effective_cov <- object@stats[samplename, ]$effective_reads / length(s@meta_mseqs)
         }
+        object@stats$effective_cov <- as.integer(object@stats$effective_cov)
 
         #------------------#
         # 6. QC results    #

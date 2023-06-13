@@ -4,7 +4,7 @@
 \alias{qcplot_clusters,primaryQC-method}
 \title{create the sequence counts and clusters plot}
 \usage{
-\S4method{qcplot_clusters}{primaryQC}(object, qctype, plotdir)
+\S4method{qcplot_clusters}{primaryQC}(object, qctype, plotdir = "plotdir")
 }
 \arguments{
 \item{object}{primaryQC object}

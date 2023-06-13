@@ -4,7 +4,7 @@
 \alias{qcplot_position,primaryQC-method}
 \title{create the position plot}
 \usage{
-\S4method{qcplot_position}{primaryQC}(object, plotdir)
+\S4method{qcplot_position}{primaryQC}(object, plotdir = "plotdir")
 }
 \arguments{
 \item{object}{primaryQC object}
