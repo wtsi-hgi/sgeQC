@@ -4,7 +4,7 @@
 \alias{qcplot_stats,primaryQC-method}
 \title{create the stats plot}
 \usage{
-\S4method{qcplot_stats}{primaryQC}(object, plotdir = "plotdir")
+\S4method{qcplot_stats}{primaryQC}(object, plotdir)
 }
 \arguments{
 \item{object}{primaryQC object}
