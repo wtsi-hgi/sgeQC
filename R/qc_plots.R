@@ -39,7 +39,7 @@ setMethod(
                 theme(axis.text = element_text(size=12,face="bold"))
 
         pwidth <- 300 * length(object@lengths)
-        png(paste0(plotdir, "/", "primary_qc_read_length.violin.png"), width = pwidth, height = 1200, res = 480)
+        png(paste0(plotdir, "/", "primary_qc_read_length.violin.png"), width = pwidth, height = 1200, res = 240)
         print(p1)
         dev.off()
     }
@@ -97,7 +97,7 @@ setMethod(
                     theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
                     theme(axis.text = element_text(size=12,face="bold"))
 
-            png(paste0(plotdir, "/", "primary_qc_seq_clusters.point.png"), width = 1200, height = 1200, res = 480)
+            png(paste0(plotdir, "/", "primary_qc_seq_clusters.point.png"), width = 1200, height = 1200, res = 240)
             print(p1)
             dev.off()
 
@@ -112,7 +112,7 @@ setMethod(
                     theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
                     theme(axis.text = element_text(size=12,face="bold"))
 
-            #png(paste0(plotdir, "/", "primary_qc_seq_clusters.hist.png"), width = 1200, height = 1200, res = 480)
+            #png(paste0(plotdir, "/", "primary_qc_seq_clusters.hist.png"), width = 1200, height = 1200, res = 240)
             #print(p2)
             #dev.off()
 
@@ -127,7 +127,7 @@ setMethod(
                     theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
                     theme(axis.text = element_text(size=12,face="bold"))
 
-            png(paste0(plotdir, "/", "primary_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 480)
+            png(paste0(plotdir, "/", "primary_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 240)
             print(p3)
             dev.off()
         } else {
@@ -153,7 +153,7 @@ setMethod(
                     theme(axis.text = element_text(size=12,face="bold")) +
                     facet_wrap(~cluster, scales = "free")
 
-            png(paste0(plotdir, "/", "primary_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 480)
+            png(paste0(plotdir, "/", "primary_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 240)
             print(p1)
             dev.off()
         }
@@ -196,7 +196,7 @@ setMethod(
                 theme(axis.text = element_text(size=12,face="bold"))
 
         pwidth <- 300 * nrow(df_total)
-        png(paste0(plotdir, "/", "primary_qc_stats_total.png"), width = pwidth, height = 1200, res = 480)
+        png(paste0(plotdir, "/", "primary_qc_stats_total.png"), width = pwidth, height = 1200, res = 240)
         print(p1)
         dev.off()
 
@@ -219,10 +219,10 @@ setMethod(
                 theme(axis.title = element_text(size=16,face="bold",family="Arial")) +
                 theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
                 theme(axis.text = element_text(size=12,face="bold")) +
-                geom_text(aes(label = paste0(dt_filtered$percent,"%")), position = position_fill(vjust = 0.5), size = 3)
+                geom_text(aes(label = paste0(percent, "%")), position = position_fill(vjust = 0.5), size = 3)
 
         pwidth <- 300 * nrow(df_filtered)
-        png(paste0(plotdir, "/", "primary_qc_stats_filtered.png"), width = pwidth, height = 1200, res = 480)
+        png(paste0(plotdir, "/", "primary_qc_stats_filtered.png"), width = pwidth, height = 1200, res = 240)
         print(p2)
         dev.off()
 
@@ -240,8 +240,7 @@ setMethod(
                 theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
                 theme(axis.text = element_text(size=12,face="bold"))
 
-        pwidth <- 300 * nrow(df_cov)
-        png(paste0(plotdir, "/", "primary_qc_stats_cov.png"), width = pwidth, height = 1200, res = 480)
+        png(paste0(plotdir, "/", "primary_qc_stats_cov.png"), width = 1200, height = 1200, res = 240)
         print(p3)
         dev.off()
     }
@@ -285,7 +284,7 @@ setMethod(
             if (nrow(effcounts_pos) == 0) {
                 effcounts_pos <- tmp_effcounts
             } else {
-                effcounts_pos <- cbind.fill(effcounts_pos, tmp_effcounts)
+                effcounts_pos <- cbind_fill(effcounts_pos, tmp_effcounts)
             }
         }
         rownames(effcounts_pos) <- 1:dim(effcounts_pos)[1]
@@ -293,10 +292,14 @@ setMethod(
 
         effcounts_pos <- apply(effcounts_pos, 2, function(x) x / (sum(x, na.rm = TRUE) / 1000000))
         effcounts_pos_log <- log2(effcounts_pos + 1)
-q
-        pwidth <- 300 * length(sample_names)
-        png(paste0(plotdir, "/", "primary_qc_position_cov.png"), width = pwidth, height = 1800, res = 480)
-        heatmap.2(as.matrix(effcounts_pos_log),
+
+        pheight <- 200 * length(sample_names)
+        png(paste0(plotdir, "/", "primary_qc_position_cov.heatmap.png"), width = 2400, height = pheight, res = 240)
+        lmat <- rbind(c(2, 4), c(3, 1))
+        lhei <- c(3, 8)
+        lwid <- c(3, 8)
+
+        heatmap.2(t(as.matrix(effcounts_pos_log)),
                   distfun=function(x) dist(x, method = "euclidean"),
                   hclustfun=function(x) hclust(x, method = "ward.D2"),
                   col = colorpanel(100, "royalblue", "ivory", "tomato"),
@@ -304,9 +307,28 @@ q
                   breaks = seq(0, 10, length.out = 101),
                   density.info = "none", trace = "none", dendrogram = "none",
                   Rowv = FALSE, Colv = FALSE,
-                  labRow = FALSE, cexRow = 1,
-                  key.xlab = "Log2(count+1)", key.title = "", key.par = list(cex.lab = 1.2),
-                  margins = c(8, 2), colsep = 1:length(sample_names))
+                  labCol = FALSE, cexRow = 1,
+                  key = FALSE,
+                  #key.xlab = "Log2(count+1)", key.title = "", key.par = list(cex.lab = 1.2),
+                  margins = c(4, 8), rowsep = 1:length(sample_names),
+                  lmat = lmat, lhei = lhei, lwid = lwid)
+        dev.off()
+
+        dt_effcounts_pos_log <- melt(effcounts_pos_log)
+        colnames(dt_effcounts_pos_log) <- c("index", "samples", "log_counts")
+        p1 <- ggplot(dt_effcounts_pos_log, aes(x = index, y = log_counts)) +
+                geom_point(shape = 16, size = 0.5, color = "tomato", alpha = 0.8) +
+                labs(x = "sequence position", y = "log2(count+1)", title = "Primary QC position coverage") +
+                theme(legend.position = "none", panel.grid.major = element_blank()) +
+                theme(panel.background = element_rect(fill="ivory",colour="white")) +
+                theme(axis.title = element_text(size=16,face="bold",family="Arial")) +
+                theme(plot.title = element_text(size=16,face="bold.italic",family="Arial")) +
+                theme(axis.text = element_text(size=12,face="bold")) +
+                facet_wrap(~samples, dir = "v")
+
+        pheight <- 300 * length(sample_names)
+        png(paste0(plotdir, "/", "primary_qc_position_cov.dots.png"), width = 2400, height = pheight, res = 240)
+        print(p1)
         dev.off()
     }
 )

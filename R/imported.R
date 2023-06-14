@@ -4,3 +4,4 @@
 #' @import data.table
 #' @import gplots
 #' @import ggplot2
+#' @import reshape2
