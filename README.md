@@ -44,8 +44,8 @@ install.packages("/path/of/sgeQC.tar.gz", type = "source")
 
 ```sh
 library(sgeQC)
-objA <- create_sge_object(file_libcount = "test/A.library_dependent_counts.tsv.gz",
-                          file_allcount = "test/A.library_independent_counts.tsv.gz",
+objA <- create_sge_object(file_libcount = "test/screen/A.library_dependent_counts.tsv.gz",
+                          file_allcount = "test/screen/A.library_independent_counts.tsv.gz",
                           file_valiant_meta = "test/A.valiant_meta.csv.gz")
 objA
 

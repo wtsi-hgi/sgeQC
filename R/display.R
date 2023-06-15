@@ -97,7 +97,7 @@ setMethod(
 #' @param object primary object
 setMethod(
     "show",
-    signature = "primaryQC",
+    signature = "sampleQC",
     definition = function(object) {
         cat("An object of class ", class(object), "\n", sep = "")
         cat("|--> samples: ", "\n", sep = "")

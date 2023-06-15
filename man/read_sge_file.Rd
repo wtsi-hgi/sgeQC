@@ -6,12 +6,10 @@
 file has header but beginning with #
 reading extra comment info}
 \usage{
-read_sge_file(file_path, file_type, hline = 0, colnums = vector())
+read_sge_file(file_path, hline = 0, colnums = vector())
 }
 \arguments{
 \item{file_path}{file path}
-
-\item{file_type}{library-dependent (lib) or library-independent (all) or valiant meta (val)}
 
 \item{hline}{header line number, default is 0}
 

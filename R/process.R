@@ -20,18 +20,8 @@ setMethod(
         }
 
         #----------------------------#
-        # 1. library dependent count #
+        # 1. valiant ref and pam seq #
         #----------------------------#
-        if ("sgrna_ids" %in% colnames(object@libcounts)) {
-            object@libcounts <- subset(object@libcounts, select = -c(sgrna_ids))
-        }
-
-        # may be changed later, QUANTS may change names, like gene_pair_id
-        colnames(object@libcounts)[colnames(object@libcounts) == "gene_pair_id"] <- "library_name"
-        object@libname <- unique(object@libcounts$library_name)
-        object@libcounts <- subset(object@libcounts, select = -c(library_name))
-        colnames(object@libcounts)[ncol(object@libcounts)] <- "oligo_count"
-
         refseq_strand <- unique(object@valiant_meta$revc)
         if (refseq_strand == "+") {
             object@refseq <- unique(object@valiant_meta$ref_seq)
@@ -42,38 +32,46 @@ setMethod(
         }
 
         if (length(object@refseq) == 0) {
-            stop(paste0("====> Error: no ref sequence in ", object@libname))
+            stop(paste0("====> Error: no ref sequence"))
         }
         if (length(object@pamseq) == 0) {
-            stop(paste0("====> Error: no pam sequence in ", object@libname))
+            stop(paste0("====> Error: no pam sequence"))
         }
 
         object@refseq <- trim_adaptor(object@refseq, object@adapt5, object@adapt3)
         object@pamseq <- trim_adaptor(object@pamseq, object@adapt5, object@adapt3)
 
-        # need to change, valiant meta sequence may have prime/adaptor, Jamie's valiant description is clean
-        object@libcounts$is_ref <- unlist(lapply(object@libcounts$sgrna_seqs, function(s) ifelse(s == object@refseq, 1, 0)))
-        object@libcounts$is_pam <- unlist(lapply(object@libcounts$sgrna_seqs, function(s) ifelse(s == object@pamseq, 1, 0)))
+        #----------------------------#
+        # 2. library dependent count #
+        #----------------------------#
+        colnames(object@libcounts) <- c("id", "sequence", "count", "unique", "sample")
+
+        object@libcounts$is_ref <- unlist(lapply(object@libcounts$sequence, function(s) ifelse(s == object@refseq, 1, 0)))
+        object@libcounts$is_pam <- unlist(lapply(object@libcounts$sequence, function(s) ifelse(s == object@pamseq, 1, 0)))
 
         #------------------------------#
-        # 2. library independent count #
+        # 3. library independent count #
         #------------------------------#
-        # may be changed/discarded in the future, now independent format is different from dependent
-        colnames(object@allcounts) <- c("sgrna_seqs", "oligo_count")
-        object@allcounts$is_ref <- unlist(lapply(object@allcounts$sgrna_seqs, function(s) ifelse(s == object@refseq, 1, 0)))
-        object@allcounts$is_pam <- unlist(lapply(object@allcounts$sgrna_seqs, function(s) ifelse(s == object@pamseq, 1, 0)))
+        colnames(object@allcounts) <- c("sequence", "length", "count")
+
+        object@allcounts$is_ref <- unlist(lapply(object@allcounts$sequence, function(s) ifelse(s == object@refseq, 1, 0)))
+        object@allcounts$is_pam <- unlist(lapply(object@allcounts$sequence, function(s) ifelse(s == object@pamseq, 1, 0)))
 
         #--------------------------#
-        # 3. mseq in valiant meta  #
+        # 4. mseq in valiant meta  #
         #--------------------------#
         # slow step, any method to speed up?
-        meta_mseqs <- vector()
-        for (i in 1:dim(object@valiant_meta)[1]) {
-            meta_mseqs <- c(meta_mseqs, trim_adaptor(object@valiant_meta$mseq, object@adapt5, object@adapt3))
-        }
-        object@meta_mseqs <- unique(meta_mseqs)
+        #meta_mseqs <- vector()
+        #for (i in 1:dim(object@valiant_meta)[1]) {
+        #    meta_mseqs <- c(meta_mseqs, trim_adaptor(object@valiant_meta$mseq, object@adapt5, object@adapt3))
+        #}
+        #object@meta_mseqs <- unique(meta_mseqs)
 
-        object@missing_meta_seqs <- object@meta_mseqs[object@meta_mseqs %nin% object@allcounts$sgrna_seqs]
+        # use library dependent sequence instead
+        tmp_mseqs <- unique(object@libcounts$sequence)
+        object@meta_mseqs <- tmp_mseqs[tmp_mseqs %nin% c(object@refseq, object@pamseq)]
+
+        object@missing_meta_seqs <- object@meta_mseqs[object@meta_mseqs %nin% object@allcounts$sequence]
 
         return(object)
     }
@@ -100,30 +98,30 @@ setMethod(
         if ("unique" %in% colnames(object@libcounts)) {
             object@libstats$total_num_unique_oligos <- nrow(object@libcounts[object@libcounts$unique == 1, ])
         }
-        object@libstats$total_counts <- sum(object@libcounts$oligo_count)
-        object@libstats$max_counts <- max(object@libcounts$oligo_count)
-        object@libstats$min_counts <- min(object@libcounts$oligo_count)
-        object@libstats$median_counts <- median(object@libcounts$oligo_count)
-        object@libstats$mean_counts <- mean(object@libcounts$oligo_count)
-        object@libstats$num_oligos_nocount <- nrow(object@libcounts[object@libcounts$oligo_count == 0, ])
-        object@libstats$num_oligos_lowcount <- nrow(object@libcounts[object@libcounts$oligo_count <= lowcut, ])
-        object@libstats$max_len_oligos <- max(nchar(object@libcounts$sgrna_seqs))
-        object@libstats$min_len_oligos <- min(nchar(object@libcounts$sgrna_seqs))
+        object@libstats$total_counts <- sum(object@libcounts$count)
+        object@libstats$max_counts <- max(object@libcounts$count)
+        object@libstats$min_counts <- min(object@libcounts$count)
+        object@libstats$median_counts <- median(object@libcounts$count)
+        object@libstats$mean_counts <- mean(object@libcounts$count)
+        object@libstats$num_oligos_nocount <- nrow(object@libcounts[object@libcounts$count == 0, ])
+        object@libstats$num_oligos_lowcount <- nrow(object@libcounts[object@libcounts$count <= lowcut, ])
+        object@libstats$max_len_oligos <- max(nchar(object@libcounts$sequence))
+        object@libstats$min_len_oligos <- min(nchar(object@libcounts$sequence))
 
         # library independent counts
         object@allstats$total_num_oligos <- nrow(object@allcounts)
         if ("unique" %in% colnames(object@allcounts)) {
             object@allstats$total_num_unique_oligos <- nrow(object@allcounts[object@allcounts$unique == 1, ])
         }
-        object@allstats$total_counts <- sum(object@allcounts$oligo_count)
-        object@allstats$max_counts <- max(object@allcounts$oligo_count)
-        object@allstats$min_counts <- min(object@allcounts$oligo_count)
-        object@allstats$median_counts <- median(object@allcounts$oligo_count)
-        object@allstats$mean_counts <- mean(object@allcounts$oligo_count)
-        object@allstats$num_oligos_nocount <- nrow(object@allcounts[object@allcounts$oligo_count == 0, ])
-        object@allstats$num_oligos_lowcount <- nrow(object@allcounts[object@allcounts$oligo_count <= lowcut, ])
-        object@allstats$max_len_oligos <- max(nchar(object@allcounts$sgrna_seqs))
-        object@allstats$min_len_oligos <- min(nchar(object@allcounts$sgrna_seqs))
+        object@allstats$total_counts <- sum(object@allcounts$count)
+        object@allstats$max_counts <- max(object@allcounts$count)
+        object@allstats$min_counts <- min(object@allcounts$count)
+        object@allstats$median_counts <- median(object@allcounts$count)
+        object@allstats$mean_counts <- mean(object@allcounts$count)
+        object@allstats$num_oligos_nocount <- nrow(object@allcounts[object@allcounts$count == 0, ])
+        object@allstats$num_oligos_lowcount <- nrow(object@allcounts[object@allcounts$count <= lowcut, ])
+        object@allstats$max_len_oligos <- max(nchar(object@allcounts$sequence))
+        object@allstats$min_len_oligos <- min(nchar(object@allcounts$sequence))
 
         return(object)
     }
@@ -150,15 +148,15 @@ setMethod(
         total_num_sequenced_reads <- object@allstats$total_counts
 
         # library dependent counts
-        qc_count <- object@libcounts[object@libcounts$is_ref == 1, "oligo_count"]
+        qc_count <- object@libcounts[object@libcounts$is_ref == 1, "count"]
         object@libstats_qc$num_ref_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
         object@libstats_qc$per_ref_reads <- object@libstats_qc$num_ref_reads / total_num_sequenced_reads * 100
 
-        qc_count <- object@libcounts[object@libcounts$is_pam == 1, "oligo_count"]
+        qc_count <- object@libcounts[object@libcounts$is_pam == 1, "count"]
         object@libstats_qc$num_pam_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
         object@libstats_qc$per_pam_reads <- object@libstats_qc$num_pam_reads / total_num_sequenced_reads * 100
 
-        qc_count <- sum(object@libcounts[object@libcounts$is_ref == 0 & object@libcounts$is_pam == 0, "oligo_count"])
+        qc_count <- sum(object@libcounts[object@libcounts$is_ref == 0 & object@libcounts$is_pam == 0, "count"])
         object@libstats_qc$num_eff_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
         object@libstats_qc$per_eff_reads <- object@libstats_qc$num_eff_reads / total_num_sequenced_reads * 100
 
@@ -167,15 +165,15 @@ setMethod(
         object@libstats_qc$per_unmapped_reads <- object@libstats_qc$num_unmapped_reads / total_num_sequenced_reads * 100
 
         # library independent counts
-        qc_count <- object@allcounts[object@allcounts$is_ref == 1, "oligo_count"]
+        qc_count <- object@allcounts[object@allcounts$is_ref == 1, "count"]
         object@allstats_qc$num_ref_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
         object@allstats_qc$per_ref_reads <- object@allstats_qc$num_ref_reads / total_num_sequenced_reads * 100
 
-        qc_count <- object@allcounts[object@allcounts$is_pam == 1, "oligo_count"]
+        qc_count <- object@allcounts[object@allcounts$is_pam == 1, "count"]
         object@allstats_qc$num_pam_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
         object@allstats_qc$per_pam_reads <- object@allstats_qc$num_pam_reads / total_num_sequenced_reads * 100
 
-        qc_count <- sum(object@allcounts[object@allcounts$is_ref == 0 & object@allcounts$is_pam == 0, "oligo_count"])
+        qc_count <- sum(object@allcounts[object@allcounts$is_ref == 0 & object@allcounts$is_pam == 0, "count"])
         object@allstats_qc$num_eff_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
         object@allstats_qc$per_eff_reads <- object@allstats_qc$num_eff_reads / total_num_sequenced_reads * 100
 

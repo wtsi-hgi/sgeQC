@@ -1,12 +1,12 @@
 #' initialize function
-setGeneric("run_primary_qc", function(object, ...) {
-  standardGeneric("run_primary_qc")
+setGeneric("run_sample_qc", function(object, ...) {
+  standardGeneric("run_sample_qc")
 })
 
-#' run primary QC for the list of samples
+#' run sample QC for the list of samples
 #'
 #' @export
-#' @param object          primaryQC object
+#' @param object          sampleQC object
 #' @param qc_type         plasmid or screen
 #' @param effect_count    count cutoff of effective reads
 #' @param effect_per      sample percentage cutoff of effective reads
@@ -16,8 +16,8 @@ setGeneric("run_primary_qc", function(object, ...) {
 #' @param cutoff_cov      qc cutoff of effective coverage
 #' @return object
 setMethod(
-    "run_primary_qc",
-    signature = "primaryQC",
+    "run_sample_qc",
+    signature = "sampleQC",
     definition = function(object,
                           qc_type,
                           effect_count = 5,
@@ -30,7 +30,7 @@ setMethod(
         # checking #
         #----------#
         if (length(object@samples) == 0) {
-            stop(paste0("====> Error: no sample found in the primaryQC object!"))
+            stop(paste0("====> Error: no sample found in the sampleQC object!"))
         }
 
         if (length(qc_type) == 0) {
@@ -68,18 +68,18 @@ setMethod(
             # merging reference counts, data.table() to speed up
             ref_counts <- data.table()
             for (s in object@samples_ref) {
-                tmp_counts <- s@allcounts[, c("sgrna_seqs", "oligo_count")]
+                tmp_counts <- s@allcounts[, c("sequence", "count")]
                 tmp_counts <- as.data.table(tmp_counts)
 
                 if (nrow(ref_counts) == 0) {
                     ref_counts <- tmp_counts
                 } else {
-                    ref_counts <- merge(ref_counts, tmp_counts, by = "sgrna_seqs", all = TRUE)
+                    ref_counts <- merge(ref_counts, tmp_counts, by = "sequence", all = TRUE)
                 }
             }
             ref_counts <- as.data.frame(ref_counts)
-            rownames(ref_counts) <- ref_counts$sgrna_seqs
-            ref_counts <- subset(ref_counts, select = -sgrna_seqs)
+            rownames(ref_counts) <- ref_counts$sequence
+            ref_counts <- subset(ref_counts, select = -sequence)
 
             ref_counts_merged <- rowSums(ref_counts, na.rm = TRUE)
             ref_counts_merged_log2 <- log2(ref_counts_merged + 1)
@@ -96,26 +96,26 @@ setMethod(
             # filtering sequences on input samples by filtered set
             unfiltered_counts <- data.table()
             for (s in object@samples) {
-                tmp_counts <- s@allcounts[, c("sgrna_seqs", "oligo_count")]
+                tmp_counts <- s@allcounts[, c("sequence", "count")]
                 tmp_counts <- as.data.table(tmp_counts)
 
                 if (nrow(unfiltered_counts) == 0) {
                     unfiltered_counts <- tmp_counts
                 } else {
-                    unfiltered_counts <- merge(unfiltered_counts, tmp_counts, by = "sgrna_seqs", all = TRUE)
+                    unfiltered_counts <- merge(unfiltered_counts, tmp_counts, by = "sequence", all = TRUE)
                 }
             }
             unfiltered_counts <- as.data.frame(unfiltered_counts)
-            rownames(unfiltered_counts) <- unfiltered_counts$sgrna_seqs
-            unfiltered_counts <- subset(unfiltered_counts, select = -sgrna_seqs)
+            rownames(unfiltered_counts) <- unfiltered_counts$sequence
+            unfiltered_counts <- subset(unfiltered_counts, select = -sequence)
             colnames(unfiltered_counts) <- sample_names
 
             filtered_counts <- unfiltered_counts[object@filtered_seqs, ]
         } else {
             filtered_counts <- data.table()
             for (s in object@samples) {
-                tmp_counts <- s@allcounts$oligo_count
-                names(tmp_counts) <- s@allcounts$sgrna_seqs
+                tmp_counts <- s@allcounts$count
+                names(tmp_counts) <- s@allcounts$sequence
 
                 tmp_counts_log2 <- log2(tmp_counts + 1)
                 kmeans_res <- Ckmeans.1d.dp(tmp_counts_log2, k = 2, y = 1)
@@ -126,18 +126,18 @@ setMethod(
                 object@seq_clusters[[s@sample]] <- tmp_clusters
 
                 tmp_counts_filtered <- tmp_clusters[tmp_clusters$cluster == 2, "count", drop = FALSE]
-                tmp_counts_filtered$sgrna_seqs <- rownames(tmp_counts_filtered)
+                tmp_counts_filtered$sequence <- rownames(tmp_counts_filtered)
                 tmp_counts_filtered <- as.data.table(tmp_counts_filtered)
 
                 if (nrow(filtered_counts) == 0) {
                     filtered_counts <- tmp_counts_filtered
                 } else {
-                    filtered_counts <- merge(filtered_counts, tmp_counts_filtered, by = "sgrna_seqs", all = TRUE)
+                    filtered_counts <- merge(filtered_counts, tmp_counts_filtered, by = "sequence", all = TRUE)
                 }
             }
             filtered_counts <- as.data.frame(filtered_counts)
-            rownames(filtered_counts) <- filtered_counts$sgrna_seqs
-            filtered_counts <- subset(filtered_counts, select = -sgrna_seqs)
+            rownames(filtered_counts) <- filtered_counts$sequence
+            filtered_counts <- subset(filtered_counts, select = -sequence)
             colnames(filtered_counts) <- sample_names
         }
 

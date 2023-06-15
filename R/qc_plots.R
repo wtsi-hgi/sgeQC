@@ -6,11 +6,11 @@ setGeneric("qcplot_readlens", function(object, ...) {
 #' create the read length plot
 #'
 #' @export
-#' @param object  primaryQC object
+#' @param object  sampleQC object
 #' @param plotdir the output plot directory
 setMethod(
     "qcplot_readlens",
-    signature = "primaryQC",
+    signature = "sampleQC",
     definition = function(object,
                           plotdir) {
         if (length(plotdir) == 0) {
@@ -53,12 +53,12 @@ setGeneric("qcplot_clusters", function(object, ...) {
 #' create the sequence counts and clusters plot
 #'
 #' @export
-#' @param object  primaryQC object
+#' @param object  sampleQC object
 #' @param qctype  qc type for plot
 #' @param plotdir the output plot directory
 setMethod(
     "qcplot_clusters",
-    signature = "primaryQC",
+    signature = "sampleQC",
     definition = function(object,
                           qctype,
                           plotdir) {
@@ -168,11 +168,11 @@ setGeneric("qcplot_stats", function(object, ...) {
 #' create the stats plot
 #'
 #' @export
-#' @param object  primaryQC object
+#' @param object  sampleQC object
 #' @param plotdir the output plot directory
 setMethod(
     "qcplot_stats",
-    signature = "primaryQC",
+    signature = "sampleQC",
     definition = function(object,
                           plotdir) {
         if (length(plotdir) == 0) {
@@ -254,11 +254,11 @@ setGeneric("qcplot_position", function(object, ...) {
 #' create the position plot
 #'
 #' @export
-#' @param object  primaryQC object
+#' @param object  sampleQC object
 #' @param plotdir the output plot directory
 setMethod(
     "qcplot_position",
-    signature = "primaryQC",
+    signature = "sampleQC",
     definition = function(object,
                           plotdir) {
         if (length(plotdir) == 0) {

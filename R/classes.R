@@ -81,9 +81,9 @@ create_sge_object <- function(file_libcount,
                               file_allcount_cols = vector(),
                               file_valiant_meta_cols = vector()) {
     # Read files
-    libread <- read_sge_file(file_libcount, "lib", file_libcount_hline, file_libcount_cols)
-    allcounts <- read_sge_file(file_allcount, "all", file_allcount_hline, file_allcount_cols)
-    valiant_meta <- read_sge_file(file_valiant_meta, "val", file_valiant_meta_hline, file_valiant_meta_cols)
+    libcounts <- read_sge_file(file_libcount, file_libcount_hline, file_libcount_cols)
+    allcounts <- read_sge_file(file_allcount, file_allcount_hline, file_allcount_cols)
+    valiant_meta <- read_sge_file(file_valiant_meta, file_valiant_meta_hline, file_valiant_meta_cols)
 
     # initializing
     cols <- c("total_num_oligos",
@@ -144,9 +144,7 @@ create_sge_object <- function(file_libcount,
 
     # Create the object
     sge_object <- new("SGE",
-        libtype = libread[[1]],
-        libname = libread[[2]],
-        libcounts = libread[[3]],
+        libcounts = libcounts,
         allcounts = allcounts,
         valiant_meta = valiant_meta,
         libstats = df_libstats,
@@ -161,7 +159,7 @@ create_sge_object <- function(file_libcount,
 #' A class representing a primary qc object
 #'
 #' @export
-#' @name primaryQC
+#' @name sampleQC
 #' @slot samples          a list of SGE objects
 #' @slot samples_ref      a list of SGE objects which are the references for screen QC
 #' @slot counts           a list of sample counts
@@ -172,7 +170,7 @@ create_sge_object <- function(file_libcount,
 #' @slot effective_counts a data frame of effective counts of all the samples
 #' @slot stats            a data frame of samples and stats, eg. total no, filtered no.
 #' @slot filtered_samples a list of filtered sample objects
-setClass("primaryQC",
+setClass("sampleQC",
     slots = list(
         samples = "list",
         samples_ref = "list",
@@ -199,13 +197,13 @@ setClass("primaryQC",
     )
 )
 
-#' Create a new primaryQC object
+#' Create a new sampleQC object
 #'
 #' @export
-#' @name create_primaryqc_object
+#' @name create_sampleqc_object
 #' @param samples a list of SGE objects
-#' @return An object of class primaryQC
-create_primaryqc_object <- function(samples) {
+#' @return An object of class sampleQC
+create_sampleqc_object <- function(samples) {
     # checking
     if (length(samples) == 0) {
          stop(paste0("====> Error: no sample found in the input!"))
@@ -225,12 +223,12 @@ create_primaryqc_object <- function(samples) {
     list_counts <- list()
     list_lengths <- list()
     for (s in samples) {
-        counts <- s@allcounts[, c("sgrna_seqs", "oligo_count")]
-        rownames(counts) <- counts$sgrna_seqs
-        counts <- subset(counts, select = -sgrna_seqs)
+        counts <- s@allcounts[, c("sequence", "count")]
+        rownames(counts) <- counts$sequence
+        counts <- subset(counts, select = -sequence)
 
-        lengths <- s@allcounts[, "sgrna_seqs", drop = FALSE]
-        lengths$length <- nchar(lengths$sgrna_seqs)
+        lengths <- s@allcounts[, "sequence", drop = FALSE]
+        lengths$length <- nchar(lengths$sequence)
 
         list_counts[[s@sample]] <- counts
         list_lengths[[s@sample]] <- lengths
@@ -259,12 +257,12 @@ create_primaryqc_object <- function(samples) {
     colnames(df_stats) <- cols
 
     # Create the object
-    primaryqc_object <- new("primaryQC",
+    sampleqc_object <- new("sampleQC",
         samples = samples,
         counts = list_counts,
         lengths = list_lengths,
         stats = df_stats)
 
     # Return the object
-    return(primaryqc_object)
+    return(sampleqc_object)
 }
