@@ -75,6 +75,11 @@ setMethod(
                     ref_counts <- tmp_counts
                 } else {
                     ref_counts <- merge(ref_counts, tmp_counts, by = "sequence", all = TRUE)
+                    tmp_cols <- vector()
+                    for (i in 1:(ncol(ref_counts) - 1)) {
+                        tmp_cols <- c(tmp_cols, paste0("ref", i))
+                    }
+                    colnames(ref_counts) <- c("sequence", tmp_cols)
                 }
             }
             ref_counts <- as.data.frame(ref_counts)
@@ -103,6 +108,11 @@ setMethod(
                     unfiltered_counts <- tmp_counts
                 } else {
                     unfiltered_counts <- merge(unfiltered_counts, tmp_counts, by = "sequence", all = TRUE)
+                    tmp_cols <- vector()
+                    for (i in 1:(ncol(unfiltered_counts) - 1)) {
+                        tmp_cols <- c(tmp_cols, paste0("un", i))
+                    }
+                    colnames(unfiltered_counts) <- c("sequence", tmp_cols)
                 }
             }
             unfiltered_counts <- as.data.frame(unfiltered_counts)
@@ -133,6 +143,11 @@ setMethod(
                     filtered_counts <- tmp_counts_filtered
                 } else {
                     filtered_counts <- merge(filtered_counts, tmp_counts_filtered, by = "sequence", all = TRUE)
+                    tmp_cols <- vector()
+                    for (i in 1:(ncol(filtered_counts) - 1)) {
+                        tmp_cols <- c(tmp_cols, paste0("fil", i))
+                    }
+                    colnames(filtered_counts) <- c("sequence", tmp_cols)
                 }
             }
             filtered_counts <- as.data.frame(filtered_counts)

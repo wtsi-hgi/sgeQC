@@ -16,30 +16,47 @@ setMethod(
         # checking #
         #----------#
         if (length(object@adapt5) == 0 | length(object@adapt3) == 0) {
-            stop(paste0("====> Error: please provide adaptor sequences first!"))
+            if ((length(object@refseq) == 0)) {
+                stop(paste0("====> Error: no reference sequence, please provide adaptor sequences instead!"))
+            }
+
+            if ((length(object@pamseq) == 0)) {
+                stop(paste0("====> Error: no pam sequence, please provide adaptor sequences instead!"))
+            }
         }
 
         #----------------------------#
         # 1. valiant ref and pam seq #
         #----------------------------#
-        refseq_strand <- unique(object@valiant_meta$revc)
-        if (refseq_strand == "+") {
-            object@refseq <- unique(object@valiant_meta$ref_seq)
-            object@pamseq <- unique(object@valiant_meta$pam_seq)
-        } else {
-            object@refseq <- revcomp(unique(object@valiant_meta$ref_seq))
-            object@pamseq <- revcomp(unique(object@valiant_meta$pam_seq))
+        if ((length(object@refseq) == 0)) {
+            seq_strand <- unique(object@valiant_meta$revc)
+            if (seq_strand == "+") {
+                object@refseq <- unique(object@valiant_meta$ref_seq)
+            } else {
+                object@refseq <- revcomp(unique(object@valiant_meta$ref_seq))
+            }
+
+            if (length(object@refseq) == 0) {
+                stop(paste0("====> Error: no reference sequence found in the valiant meta file, please check ref_seq tag."))
+            }
+
+            object@refseq <- trim_adaptor(object@refseq, object@adapt5, object@adapt3)
         }
 
-        if (length(object@refseq) == 0) {
-            stop(paste0("====> Error: no ref sequence"))
-        }
-        if (length(object@pamseq) == 0) {
-            stop(paste0("====> Error: no pam sequence"))
-        }
+        if ((length(object@pamseq) == 0)) {
+            seq_strand <- unique(object@valiant_meta$revc)
+            if (seq_strand == "+") {
+                object@pamseq <- unique(object@valiant_meta$pam_seq)
+            } else {
+                object@pamseq <- revcomp(unique(object@valiant_meta$pam_seq))
+            }
 
-        object@refseq <- trim_adaptor(object@refseq, object@adapt5, object@adapt3)
-        object@pamseq <- trim_adaptor(object@pamseq, object@adapt5, object@adapt3)
+            if (length(object@pamseq) == 0) {
+                stop(paste0("====> Error: no pam sequence found in the valiant meta file, please check pam_seq tag."))
+            }
+
+            object@pamseq <- trim_adaptor(object@pamseq, object@adapt5, object@adapt3)
+        }
 
         #----------------------------#
         # 2. library dependent count #

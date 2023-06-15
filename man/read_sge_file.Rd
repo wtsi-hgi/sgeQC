@@ -3,13 +3,12 @@
 \name{read_sge_file}
 \alias{read_sge_file}
 \title{check file format and read it
-file has header but beginning with #
-reading extra comment info}
+file has header but beginning with #}
 \usage{
 read_sge_file(file_path, hline = 0, colnums = vector())
 }
 \arguments{
-\item{file_path}{file path}
+\item{file_path}{the file path}
 
 \item{hline}{header line number, default is 0}
 
@@ -21,5 +20,4 @@ a dataframe
 \description{
 check file format and read it
 file has header but beginning with #
-reading extra comment info
 }
