@@ -114,9 +114,9 @@ setMethod(
             }
         }
 
-        cat("|--> total number of reads: ", "\n", sep = "")
-        for (i in 1:length(object@counts)) {
-            cat("    |--> ", names(object@counts)[i], ":", sum(object@counts[[i]]), "\n", sep = "")
+        cat("|--> QC results: ", "\n", sep = "")
+        for (i in 1:length(object@stats)) {
+            cat("    |--> ", names(object@stats)[i], ": ", object@stats[i, ]$qcpass, "\n", sep = "")
         }
     }
 )

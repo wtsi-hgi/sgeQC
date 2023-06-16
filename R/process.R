@@ -61,6 +61,7 @@ setMethod(
         #----------------------------#
         # 2. library dependent count #
         #----------------------------#
+        #colnames(object@libcounts) <- c("id", "name", "sequence", "count", "unique", "sample")
         colnames(object@libcounts) <- c("id", "sequence", "count", "unique", "sample")
 
         object@libcounts$is_ref <- unlist(lapply(object@libcounts$sequence, function(s) ifelse(s == object@refseq, 1, 0)))
@@ -159,7 +160,6 @@ setMethod(
     "sge_qc_stats",
     signature = "SGE",
     definition = function(object) {
-
         # issue: total_counts is counts, not no. of seqeunced reads, need from qc report
         # now assume total counts of library independent is total no of reads
         total_num_sequenced_reads <- object@allstats$total_counts

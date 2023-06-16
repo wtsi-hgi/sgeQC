@@ -38,40 +38,34 @@ install.packages("/path/of/sgeQC.tar.gz", type = "source")
 <!-- Dependencies-->
 ## Dependencies
 
+```sh
+suppressMessages(library(data.table))
+library(Ckmeans.1d.dp)
+library(reshape2)
+library(ggplot2)
+library(gplots)
+```
+
 <!-- Import Data-->
 ## Import Data
 
 
 ```sh
 library(sgeQC)
-objA <- create_sge_object(file_libcount = "test/screen/A.library_dependent_counts.tsv.gz",
-                          file_allcount = "test/screen/A.library_independent_counts.tsv.gz",
-                          file_valiant_meta = "test/A.valiant_meta.csv.gz")
-objA
 
-objA@adapt5 <- "AGCAGCAGCTGACACAAAGT"
-objA@adapt3 <- "CCTCCTCCCCACTCCCTG"
-objA <- format_count(objA)
-objA <- sge_stats(objA) 
-objA <- sge_qc_stats(objA)
-objA@sample <- "A"
+sge_objs <- import_sge_files("/path/to/input/directory", "sample_sheet.tsv")
 
-show_stats(objA)
-show_qc_stats(objA)
+samqc <- create_sampleqc_object(sge_objs)
+samqc@samples_ref <- select_objects(sge_objs, c(2,5,8))
+samqc <- run_sample_qc(samqc, "screen")
 
-objB <- create_sge_object(file_libcount = "test/B.library_dependent_counts.tsv.gz",
-                          file_allcount = "test/B.library_independent_counts.tsv.gz",
-                          file_valiant_meta = "test/B.valiant_meta.csv.gz")
-objB
+qcplot_readlens(samqc, "/path/to/out/plots")
+qcplot_clusters(samqc, "screen", "/path/to/out/plots")
+qcplot_stats(samqc, "/path/to/out/plots")
+qcplot_position(samqc, "/path/to/out/plots")
 
-objB@adapt5 <- "AGCTCTTCAGGTGGTTTTTGGA"
-objB@adapt3 <- "TCTTACCAAGTTAAATGCATGATTCGT"
-objB@sample <- "B"
-objB <- format_count(objB)
-objB <- sge_stats(objB) 
-objB <- sge_qc_stats(objB)
-
-priqc <- create_primaryqc_object(list(objA, objB))
+qcout_bad_seqs(samqc, "/path/to/out/files")
+qcout_sampleqc_stats(samqc, "/path/to/out/files")
 ```
 
 <p align="right">(<a href="#top">TOP</a>)</p>

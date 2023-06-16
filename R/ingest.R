@@ -103,11 +103,14 @@ import_sge_files <- function(dir_path,
         }
     }
 
-    list_objects <- list()
-    for (i in 1:dim(samplesheet)[1]) {
-        cat("Importing files for samples:", "\n", sep = "")
-        cat("|--> ", samplesheet[i, ]$sample_name, "\n", sep = "")
+    if (length(unique(samplesheet$sample_name)) != nrow(samplesheet)) {
+        stop(paste0("====> Error: ", sample_sheet, " has duplicated sample names!"))
+    }
 
+    list_objects <- list()
+    cat("Importing files for samples:", "\n", sep = "")
+    for (i in 1:dim(samplesheet)[1]) {
+        cat("|--> ", samplesheet[i, ]$sample_name, "\n", sep = "")
         tmp_obj <- create_sge_object(file_libcount = paste0(dir_path, "/", samplesheet[i, ]$library_dependent_count),
                                      file_allcount = paste0(dir_path, "/", samplesheet[i, ]$library_independent_count),
                                      file_valiant_meta = paste0(dir_path, "/", samplesheet[i, ]$valiant_meta),

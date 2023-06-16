@@ -50,6 +50,8 @@ setMethod(
         #-------------------------------------------#
         # 1. Filtering by the total number of reads #
         #-------------------------------------------#
+        cat("Filtering by the total number of reads...", "\n", sep = "")
+
         sample_names <- character()
         for (s in object@samples) {
             sample_names <- append(sample_names, s@sample)
@@ -64,7 +66,11 @@ setMethod(
         #    a) k-means clustering on screen QC #
         #    a) hard cutoff on Plasmid QC       #
         #---------------------------------------#
+        cat("Filtering by low counts...", "\n", sep = "")
+
         if (qc_type == "screen") {
+            cat("    |--> Creating k-means clusters...", "\n", sep = "")
+
             # merging reference counts, data.table() to speed up
             ref_counts <- data.table()
             for (s in object@samples_ref) {
@@ -97,6 +103,9 @@ setMethod(
 
             object@seq_clusters[["ref"]] <- ref_clusters
             object@filtered_seqs <- rownames(ref_clusters[ref_clusters$cluster == 2, ])
+            object@bad_seqs$by_cluster <- rownames(ref_clusters[ref_clusters$cluster == 1, ])
+
+            cat("    |--> Filtering using clusters...", "\n", sep = "")
 
             # filtering sequences on input samples by filtered set
             unfiltered_counts <- data.table()
@@ -154,6 +163,17 @@ setMethod(
             rownames(filtered_counts) <- filtered_counts$sequence
             filtered_counts <- subset(filtered_counts, select = -sequence)
             colnames(filtered_counts) <- sample_names
+
+            tmp_seqs <- data.frame()
+            for (s in object@seq_clusters) {
+                if (nrow(tmp_seqs) == 0) {
+                    tmp_seqs <- rownames(s[s$cluster == 1, ])
+                } else {
+                    tmp_seqs <- cbind_fill(tmp_seqs, rownames(s[s$cluster == 1, ]))
+                }
+            }
+            colnames(tmp_seqs) <- sample_names
+            object@bad_seqs$by_cluster <- tmp_seqs
         }
 
         #-------------------------------------#
@@ -161,16 +181,23 @@ setMethod(
         #    a) count >= X                    #
         #    b) in >= X% of samples           #
         #-------------------------------------#
+        cat("Filtering by depth and samples...", "\n", sep = "")
+
         filtered_counts_final <- cbind(filtered_counts, rowSums(filtered_counts >= effect_count, na.rm = TRUE))
         filtered_counts_final <- cbind(filtered_counts_final, filtered_counts_final[, ncol(filtered_counts_final)] / length(sample_names))
         colnames(filtered_counts_final) <- c(sample_names, "sample_number", "sample_percentage")
 
         object@filtered_counts <- filtered_counts_final[filtered_counts_final$sample_percentage >= effect_per, sample_names]
 
+        tmp_seqs <- rownames(filtered_counts)
+        object@bad_seqs$by_count <- tmp_seqs[tmp_seqs %nin% rownames(object@filtered_counts)]
+
         #--------------------------------------#
         # 4. Filtering by effective mapping    #
         #    a) reads mapped to VaLiAnT output #
         #--------------------------------------#
+        cat("Filtering by effective mapping...", "\n", sep = "")
+
         ref_seqs <- vector()
         pam_seqs <- vector()
         meta_mseqs <- vector()
@@ -192,6 +219,8 @@ setMethod(
         unmapped_counts <- object@filtered_counts[rownames(object@filtered_counts)%nin%meta_mseqs, ]
         unmapped_counts <- unmapped_counts[rownames(unmapped_counts)%nin%c(ref_seqs, pam_seqs), ]
 
+        object@bad_seqs$by_effect <- rownames(unmapped_counts)
+
         for (s in object@samples) {
             samplename <- s@sample
             object@stats[samplename, ]$filtered_reads <- sum(object@filtered_counts[, samplename], na.rm = TRUE)
@@ -211,6 +240,7 @@ setMethod(
         # 5. Filtering by effective coverage     #
         #    a) effective reads / oligos in meta #
         #----------------------------------------#
+        cat("Filtering by effective coverage...", "\n", sep = "")
 
         for (s in object@samples) {
             samplename <- s@sample

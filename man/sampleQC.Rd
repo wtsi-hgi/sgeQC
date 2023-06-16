@@ -29,5 +29,7 @@ A class representing a primary qc object
 \item{\code{stats}}{a data frame of samples and stats, eg. total no, filtered no.}
 
 \item{\code{filtered_samples}}{a list of filtered sample objects}
+
+\item{\code{bad_seqs}}{a list of filter-out sequences}
 }}
 

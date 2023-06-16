@@ -170,6 +170,7 @@ create_sge_object <- function(file_libcount,
 #' @slot effective_counts a data frame of effective counts of all the samples
 #' @slot stats            a data frame of samples and stats, eg. total no, filtered no.
 #' @slot filtered_samples a list of filtered sample objects
+#' @slot bad_seqs         a list of filter-out sequences
 setClass("sampleQC",
     slots = list(
         samples = "list",
@@ -181,7 +182,8 @@ setClass("sampleQC",
         filtered_counts = "data.frame",
         effective_counts = "data.frame",
         stats = "data.frame",
-        filtered_samples = "list"
+        filtered_samples = "list",
+        bad_seqs = "list"
     ),
     prototype = list(
         samples = list(),
@@ -193,7 +195,8 @@ setClass("sampleQC",
         filtered_counts = data.frame(),
         effective_counts = data.frame(),
         stats = data.frame(),
-        filtered_samples = list()
+        filtered_samples = list(),
+        bad_seqs = list()
     )
 )
 

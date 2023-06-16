@@ -100,3 +100,45 @@ cbind_fill <- function(...) {
     n <- max(sapply(nm, nrow))
     do.call(cbind, lapply(nm, function (x) rbind(x, matrix(, n - nrow(x), ncol(x)))))
 }
+
+#' fetch objects from list by the names or indexes
+#'
+#' @export
+#' @param objects a list of objects
+#' @param tags    a vector of names or indexes
+#' @return a list of objects
+select_objects <- function(objects, tags) {
+    if (length(objects) == 0) {
+        stop(paste0("====> Error: no object found in the list"))
+    }
+
+    if (length(tags) == 0) {
+        stop(paste0("====> Error: please provide tags to fetch objects"))
+    } else {
+        if (class(tags) %in% c("character", "numeric")) {
+            if (class(tags) == "numeric") {
+                tags <- as.integer(tags)
+            }
+        } else {
+            stop(paste0("====> Error: wrong tag type, must be integer or character"))
+        }
+    }
+
+    list_select <- list()
+    if (class(tags) == "character") {
+        for (i in 1:length(tags)) {
+            for (j in 1:length(objects)) {
+                if (tags[i] == objects[[j]]@sample) {
+                    list_select <- append(list_select, objects[[j]])
+                    break
+                }
+            }
+        }
+    } else {
+        for (i in 1:length(tags)) {
+            list_select <- append(list_select, objects[[tags[i]]])
+        }
+    }
+
+    return(list_select)
+}

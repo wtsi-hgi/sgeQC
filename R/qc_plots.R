@@ -30,8 +30,11 @@ setMethod(
             }
         }
 
-        p1 <- ggplot(read_lens, aes(x = factor(samples), y = length, color = samples, fill = samples)) +
-                geom_violin(alpha = 0.3, scale = "width") +
+        read_lens <- as.data.frame(read_lens)
+        read_lens$samples <- factor(read_lens$samples, levels = colnames(object@effective_counts))
+
+        p1 <- ggplot(read_lens, aes(x = factor(samples), y = length)) +
+                geom_violin(alpha = 0.3, scale = "width", color = "tomato", fill = t_col("tomato", 0.5)) +
                 labs(x = "read length", y = "frequency", title = "Primary QC read lengths") +
                 theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                 theme(axis.title = element_text(size = 16,face = "bold", family = "Arial")) +
@@ -39,7 +42,7 @@ setMethod(
                 theme(axis.text = element_text(size = 12, face = "bold")) +
                 theme(axis.text.x = element_text(angle = 90))
 
-        pwidth <- 200 * length(object@lengths)
+        pwidth <- 150 * length(object@lengths)
         png(paste0(plotdir, "/", "primary_qc_read_length.violin.png"), width = pwidth, height = 1200, res = 200)
         print(p1)
         dev.off()
@@ -184,6 +187,8 @@ setMethod(
         df_total$samples <- rownames(df_total)
         dt_total <- melt(as.data.table(df_total), id.vars = "samples", variable.name = "types", value.name = "counts")
 
+        dt_total$samples <- factor(dt_total$samples, levels = df_total$samples)
+
         p1 <- ggplot(dt_total,  aes(x = samples, y = counts, fill = types)) +
                 geom_bar(stat = "identity") +
                 scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
@@ -197,7 +202,7 @@ setMethod(
                 theme(axis.text = element_text(size = 12, face = "bold")) +
                 theme(axis.text.x = element_text(angle = 90))
 
-        pwidth <- 200 * nrow(df_total)
+        pwidth <- 150 * nrow(df_total)
         png(paste0(plotdir, "/", "primary_qc_stats_total.png"), width = pwidth, height = 1200, res = 200)
         print(p1)
         dev.off()
@@ -207,6 +212,8 @@ setMethod(
         df_filtered <- round(df_filtered*100, 1)
         df_filtered$samples <- rownames(df_filtered)
         dt_filtered <- melt(as.data.table(df_filtered), id.vars = "samples", variable.name = "types", value.name = "percent")
+
+        dt_filtered$samples <- factor(dt_filtered$samples, levels = df_filtered$samples)
 
         gg_colors_fill <- c(t_col("tomato", 0.5), t_col("grey", 0.5), t_col("yellowgreen", 0.5), t_col("royalblue", 0.5))
         gg_colors <- c(c("tomato", "grey", "yellowgreen", "royalblue"))
@@ -224,7 +231,7 @@ setMethod(
                 theme(axis.text.x = element_text(angle = 90)) +
                 geom_text(aes(label = paste0(percent, "%")), position = position_fill(vjust = 0.5), size = 3)
 
-        pwidth <- 200 * nrow(df_filtered)
+        pwidth <- 150 * nrow(df_filtered)
         png(paste0(plotdir, "/", "primary_qc_stats_filtered.png"), width = pwidth, height = 1200, res = 200)
         print(p2)
         dev.off()
@@ -319,6 +326,9 @@ setMethod(
 
         dt_effcounts_pos_log <- melt(effcounts_pos_log)
         colnames(dt_effcounts_pos_log) <- c("index", "samples", "log_counts")
+
+        dt_effcounts_pos_log$samples <- factor(dt_effcounts_pos_log$samples, levels = sample_names)
+
         p1 <- ggplot(dt_effcounts_pos_log, aes(x = index, y = log_counts)) +
                 geom_point(shape = 16, size = 0.5, color = "tomato", alpha = 0.8) +
                 labs(x = "sequence position", y = "log2(count+1)", title = "Primary QC position coverage") +
@@ -329,7 +339,7 @@ setMethod(
                 theme(axis.text = element_text(size = 12, face = "bold")) +
                 facet_wrap(~samples, dir = "v")
 
-        pheight <- 200 * length(sample_names)
+        pheight <- 300 * length(sample_names)
         png(paste0(plotdir, "/", "primary_qc_position_cov.dots.png"), width = 2400, height = pheight, res = 200)
         print(p1)
         dev.off()
