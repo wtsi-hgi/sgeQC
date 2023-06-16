@@ -39,7 +39,7 @@ install.packages("/path/of/sgeQC.tar.gz", type = "source")
 ## Dependencies
 
 ```sh
-suppressMessages(library(data.table))
+library(data.table)
 library(Ckmeans.1d.dp)
 library(reshape2)
 library(ggplot2)
