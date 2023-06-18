@@ -61,12 +61,6 @@ All the files are in the same directory including library dependent counts, libr
 * adapt5 and adapt3 are required if you don't provide the ref seq and pam seq
 * library_name and library_type are not necessary.
 ```sh
-library(data.table)
-library(Ckmeans.1d.dp)
-library(reshape2)
-library(ggplot2)
-library(gplots)
-
 library(sgeQC)
 
 sge_objs <- import_sge_files("/path/to/input/directory", "sample_sheet.tsv")
