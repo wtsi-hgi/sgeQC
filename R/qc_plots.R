@@ -185,7 +185,7 @@ setMethod(
 
         df_total <- object@stats[, c("failed_reads", "filtered_reads")]
         df_total$samples <- rownames(df_total)
-        dt_total <- melt(as.data.table(df_total), id.vars = "samples", variable.name = "types", value.name = "counts")
+        dt_total <- reshape2::melt(as.data.table(df_total), id.vars = "samples", variable.name = "types", value.name = "counts")
 
         dt_total$samples <- factor(dt_total$samples, levels = df_total$samples)
 
@@ -211,7 +211,7 @@ setMethod(
         colnames(df_filtered) <- c("unmapped_reads", "ref_reads", "pam_reads", "effective_reads")
         df_filtered <- round(df_filtered*100, 1)
         df_filtered$samples <- rownames(df_filtered)
-        dt_filtered <- melt(as.data.table(df_filtered), id.vars = "samples", variable.name = "types", value.name = "percent")
+        dt_filtered <- reshape2::melt(as.data.table(df_filtered), id.vars = "samples", variable.name = "types", value.name = "percent")
 
         dt_filtered$samples <- factor(dt_filtered$samples, levels = df_filtered$samples)
 
@@ -324,7 +324,7 @@ setMethod(
                   lmat = lmat, lhei = lhei, lwid = lwid)
         dev.off()
 
-        dt_effcounts_pos_log <- melt(effcounts_pos_log)
+        dt_effcounts_pos_log <- reshape2::melt(effcounts_pos_log)
         colnames(dt_effcounts_pos_log) <- c("index", "samples", "log_counts")
 
         dt_effcounts_pos_log$samples <- factor(dt_effcounts_pos_log$samples, levels = sample_names)

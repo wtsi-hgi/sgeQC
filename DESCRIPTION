@@ -14,11 +14,10 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Depends: 
-    R (>= 4.2.3)
-Imports:
-    gplots (>= 3.1.3),
-    ggplot2 (>= 3.4.2),
+    R (>= 4.2.3),
+    data.table (>= 1.14.8),
     Ckmeans.1d.dp (>= 4.3.4),
-    reshape2 (>= 1.4.4),
-    data.table (>= 1.14.8)
-
+    gplots (>= 3.1.3),
+    ggplot2 (>= 3.4.2)
+Imports:
+    reshape2 (>= 1.4.4)
