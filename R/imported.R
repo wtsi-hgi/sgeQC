@@ -5,4 +5,5 @@
 #' @import gplots
 #' @import ggplot2
 #' @importFrom reshape2 melt
+#' @import DESeq2
 NULL

@@ -5,10 +5,10 @@
 
 ## Table of Contents
 <details open>
-<summary><b>(click to expand or hide)</b></summary>
+<summary><b>[Show or Hide]</b></summary>
 
-1. [Installation](#installation)
-2. [Dependencies](#dependencies)
+1. [Dependencies](#dependencies)
+2. [Installation](#installation)
 3. [Import Data](#import-data)
 4. [Plasmid QC](#plasmid-qc)
     - [QC 1: ](#pqc1)
@@ -16,8 +16,27 @@
 5. [Screen QC](#screen-qc)
     - [QC 1: ](#sqc1)
     - [QC 2: ](#sqc2)
+6. [Others](#others)
+    - [Test datasets](#test)
+    - [Conda](#conda)
 
 </details>
+
+<!-- Dependencies-->
+## Dependencies
+
+```R
+install.packages("data.table")
+install.packages("Ckmeans.1d.dp")
+install.packages("reshape2")
+install.packages("ggplot2")
+install.packages("gplots")
+
+install.packages("BiocManager")
+BiocManager::install("DESeq2")
+```
+
+<p align="right">(<a href="#top">TOP</a>)</p>
 
 <!-- Installation-->
 ## Installation
@@ -29,22 +48,14 @@ install.packages("devtools")
 library(devtools)
 install_github("wtsi-hgi/sgeQC")
 ```
+Or
 
 Install from source file
 ```R
 install.packages("/path/of/sgeQC.tar.gz", type = "source")
 ```
 
-<!-- Dependencies-->
-## Dependencies
-
-```R
-install.packages("data.table")
-install.packages("Ckmeans.1d.dp")
-install.packages("reshape2")
-install.packages("ggplot2")
-install.packages("gplots")
-```
+<p align="right">(<a href="#top">TOP</a>)</p>
 
 <!-- Import Data-->
 ## Import Data
@@ -63,6 +74,16 @@ All the files are in the same directory including library dependent counts, libr
 * *adapt5 and adapt3 are required if you don't provide the ref seq and pam seq*
 * *library_name and library_type are not necessary*
 
+#### Load dependencies if required
+```
+library("data.table")
+library("Ckmeans.1d.dp")
+library("reshape2")
+library("ggplot2")
+library("gplots")
+```
+
+#### Import files
 ```R
 library(sgeQC)
 
@@ -76,7 +97,7 @@ samqc <- create_sampleqc_object(sge_objs)
 ## Plasmid QC
 
 <a id="pqc1"></a>
-### QC 1: 
+### QC 1: Sample QC
 ```R
 samqc <- run_sample_qc(samqc, "plasmid")
 
@@ -92,7 +113,7 @@ qcout_sampleqc_stats(samqc, "/path/to/out/files")
 <p align="right">(<a href="#top">TOP</a>)</p>
 
 <a id="pqc2"></a>
-### QC 2: 
+### QC 2: Experimental QC
 
 <p align="right">(<a href="#top">TOP</a>)</p>
 
@@ -100,7 +121,8 @@ qcout_sampleqc_stats(samqc, "/path/to/out/files")
 ## Screen QC
 
 <a id="sqc1"></a>
-### QC 1: 
+### QC 1: Sample QC
+Reference samples must be assigned. You can use ```select_objects()``` to get this done. ```c(2,5,8)``` is used to point the positions of reference samples in your sample sheet, like 2nd, 5th, 8th line here, or you can use the sample names instead, like ```c("hgsm3_d4_r1","hgsm3_d4_r2","hgsm3_d4_r3")```
 
 ```R
 samqc@samples_ref <- select_objects(sge_objs, c(2,5,8))
@@ -118,7 +140,25 @@ qcout_sampleqc_stats(samqc, "/path/to/out/files")
 <p align="right">(<a href="#top">TOP</a>)</p>
 
 <a id="sqc2"></a>
-### QC 2: 
+### QC 2: Experimental QC
 
 <p align="right">(<a href="#top">TOP</a>)</p>
 
+<!-- Others -->
+## Others
+
+<a id="test"></a>
+### Test datasets: 
+Test datasets are in the ```test``` directory in the repo. ```plasmid``` and ```screen``` are saperated by analysis. 
+
+<p align="right">(<a href="#top">TOP</a>)</p>
+
+<a id="conda"></a>
+### Conda: 
+When installing DESeq2, it may have error (Rlog1) on Mac M1 chip. Try cmd below to fix it.
+
+```
+export PKG_CPPFLAGS="-DHAVE_WORKING_LOG1P"
+```
+
+<p align="right">(<a href="#top">TOP</a>)</p>

@@ -262,3 +262,21 @@ setMethod(
         return(object)
     }
 )
+
+#' initialize function
+setGeneric("run_sample_qc_deseq2", function(object, ...) {
+  standardGeneric("run_sample_qc_deseq2")
+})
+
+#' run DESeq2 for the list of samples
+#'
+#' @export
+#' @param object          sampleQC object
+#' @return object
+setMethod(
+    "run_sample_qc_deseq2",
+    signature = "sampleQC",
+    definition = function(object) {
+
+    }
+)
