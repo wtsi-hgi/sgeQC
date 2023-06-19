@@ -61,8 +61,7 @@ setMethod(
         #----------------------------#
         # 2. library dependent count #
         #----------------------------#
-        #colnames(object@libcounts) <- c("id", "name", "sequence", "count", "unique", "sample")
-        colnames(object@libcounts) <- c("id", "sequence", "count", "unique", "sample")
+        colnames(object@libcounts) <- c("id", "name", "sequence", "count", "unique", "sample")
 
         object@libcounts$is_ref <- unlist(lapply(object@libcounts$sequence, function(s) ifelse(s == object@refseq, 1, 0)))
         object@libcounts$is_pam <- unlist(lapply(object@libcounts$sequence, function(s) ifelse(s == object@pamseq, 1, 0)))
