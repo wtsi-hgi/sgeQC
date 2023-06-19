@@ -23,7 +23,7 @@
 ## Installation
 
 Install from github
-```sh
+```R
 install.packages("devtools")
 
 library(devtools)
@@ -31,14 +31,14 @@ install_github("wtsi-hgi/sgeQC")
 ```
 
 Install from source file
-```sh
+```R
 install.packages("/path/of/sgeQC.tar.gz", type = "source")
 ```
 
 <!-- Dependencies-->
 ## Dependencies
 
-```sh
+```R
 install.packages("data.table")
 install.packages("Ckmeans.1d.dp")
 install.packages("reshape2")
@@ -54,17 +54,19 @@ All the files are in the same directory including library dependent counts, libr
 
 #### Sample sheet format
 | sample_name  | library_independent_count | library_dependent_count | valiant_meta | adapt5 | adapt3 | library_name | library_type|
-| -- | -- | -- | -- | -- | -- | -- | -- |
-| sample1  | s1.allcounts.tsv.gz | s1.libcounts.tsv.gz | s1.meta.csv.gz | CTGACTGGCACCTCTTCCCCCAGGA | CCCCGACCCCTCCCCAGCGTGAATG | libA  | screen |
-| sample2  | s2.allcounts.tsv.gz | s2.libcounts.tsv.gz | s2.meta.csv.gz | CTGACTGGCACCTCTTCCCCCAGGA | CCCCGACCCCTCCCCAGCGTGAATG | libA  | screen |
+| - | - | - | - | - | - | - | - |
+| sample1 | s1.allcounts.tsv.gz | s1.libcounts.tsv.gz | meta.csv.gz | CTGACTGGCACCTCTTCCCCCAGGA | CCCCGACCCCTCCCCAGCGTGAATG | libA | screen |
+| sample2 | s2.allcounts.tsv.gz | s2.libcounts.tsv.gz | meta.csv.gz | CTGACTGGCACCTCTTCCCCCAGGA | CCCCGACCCCTCCCCAGCGTGAATG | libA | screen |
+| sample3 | s3.allcounts.tsv.gz | s3.libcounts.tsv.gz | meta.csv.gz | CTGACTGGCACCTCTTCCCCCAGGA | CCCCGACCCCTCCCCAGCGTGAATG | libA | screen |
 
-* adapt5 and adapt3 are required if you don't provide the ref seq and pam seq
-* library_name and library_type are not necessary.
-```sh
+* *please use the same headers in the example*
+* *adapt5 and adapt3 are required if you don't provide the ref seq and pam seq*
+* *library_name and library_type are not necessary*
+
+```R
 library(sgeQC)
 
 sge_objs <- import_sge_files("/path/to/input/directory", "sample_sheet.tsv")
-
 samqc <- create_sampleqc_object(sge_objs)
 ```
 
@@ -75,7 +77,7 @@ samqc <- create_sampleqc_object(sge_objs)
 
 <a id="pqc1"></a>
 ### QC 1: 
-```sh
+```R
 samqc <- run_sample_qc(samqc, "plasmid")
 
 qcplot_readlens(samqc, "/path/to/out/plots")
@@ -100,7 +102,7 @@ qcout_sampleqc_stats(samqc, "/path/to/out/files")
 <a id="sqc1"></a>
 ### QC 1: 
 
-```sh
+```R
 samqc@samples_ref <- select_objects(sge_objs, c(2,5,8))
 samqc <- run_sample_qc(samqc, "screen")
 
