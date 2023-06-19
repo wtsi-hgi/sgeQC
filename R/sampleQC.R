@@ -110,6 +110,8 @@ setMethod(
             # filtering sequences on input samples by filtered set
             unfiltered_counts <- data.table()
             for (s in object@samples) {
+                cat("        |--> Filtering on ", s@sample, "\n", sep = "")
+
                 tmp_counts <- s@allcounts[, c("sequence", "count")]
                 tmp_counts <- as.data.table(tmp_counts)
 
