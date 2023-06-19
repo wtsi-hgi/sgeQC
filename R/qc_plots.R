@@ -35,7 +35,7 @@ setMethod(
 
         p1 <- ggplot(read_lens, aes(x = factor(samples), y = length)) +
                 geom_violin(alpha = 0.3, scale = "width", color = "tomato", fill = t_col("tomato", 0.5)) +
-                labs(x = "read length", y = "frequency", title = "Primary QC read lengths") +
+                labs(x = "read length", y = "frequency", title = "Sample QC read lengths") +
                 theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                 theme(axis.title = element_text(size = 16,face = "bold", family = "Arial")) +
                 theme(plot.title = element_text(size = 16,face = "bold.italic", family = "Arial")) +
@@ -43,7 +43,7 @@ setMethod(
                 theme(axis.text.x = element_text(angle = 90))
 
         pwidth <- 150 * length(object@lengths)
-        png(paste0(plotdir, "/", "primary_qc_read_length.violin.png"), width = pwidth, height = 1200, res = 200)
+        png(paste0(plotdir, "/", "sample_qc_read_length.violin.png"), width = pwidth, height = 1200, res = 200)
         print(p1)
         dev.off()
     }
@@ -94,14 +94,14 @@ setMethod(
                     geom_point(shape = 21, size = 1, aes(fill = factor(cluster), color = factor(cluster))) +
                     scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
                     scale_color_manual(values = c("tomato", "royalblue")) +
-                    labs(x = "sequence index", y = "log2(count+1)", title = "Primary QC clusters") +
+                    labs(x = "sequence index", y = "log2(count+1)", title = "Sample QC clusters") +
                     theme(legend.position = "none", panel.grid.major = element_blank()) +
                     theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                     theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
                     theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
                     theme(axis.text = element_text(size = 12, face = "bold"))
 
-            png(paste0(plotdir, "/", "primary_qc_seq_clusters.point.png"), width = 1200, height = 1200, res = 200)
+            png(paste0(plotdir, "/", "sample_qc_seq_clusters.point.png"), width = 1200, height = 1200, res = 200)
             print(p1)
             dev.off()
 
@@ -109,14 +109,14 @@ setMethod(
                     geom_histogram(aes(fill = factor(cluster), color = factor(cluster))) +
                     scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
                     scale_color_manual(values = c("tomato", "royalblue")) +
-                    labs(x = "log2(count+1)", y = "frequency", title = "Primary QC clusters") +
+                    labs(x = "log2(count+1)", y = "frequency", title = "Sample QC clusters") +
                     theme(legend.position = "none", panel.grid.major = element_blank()) +
                     theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                     theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
                     theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
                     theme(axis.text = element_text(size = 12, face = "bold"))
 
-            #png(paste0(plotdir, "/", "primary_qc_seq_clusters.hist.png"), width = 1200, height = 1200, res = 200)
+            #png(paste0(plotdir, "/", "sample_qc_seq_clusters.hist.png"), width = 1200, height = 1200, res = 200)
             #print(p2)
             #dev.off()
 
@@ -124,14 +124,14 @@ setMethod(
                     geom_density(aes(fill = factor(cluster), color = factor(cluster))) +
                     scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
                     scale_color_manual(values = c("tomato", "royalblue")) +
-                    labs(x = "log2(count+1)", y = "frequency", title = "Primary QC clusters") +
+                    labs(x = "log2(count+1)", y = "frequency", title = "Sample QC clusters") +
                     theme(legend.position = "none", panel.grid.major = element_blank()) +
                     theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                     theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
                     theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
                     theme(axis.text = element_text(size = 12, face = "bold"))
 
-            png(paste0(plotdir, "/", "primary_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 200)
+            png(paste0(plotdir, "/", "sample_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 200)
             print(p3)
             dev.off()
         } else {
@@ -150,14 +150,14 @@ setMethod(
 
             p1 <- ggplot(seq_clusters, aes(x = count_log2, color = samples, fill = samples)) +
                     geom_density(alpha = 0.2) +
-                    labs(x = "log2(count+1)", y = "frequency", title = "Primary QC clusters") +
+                    labs(x = "log2(count+1)", y = "frequency", title = "Sample QC clusters") +
                     theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                     theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
                     theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
                     theme(axis.text = element_text(size = 12, face = "bold")) +
                     facet_wrap(~cluster, scales = "free")
 
-            png(paste0(plotdir, "/", "primary_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 200)
+            png(paste0(plotdir, "/", "sample_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 200)
             print(p1)
             dev.off()
         }
@@ -193,7 +193,7 @@ setMethod(
                 geom_bar(stat = "identity") +
                 scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
                 scale_color_manual(values = c("tomato", "royalblue")) +
-                labs(x = "samples", y = "counts", title = "Primary QC Stats") +
+                labs(x = "samples", y = "counts", title = "Sample QC Stats") +
                 scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
                 theme(legend.position = "right", legend.title = element_blank()) +
                 theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
@@ -203,7 +203,7 @@ setMethod(
                 theme(axis.text.x = element_text(angle = 90))
 
         pwidth <- 150 * nrow(df_total)
-        png(paste0(plotdir, "/", "primary_qc_stats_total.png"), width = pwidth, height = 1200, res = 200)
+        png(paste0(plotdir, "/", "sample_qc_stats_total.png"), width = pwidth, height = 1200, res = 200)
         print(p1)
         dev.off()
 
@@ -221,7 +221,7 @@ setMethod(
                 geom_bar(stat = "identity", position = "fill") +
                 scale_fill_manual(values = gg_colors_fill) +
                 scale_color_manual(values = gg_colors) +
-                labs(x = "samples", y = "percent", title = "Primary QC Stats") +
+                labs(x = "samples", y = "percent", title = "Sample QC Stats") +
                 scale_y_continuous(labels = scales::percent) +
                 theme(legend.position = "right", legend.title = element_blank()) +
                 theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
@@ -232,7 +232,7 @@ setMethod(
                 geom_text(aes(label = paste0(percent, "%")), position = position_fill(vjust = 0.5), size = 3)
 
         pwidth <- 150 * nrow(df_filtered)
-        png(paste0(plotdir, "/", "primary_qc_stats_filtered.png"), width = pwidth, height = 1200, res = 200)
+        png(paste0(plotdir, "/", "sample_qc_stats_filtered.png"), width = pwidth, height = 1200, res = 200)
         print(p2)
         dev.off()
 
@@ -241,7 +241,7 @@ setMethod(
 
         p3 <- ggplot(df_cov,  aes(x = total_reads, y = effective_reads, size = effective_cov, color = samples)) +
                 geom_point(alpha = 0.7) +
-                labs(x = "total reads", y = "effective reads", title = "Primary QC Stats") +
+                labs(x = "total reads", y = "effective reads", title = "Sample QC Stats") +
                 scale_x_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
                 scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
                 theme(legend.position = "right") +
@@ -250,7 +250,7 @@ setMethod(
                 theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
                 theme(axis.text = element_text(size = 12, face = "bold"))
 
-        png(paste0(plotdir, "/", "primary_qc_stats_cov.png"), width = 1200, height = 1200, res = 200)
+        png(paste0(plotdir, "/", "sample_qc_stats_cov.png"), width = 1200, height = 1200, res = 200)
         print(p3)
         dev.off()
     }
@@ -304,7 +304,7 @@ setMethod(
         effcounts_pos_log <- log2(effcounts_pos + 1)
 
         pheight <- 200 * length(sample_names)
-        png(paste0(plotdir, "/", "primary_qc_position_cov.heatmap.png"), width = 2400, height = pheight, res = 200)
+        png(paste0(plotdir, "/", "sample_qc_position_cov.heatmap.png"), width = 2400, height = pheight, res = 200)
         lmat <- rbind(c(2, 4), c(3, 1))
         lhei <- c(3, 8)
         lwid <- c(3, 8)
@@ -331,7 +331,7 @@ setMethod(
 
         p1 <- ggplot(dt_effcounts_pos_log, aes(x = index, y = log_counts)) +
                 geom_point(shape = 16, size = 0.5, color = "tomato", alpha = 0.8) +
-                labs(x = "sequence position", y = "log2(count+1)", title = "Primary QC position coverage") +
+                labs(x = "sequence position", y = "log2(count+1)", title = "Sample QC position coverage") +
                 theme(legend.position = "none", panel.grid.major = element_blank()) +
                 theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                 theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
@@ -340,7 +340,7 @@ setMethod(
                 facet_wrap(~samples, dir = "v")
 
         pheight <- 300 * length(sample_names)
-        png(paste0(plotdir, "/", "primary_qc_position_cov.dots.png"), width = 2400, height = pheight, res = 200)
+        png(paste0(plotdir, "/", "sample_qc_position_cov.dots.png"), width = 2400, height = pheight, res = 200)
         print(p1)
         dev.off()
     }
