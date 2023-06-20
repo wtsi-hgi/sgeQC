@@ -63,7 +63,7 @@ install.packages("/path/of/sgeQC.tar.gz", type = "source")
 ### Import from a directory:
 All the files are in the same directory including library dependent counts, library independent counts, valiant meta csv, vep annotation and the sample sheet.
 
-#### Sample sheet format
+#### Sample sheet format -- tsv
 | sample_name  | library_independent_count | library_dependent_count | valiant_meta | adapt5 | adapt3 | library_name | library_type|
 | - | - | - | - | - | - | - | - |
 | sample1 | s1.allcounts.tsv.gz | s1.libcounts.tsv.gz | meta.csv.gz | CTGACTGGCACCTCTTCCCCCAGGA | CCCCGACCCCTCCCCAGCGTGAATG | libA | screen |

@@ -12,7 +12,8 @@
 #' @slot libcounts         QUANTS library-dependent counts, per sequence per count
 #' @slot allcounts         QUANTS library-independent counts, per sequence per count
 #' @slot valiant_meta      VaLiAnT meta file
-#' @slot meta_mseqs             non-redundant mseq in VaLiAnT meta file
+#' @slot vep_anno          vep consequence annotation file
+#' @slot meta_mseqs        non-redundant mseq in VaLiAnT meta file
 #' @slot missing_meta_seqs missing sequenced in library compared to VaLiAnT meta file
 #' @slot libstats          summaries of library dependent counts
 #' @slot allstats          summaries of library independent counts
@@ -30,6 +31,7 @@ setClass("SGE",
         libcounts = "data.frame",
         allcounts = "data.frame",
         valiant_meta = "data.frame",
+        vep_anno = "data.frame",
         meta_mseqs = "character",
         missing_meta_seqs = "character",
         libstats = "data.frame",
@@ -48,6 +50,7 @@ setClass("SGE",
         libcounts = data.frame(),
         allcounts = data.frame(),
         valiant_meta = data.frame(),
+        vep_anno = data.frame(),
         meta_mseqs = character(),
         missing_meta_seqs = character(),
         libstats = data.frame(),
@@ -64,26 +67,39 @@ setClass("SGE",
 #' @param file_libcount           QUANTS library-dependent count file, per sequence per count
 #' @param file_allcount           QUANTS library-independent count file, per sequence per count
 #' @param file_valiant_meta       VaLiAnT meta file
+#' @param file_vep_anno           vep annotation file
 #' @param file_libcount_hline     line number of header in library-dependent count file
 #' @param file_allcount_hline     line number of header in library-independent count file
 #' @param file_valiant_meta_hline line number of header in VaLiAnT meta file
+#' @param file_vep_anno_hline     line number of header in vep annotation file
 #' @param file_libcount_cols      a vector of numbers of selected columns in library-dependent count file, default is none
 #' @param file_allcount_cols      a vector of numbers of selected columns in library-independent count file, default is none
 #' @param file_valiant_meta_cols  a vector of numbers of selected columns in VaLiAnT meta file, default is none
+#' @param file_vep_anno_cols      a vector of numbers of selected columns in vep annotation file, default is none
 #' @return An object of class SGE
 create_sge_object <- function(file_libcount,
                               file_allcount,
                               file_valiant_meta,
+                              file_vep_anno = NULL,
                               file_libcount_hline = 3,
                               file_allcount_hline = 3,
                               file_valiant_meta_hline = 1,
+                              file_vep_anno_hline = 1,
                               file_libcount_cols = vector(),
                               file_allcount_cols = vector(),
-                              file_valiant_meta_cols = vector()) {
+                              file_valiant_meta_cols = vector(),
+                              file_vep_anno_cols = vector()) {
     # Read files
     libcounts <- read_sge_file(file_libcount, file_libcount_hline, file_libcount_cols)
     allcounts <- read_sge_file(file_allcount, file_allcount_hline, file_allcount_cols)
     valiant_meta <- read_sge_file(file_valiant_meta, file_valiant_meta_hline, file_valiant_meta_cols)
+
+    # vep is only required for screen qc
+    if (is.null(file_vep_anno)) {
+        vep_anno <- data.frame()
+    } else {
+        vep_anno <- read_sge_file(file_vep_anno, file_vep_anno_hline, file_vep_anno_cols)
+    }
 
     # initializing
     cols <- c("total_num_oligos",
@@ -147,6 +163,7 @@ create_sge_object <- function(file_libcount,
         libcounts = libcounts,
         allcounts = allcounts,
         valiant_meta = valiant_meta,
+        vep_anno = vep_anno,
         libstats = df_libstats,
         allstats = df_allstats,
         libstats_qc = df_libstats_qc,

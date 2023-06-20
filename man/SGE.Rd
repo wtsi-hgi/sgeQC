@@ -30,6 +30,8 @@ A class representing a SGE object
 
 \item{\code{valiant_meta}}{VaLiAnT meta file}
 
+\item{\code{vep_anno}}{vep consequence annotation file}
+
 \item{\code{meta_mseqs}}{non-redundant mseq in VaLiAnT meta file}
 
 \item{\code{missing_meta_seqs}}{missing sequenced in library compared to VaLiAnT meta file}

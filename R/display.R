@@ -17,7 +17,7 @@ setMethod(
         cat("    |--> No. of library-dependent counts: ", nrow(object@libcounts), "\n", sep = "")
         cat("    |--> No. of library-independent counts: ", nrow(object@allcounts), "\n", sep = "")
         cat("|--> valiant meta: ", nrow(object@valiant_meta), " records and ", ncol(object@valiant_meta), " fields", "\n", sep = "")
-        cat("    |--> ", sum(object@libcounts$id%in%object@valiant_meta$oligo_name), " library-dependent count ids matched in valiant meta oligo names", "\n", sep = "")
+        cat("    |--> ", sum(object@libcounts$name %in% object@valiant_meta$oligo_name), " library-dependent count ids matched in valiant meta oligo names", "\n", sep = "")
     }
 )
 
