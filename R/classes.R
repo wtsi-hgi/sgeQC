@@ -177,17 +177,18 @@ create_sge_object <- function(file_libcount,
 #'
 #' @export
 #' @name sampleQC
-#' @slot samples          a list of SGE objects
-#' @slot samples_ref      a list of SGE objects which are the references for screen QC
-#' @slot counts           a list of sample counts
-#' @slot lengths          a list of sequence lengths
-#' @slot seq_clusters     a list of dataframes of sequences and cluster IDs
-#' @slot filtered_seqs    a vector of sequences with counts > clustering cutoff for screen QC in the references
-#' @slot filtered_counts  a data frame of filtered counts of all the samples
-#' @slot effective_counts a data frame of effective counts of all the samples
-#' @slot stats            a data frame of samples and stats, eg. total no, filtered no.
-#' @slot filtered_samples a list of filtered sample objects
-#' @slot bad_seqs         a list of filter-out sequences
+#' @slot samples               a list of SGE objects
+#' @slot samples_ref           a list of SGE objects which are the references for screen QC
+#' @slot counts                a list of sample counts
+#' @slot lengths               a list of sequence lengths
+#' @slot seq_clusters          a list of dataframes of sequences and cluster IDs
+#' @slot filtered_seqs         a vector of sequences with counts > clustering cutoff for screen QC in the references
+#' @slot filtered_counts       a data frame of filtered counts of all the samples
+#' @slot effective_counts      a data frame of effective counts of all the samples
+#' @slot effective_counts_anno a data frame of effective counts of all the samples, annotated with consequences
+#' @slot stats                 a data frame of samples and stats, eg. total no, filtered no.
+#' @slot filtered_samples      a vector of filtered sample names
+#' @slot bad_seqs              a list of filter-out sequences
 setClass("sampleQC",
     slots = list(
         samples = "list",
@@ -198,8 +199,9 @@ setClass("sampleQC",
         filtered_seqs = "character",
         filtered_counts = "data.frame",
         effective_counts = "data.frame",
+        effective_counts_anno = "data.frame",
         stats = "data.frame",
-        filtered_samples = "list",
+        filtered_samples = "character",
         bad_seqs = "list"
     ),
     prototype = list(
@@ -211,8 +213,9 @@ setClass("sampleQC",
         filtered_seqs = character(),
         filtered_counts = data.frame(),
         effective_counts = data.frame(),
+        effective_counts_anno = data.frame(),
         stats = data.frame(),
-        filtered_samples = list(),
+        filtered_samples = character(),
         bad_seqs = list()
     )
 )

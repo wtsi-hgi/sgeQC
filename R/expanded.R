@@ -142,3 +142,15 @@ select_objects <- function(objects, tags) {
 
     return(list_select)
 }
+
+#' sort characters and numbers
+#'
+#' @export
+#' @param x a vector
+#' @return a sorted vector
+mixsort <- function(x) {
+    order1 <- gsub("([A-Z]+)([0-9]+)", "\\1", x)
+    order2 <- as.numeric(gsub("([A-Z]+)([0-9]+)", "\\2", x))
+
+    return(x[order(order1, order2)])
+}

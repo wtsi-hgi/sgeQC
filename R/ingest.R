@@ -114,7 +114,7 @@ import_sge_files <- function(dir_path,
     list_objects <- list()
     cat("Importing files for samples:", "\n", sep = "")
     for (i in 1:nrow(samplesheet)) {
-        cat("|--> ", samplesheet[i, ]$sample_name, "\n", sep = "")
+        cat("    |--> ", samplesheet[i, ]$sample_name, "\n", sep = "")
 
         # vep is only required for screen qc
         if (is.na(samplesheet[i, ]$vep_anno)) {

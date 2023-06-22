@@ -72,7 +72,7 @@ All the files are in the same directory including library dependent counts, libr
 
 * *please use the same headers in the example*
 * *adapt5 and adapt3 are required if you don't provide the ref seq and pam seq*
-* *library_name and library_type are not necessary*
+* *vep_anno, library_name and library_type are not necessary, let them blank if not available*
 
 #### Load dependencies if required
 ```

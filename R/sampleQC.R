@@ -261,6 +261,12 @@ setMethod(
         qc_lables <- c("qcpass_filtered_reads", "qcpass_mapping_per", "qcpass_effective_per", "qcpass_effective_cov")
         object@stats$qcpass <- apply(object@stats[, qc_lables], 1, function(x) all(x))
 
+        #------------------------#
+        # 7. Filtered samples    #
+        #------------------------#
+
+        object@filtered_samples <- rownames(object@stats[object@stats$qcpass == TRUE, ])
+
         return(object)
     }
 )
@@ -273,12 +279,67 @@ setGeneric("run_sample_qc_deseq2", function(object, ...) {
 #' run DESeq2 for the list of samples
 #'
 #' @export
-#' @param object          sampleQC object
+#' @param object     sampleQC object
+#' @param ds_coldata a data frame of col data for deseq2
+#' @param ds_ref     the reference condition, eg. D4
 #' @return object
 setMethod(
     "run_sample_qc_deseq2",
     signature = "sampleQC",
-    definition = function(object) {
+    definition = function(object,
+                          ds_coldata,
+                          ds_ref) {
+        #----------#
+        # checking #
+        #----------#
+        if (length(object@filtered_samples) == 0) {
+            stop(paste0("====> Error: please run run_sample_qc first!"))
+        }
 
+        if (nrow(object@samples[[1]]@vep_anno) == 0) {
+            stop(paste0("====> Error: no consequence annotation found!"))
+        }
+
+        #------------------------#
+        # 1. map vep consequence #
+        #------------------------#
+
+        effective_counts_anno <- object@effective_counts[, object@filtered_samples]
+        effective_counts_anno[is.na(effective_counts_anno)] <- 0
+
+        vep_anno <- object@samples[[1]]@vep_anno
+        # may change
+        rownames(vep_anno) <- vep_anno$Seq
+        # may change
+        effective_counts_anno$consequence <- vep_anno[rownames(effective_counts_anno), ]$assigned
+        # may change
+        rownames(effective_counts_anno) <- vep_anno[rownames(effective_counts_anno), ]$unique_oligo_name
+
+        object@effective_counts_anno <- effective_counts_anno
+
+        #-------------------#
+        # 2. DESeq2 process #
+        #-------------------#
+
+        # run control
+        syn_counts <- effective_counts_anno[effective_counts_anno$consequence == "synonymous", rownames(ds_coldata)]
+
+        syn_ds_obj <- DESeqDataSetFromMatrix(countData = syn_counts, colData = ds_coldata, design = ~condition)
+        syn_ds_obj <- syn_ds_obj[rowSums(counts(syn_ds_obj)) > 0, ]
+        syn_ds_obj$condition <- factor(syn_ds_obj$condition, levels = mixsort(levels(syn_ds_obj$condition)))
+        syn_ds_obj$condition <- relevel(syn_ds_obj$condition, ref = ds_ref)
+        syn_ds_obj <- estimateSizeFactors(syn_ds_obj)
+
+        # run all
+        deseq_counts <- effective_counts_anno[, rownames(ds_coldata)]
+
+        ds_obj <- DESeqDataSetFromMatrix(countData = deseq_counts, colData = ds_coldata, design = ~condition)
+        ds_obj <- ds_obj[rowSums(counts(ds_obj)) > 0, ]
+        ds_obj$condition <- factor(ds_obj$condition, levels = mixsort(levels(ds_obj$condition)))
+        ds_obj$condition <- relevel(ds_obj$condition, ref = ds_ref)
+        sizeFactors(ds_obj) <- sizeFactors(syn_ds_obj)
+
+        ds_obj <- DESeq(ds_obj)
+        ds_rlog <- rlog(ds_obj)
     }
 )

@@ -4,10 +4,14 @@
 \alias{run_sample_qc_deseq2,sampleQC-method}
 \title{run DESeq2 for the list of samples}
 \usage{
-\S4method{run_sample_qc_deseq2}{sampleQC}(object)
+\S4method{run_sample_qc_deseq2}{sampleQC}(object, ds_coldata, ds_ref)
 }
 \arguments{
 \item{object}{sampleQC object}
+
+\item{ds_coldata}{a data frame of col data for deseq2}
+
+\item{ds_ref}{the reference condition, eg. D4}
 }
 \value{
 object
