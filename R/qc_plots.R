@@ -358,9 +358,9 @@ setMethod(
         }
 
         effcounts_pos <- object@effective_counts_pos_anno
+        effcounts_pos <- effcounts_pos[, c(samples, "consequence")]
 
         if (type == "lof") {
-            effcounts_pos <- effcounts_pos[, c(samples, "consequence")]
             effcounts_pos$consequence <- ifelse(effcounts_pos$consequence == "lof", "lof", "others")
             effcounts_pos[, samples] <- effcounts_pos[, samples] / object@stats[samples, ]$filtered_reads * 100
 
@@ -377,15 +377,60 @@ setMethod(
                     labs(x = "sequence position", y = "percentage", title = "Sample QC position percentage") +
                     coord_trans(y = "log2") +
                     scale_y_continuous(breaks = c(0.001, 0.005, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.4, 0.6, 0.8, 1)) +
-                    theme(legend.position = "none", panel.grid.major = element_blank()) +
+                    theme(legend.position = "right", panel.grid.major = element_blank()) +
                     theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                     theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
                     theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
                     theme(axis.text = element_text(size = 6, face = "bold")) +
                     facet_wrap(~samples, dir = "v")
 
-            pheight <- 300 * length(sample_names)
-            png(paste0(plotdir, "/", "sample_qc_position_anno.dots.png"), width = 2400, height = pheight, res = 200)
+            pheight <- 300 * length(samples)
+            png(paste0(plotdir, "/", "sample_qc_position_anno.lof_dots.png"), width = 2400, height = pheight, res = 200)
+            print(p1)
+            dev.off()
+        } else {
+            effcounts_pos[, samples] <- effcounts_pos[, samples] / object@stats[samples, ]$filtered_reads * 100
+
+            dt_effcounts_pos <- reshape2::melt(effcounts_pos, id.vars = "consequence", variable.name = "samples", value.name = "counts")
+            dt_effcounts_pos$index <- 1:nrow(effcounts_pos)
+            dt_effcounts_pos$samples <- factor(dt_effcounts_pos$samples, levels = samples)
+
+            dt_effcounts_pos[dt_effcounts_pos == 0] <- NA
+
+            default_colors <- c("tomato", "royalblue", "yellowgreen", "orange",
+                                "pink", "purple", "coral", "cyan",
+                                "violet", "springgreen", "skyblue", "lightgrey")
+            select_colors <- default_colors[1:length(unique(effcounts_pos$consequence))]
+
+            freq_cons <- table(effcounts_pos$consequence)
+            names(select_colors) <- names(freq_cons)
+
+            freq_cons <- sort(freq_cons, decreasing = TRUE)
+            freq_cons <- names(freq_cons)
+            rate_cons <- seq(0.2, 0.1 + length(freq_cons)/10, 0.1)
+            names(rate_cons) <- freq_cons
+
+            for (i in 1:(length(select_colors) - 1)) {
+                select_colors[i] <- t_col(select_colors[i], rate_cons[names(select_colors[i])])
+            }
+            select_colors <- as.vector(select_colors)
+
+            p1 <- ggplot(dt_effcounts_pos, aes(x = index, y = counts)) +
+                    geom_point(shape = 19, size = 0.5, aes(fill = factor(consequence), color = factor(consequence))) +
+                    geom_hline(yintercept = major_cut, linetype = "dashed", color = "springgreen4", linewidth = 0.4) +
+                    scale_color_manual(values = select_colors) +
+                    labs(x = "sequence position", y = "percentage", title = "Sample QC position percentage") +
+                    coord_trans(y = "log2") +
+                    scale_y_continuous(breaks = c(0.001, 0.005, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.4, 0.6, 0.8, 1)) +
+                    theme(legend.position = "right", panel.grid.major = element_blank()) +
+                    theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
+                    theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
+                    theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
+                    theme(axis.text = element_text(size = 6, face = "bold")) +
+                    facet_wrap(~samples, dir = "v")
+
+            pheight <- 300 * length(samples)
+            png(paste0(plotdir, "/", "sample_qc_position_anno.all_dots.png"), width = 2400, height = pheight, res = 200)
             print(p1)
             dev.off()
         }

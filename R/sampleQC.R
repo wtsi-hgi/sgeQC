@@ -59,6 +59,8 @@ setMethod(
             object@stats[s@sample, ]$total_reads <- s@allstats$total_counts
             object@stats[s@sample, ]$ref_reads <- s@allstats_qc$num_ref_reads
             object@stats[s@sample, ]$pam_reads <- s@allstats_qc$num_pam_reads
+
+            object@stats[s@sample, ]$gini_coeff_before_qc <- s@libstats_qc$gini_coeff
         }
 
         #---------------------------------------#
@@ -250,9 +252,11 @@ setMethod(
         }
         object@stats$effective_cov <- as.integer(object@stats$effective_cov)
 
-        #-----------------------------------------------#
-        # 6. Sorting effective coverage by position     #
-        #-----------------------------------------------#
+        #--------------------- -------------------#
+        # 6. Sorting effective counts by position #
+        #-----------------------------------------#
+        cat("Sorting effective counts by position...", "\n", sep = "")
+
         effcounts_pos <- data.frame()
         for (s in object@samples) {
             obj_effcounts <- object@effective_counts[, s@sample, drop = FALSE]
@@ -279,8 +283,18 @@ setMethod(
 
         object@effective_counts_pos <- as.data.frame(effcounts_pos)
 
+        #------------------------#
+        # 7. Gini coeff after qc #
+        #------------------------#
+        cat("Calculating gini coefficiency...", "\n", sep = "")
+
+        for (s in object@samples) {
+            gini_coeff <- cal_gini(object@effective_counts[, s@sample], corr = FALSE, na.rm = TRUE)
+            object@stats[s@sample, ]$gini_coeff_after_qc <- round(gini_coeff, 3)
+        }
+
         #------------------#
-        # 7. QC results    #
+        # 8. QC results    #
         #------------------#
         object@stats$qcpass_filtered_reads <- unlist(lapply(object@stats$filtered_reads, function(x) ifelse(x >= cutoff_filtered, TRUE, FALSE)))
         object@stats$qcpass_mapping_per <- unlist(lapply(object@stats$per_unmapped_reads, function(x) ifelse(x < (1 - cutoff_mapping), TRUE, FALSE)))
@@ -291,7 +305,7 @@ setMethod(
         object@stats$qcpass <- apply(object@stats[, qc_lables], 1, function(x) all(x))
 
         #------------------------#
-        # 8. Filtered samples    #
+        # 9. Filtered samples    #
         #------------------------#
 
         object@filtered_samples <- rownames(object@stats[object@stats$qcpass == TRUE, ])
@@ -333,8 +347,12 @@ setMethod(
             stop(paste0("====> Error: coldata must have condition values!"))
         } else {
             ds_coldata <- as.data.frame(ds_coldata)
+
             ds_coldata$condition <- factor(ds_coldata$condition)
-            levels(ds_coldata$condition) <- mixsort(levels(ds_coldata$condition))
+            ds_coldata$condition <- factor(ds_coldata$condition, levels = mixsort(levels(ds_coldata$condition)))
+
+            ds_coldata$replicate <- factor(ds_coldata$replicate)
+            ds_coldata$replicate <- factor(ds_coldata$replicate, levels = mixsort(levels(ds_coldata$replicate)))
         }
 
         #------------------------#

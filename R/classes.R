@@ -282,6 +282,8 @@ create_sampleqc_object <- function(samples) {
               "pam_reads",
               "per_pam_reads",
               "effective_cov",
+              "gini_coeff_before_qc",
+              "gini_coeff_after_qc",
               "qcpass_filtered_reads",
               "qcpass_mapping_per",
               "qcpass_effective_per",
