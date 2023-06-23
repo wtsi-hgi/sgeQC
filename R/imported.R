@@ -6,4 +6,7 @@
 #' @import ggplot2
 #' @importFrom reshape2 melt
 #' @import DESeq2
+#' @import DEGreport
+#' @import apeglm
+#' @import corrplot
 NULL

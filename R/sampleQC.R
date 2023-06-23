@@ -300,9 +300,18 @@ setMethod(
             stop(paste0("====> Error: no consequence annotation found!"))
         }
 
+        if ("condition" %nin% colnames(ds_coldata)) {
+            stop(paste0("====> Error: coldata must have condition values!"))
+        } else {
+            ds_coldata <- as.data.frame(ds_coldata)
+            ds_coldata$condition <- factor(ds_coldata$condition)
+            levels(ds_coldata$condition) <- mixsort(levels(ds_coldata$condition))
+        }
+
         #------------------------#
         # 1. map vep consequence #
         #------------------------#
+        cat("Mapping consequencing annotation...", "\n", sep = "")
 
         effective_counts_anno <- object@effective_counts[, object@filtered_samples]
         effective_counts_anno[is.na(effective_counts_anno)] <- 0
@@ -322,6 +331,8 @@ setMethod(
         #-------------------#
 
         # run control
+        cat("Running control deseq2 to get size factor...", "\n", sep = "")
+
         syn_counts <- effective_counts_anno[effective_counts_anno$consequence == "synonymous", rownames(ds_coldata)]
 
         syn_ds_obj <- DESeqDataSetFromMatrix(countData = syn_counts, colData = ds_coldata, design = ~condition)
@@ -331,6 +342,7 @@ setMethod(
         syn_ds_obj <- estimateSizeFactors(syn_ds_obj)
 
         # run all
+        cat("Running deseq2 on all the filtered samples...", "\n", sep = "")
         deseq_counts <- effective_counts_anno[, rownames(ds_coldata)]
 
         ds_obj <- DESeqDataSetFromMatrix(countData = deseq_counts, colData = ds_coldata, design = ~condition)
@@ -339,7 +351,31 @@ setMethod(
         ds_obj$condition <- relevel(ds_obj$condition, ref = ds_ref)
         sizeFactors(ds_obj) <- sizeFactors(syn_ds_obj)
 
-        ds_obj <- DESeq(ds_obj)
+        ds_obj <- DESeq(ds_obj, fitType = "local", quiet = TRUE)
         ds_rlog <- rlog(ds_obj)
+
+        object@deseq_rlog <- as.data.frame(assay(ds_rlog))
+
+        cat("Creating comparision and calculating logFC...", "\n", sep = "")
+        conds <- levels(ds_coldata$condition)
+        ds_contrast <- list()
+        for (i in 1:length(conds)) {
+            if (conds[i] != ds_ref) {
+                ds_contrast <- append(ds_contrast, paste0("condition_", conds[i], "_vs_", ds_ref))
+            }
+        }
+
+        ds_res <- degComps(ds_obj,
+                           combs = "condition",
+                           contrast = ds_contrast,
+                           alpha = 0.05,
+                           skip = FALSE,
+                           type = "apeglm",
+                           pairs = FALSE,
+                           fdr = "default")
+
+        object@deseq_res <- ds_res
+
+        return(object)
     }
 )

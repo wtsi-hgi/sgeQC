@@ -305,7 +305,7 @@ setMethod(
 
         pheight <- 200 * length(sample_names)
         png(paste0(plotdir, "/", "sample_qc_position_cov.heatmap.png"), width = 2400, height = pheight, res = 200)
-        lmat <- rbind(c(2, 4), c(3, 1))
+        lmat <- rbind(c(3, 4), c(2, 1))
         lhei <- c(3, 8)
         lwid <- c(3, 8)
 
@@ -342,6 +342,140 @@ setMethod(
         pheight <- 300 * length(sample_names)
         png(paste0(plotdir, "/", "sample_qc_position_cov.dots.png"), width = 2400, height = pheight, res = 200)
         print(p1)
+        dev.off()
+    }
+)
+
+#' initialize function
+setGeneric("qcplot_dist_samples", function(object, ...) {
+  standardGeneric("qcplot_dist_samples")
+})
+
+#' create the heatmap of samples
+#'
+#' @export
+#' @param object  sampleQC object
+#' @param plotdir the output plot directory
+setMethod(
+    "qcplot_dist_samples",
+    signature = "sampleQC",
+    definition = function(object,
+                          plotdir) {
+        if (length(plotdir) == 0) {
+            stop(paste0("====> Error: plotdir is not provided, no output directory."))
+        }
+
+        sample_dist <- as.matrix(dist(t(object@deseq_rlog)))
+
+        png(paste0(plotdir, "/", "sample_qc_distance_samples.heatmap.png"), width = 1200, height = 1200, res = 200)
+        lmat <- rbind(c(4, 3), c(2, 1))
+        lhei <- c(3, 8)
+        lwid <- c(3, 8)
+
+        heatmap.2(sample_dist,
+                  distfun=function(x) dist(x, method = "euclidean"),
+                  hclustfun=function(x) hclust(x, method = "ward.D2"),
+                  col = colorpanel(100, "royalblue", "ivory", "tomato"),
+                  na.color = "grey",
+                  breaks = seq(0, 10, length.out = 101),
+                  density.info = "none", trace = "none", dendrogram = "both",
+                  Rowv = TRUE, Colv = TRUE,
+                  cexCol = 0.6, cexRow = 0.6,
+                  key.xlab = "distance", key.title = "", key.par = list(cex.lab = 1),
+                  margins = c(8, 8),
+                  rowsep = 1:nrow(sample_dist),
+                  colsep = 1:ncol(sample_dist),
+                  sepwidth=c(0.01, 0.01),
+                  lmat = lmat, lhei = lhei, lwid = lwid)
+        dev.off()
+
+        png(paste0(plotdir, "/", "sample_qc_distance_samples.corr.png"), width = 1200, height = 1200, res = 200)
+        corrplot(cor(scale(sample_dist)),
+                 order = "hclust",
+                 addrect = 3,
+                 col = colorpanel(100, "royalblue", "ivory", "tomato"),
+                 addCoef.col = "black",
+                 number.cex = 0.5)
+        dev.off()
+    }
+)
+
+#' initialize function
+setGeneric("qcplot_pca_samples", function(object, ...) {
+  standardGeneric("qcplot_pca_samples")
+})
+
+#' create the pca of samples
+#'
+#' @export
+#' @param object  sampleQC object
+#' @param plotdir the output plot directory
+setMethod(
+    "qcplot_pca_samples",
+    signature = "sampleQC",
+    definition = function(object,
+                          ds_coldata,
+                          ntop = 500,
+                          plotdir) {
+        if (length(plotdir) == 0) {
+            stop(paste0("====> Error: plotdir is not provided, no output directory."))
+        }
+
+        if ("condition" %nin% colnames(ds_coldata)) {
+            stop(paste0("====> Error: coldata must have condition values!"))
+        } else {
+            ds_coldata <- as.data.frame(ds_coldata)
+
+            ds_coldata$condition <- factor(ds_coldata$condition)
+            ds_coldata$condition <- factor(ds_coldata$condition, levels = mixsort(levels(ds_coldata$condition)))
+
+            ds_coldata$replicate <- factor(ds_coldata$replicate)
+            ds_coldata$replicate <- factor(ds_coldata$replicate, levels = mixsort(levels(ds_coldata$replicate)))
+        }
+
+        pca_input <- as.matrix(object@deseq_rlog)
+        rv <- rowVars(pca_input)
+        select <- order(rv, decreasing = TRUE)[seq_len(min(ntop, length(rv)))]
+
+        pca <- prcomp(t(pca_input[select, ]), center = TRUE, scale = TRUE)
+        percentVar <- pca$sdev^2 / sum(pca$sdev^2)
+        percentVar <- round(percentVar, digits = 3) * 100
+
+        pc1_set <- c((min(pca$x[, 1]) - sd(pca$x[, 1])), (max(pca$x[, 1]) + sd(pca$x[, 1])))
+        pc2_set <- c((min(pca$x[, 2]) - sd(pca$x[, 2])), (max(pca$x[, 2]) + sd(pca$x[, 2])))
+        pc3_set <- c((min(pca$x[, 3]) - sd(pca$x[, 3])), (max(pca$x[, 3]) + sd(pca$x[, 3])))
+
+        # mark conditions
+        default_colors <- c("tomato", "royalblue", "yellowgreen", "orange", "pink", "purple", "coral", "cyan")
+        select_colors <- default_colors[1:length(levels(ds_coldata$condition))]
+        names(select_colors) <- levels(ds_coldata$condition)
+
+        pca_colors <- 1:nrow(ds_coldata)
+        for (i in 1:nrow(ds_coldata)) {
+            pca_colors[i] <- select_colors[ds_coldata[i, ]$condition]
+        }
+
+        pca_bgs <- sapply(pca_colors, function(x) t_col(x, 0.5))
+
+        # mark replicates
+        default_pchs <- c(21, 22, 23, 24, 25)
+        select_pchs <- default_pchs[1:length(levels(ds_coldata$replicate))]
+        names(select_pchs) <- levels(ds_coldata$replicate)
+
+        pca_pchs <- 1:nrow(ds_coldata)
+        for (i in 1:nrow(ds_coldata)) {
+            pca_pchs[i] <- select_pchs[ds_coldata[i, ]$replicate]
+        }
+
+        png(paste0(plotdir, "/", "sample_qc_pca_samples.png"), width = 1200, height = 1200, res = 200)
+        par(mfrow = c(2, 2), mar = c(4, 4, 4, 1))
+        plot(pca$x[, 1], pca$x[, 2], xlab = "PC1", ylab = "PC2", pch = pca_pchs, col = pca_colors, bg = pca_bgs, lwd = 1, cex = 2, xlim = pc1_set, ylim = pc2_set, main = "PC1 vs PC2")
+        plot(pca$x[, 2], pca$x[, 3], xlab = "PC2", ylab = "PC3", pch = pca_pchs, col = pca_colors, bg = pca_bgs, lwd = 1, cex = 2, xlim = pc2_set, ylim = pc3_set, main = "PC2 vs PC3")
+        plot(pca$x[, 1], pca$x[, 3], xlab = "PC1", ylab = "PC3", pch = pca_pchs, col = pca_colors, bg = pca_bgs, lwd = 1, cex = 2, xlim = pc1_set, ylim = pc3_set, main = "PC1 vs PC3")
+        b <- barplot(percentVar, col = t_col("royalblue", 0.5), border = "royalblue", ylim = c(0, 105))
+        text(b, percentVar + 5, paste0(percentVar, "%"), cex = 0.6)
+        legend("topright", legend = levels(ds_coldata$replicate), pch = select_pchs, cex = 1, bty = "n")
+        legend("right", legend = levels(ds_coldata$condition), pch = 19, col = select_colors, cex = 1, bty = "n")
         dev.off()
     }
 )

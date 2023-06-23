@@ -33,5 +33,9 @@ A class representing a primary qc object
 \item{\code{filtered_samples}}{a vector of filtered sample names}
 
 \item{\code{bad_seqs}}{a list of filter-out sequences}
+
+\item{\code{deseq_rlog}}{a data frame of deseq rlog counts of all the samples using effective counts}
+
+\item{\code{deseq_res}}{a list of deseq results of all the comparison against reference}
 }}
 
