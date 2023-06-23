@@ -77,14 +77,8 @@ setMethod(
         #--------------------------#
         # 4. mseq in valiant meta  #
         #--------------------------#
-        # slow step, any method to speed up?
-        #meta_mseqs <- vector()
-        #for (i in 1:dim(object@valiant_meta)[1]) {
-        #    meta_mseqs <- c(meta_mseqs, trim_adaptor(object@valiant_meta$mseq, object@adapt5, object@adapt3))
-        #}
-        #object@meta_mseqs <- unique(meta_mseqs)
-
-        # use library dependent sequence instead
+        # use library dependent sequence to get meta mseqs
+        # may change as meta and counts will have the same seqs with adaptors
         tmp_mseqs <- unique(object@libcounts$sequence)
         object@meta_mseqs <- tmp_mseqs[tmp_mseqs %nin% c(object@refseq, object@pamseq)]
 
@@ -167,35 +161,50 @@ setMethod(
         qc_count <- object@libcounts[object@libcounts$is_ref == 1, "count"]
         object@libstats_qc$num_ref_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
         object@libstats_qc$per_ref_reads <- object@libstats_qc$num_ref_reads / total_num_sequenced_reads * 100
+        object@libstats_qc$per_ref_reads <- round(object@libstats_qc$per_ref_reads, 2)
 
         qc_count <- object@libcounts[object@libcounts$is_pam == 1, "count"]
         object@libstats_qc$num_pam_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
         object@libstats_qc$per_pam_reads <- object@libstats_qc$num_pam_reads / total_num_sequenced_reads * 100
+        object@libstats_qc$per_pam_reads <- round(object@libstats_qc$per_pam_reads, 2)
 
         qc_count <- sum(object@libcounts[object@libcounts$is_ref == 0 & object@libcounts$is_pam == 0, "count"])
         object@libstats_qc$num_eff_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
         object@libstats_qc$per_eff_reads <- object@libstats_qc$num_eff_reads / total_num_sequenced_reads * 100
+        object@libstats_qc$per_eff_reads <- round(object@libstats_qc$per_eff_reads, 2)
 
         qc_count <- total_num_sequenced_reads - object@libstats_qc$num_ref_reads - object@libstats_qc$num_pam_reads - object@libstats_qc$num_eff_reads
         object@libstats_qc$num_unmapped_reads <- qc_count
         object@libstats_qc$per_unmapped_reads <- object@libstats_qc$num_unmapped_reads / total_num_sequenced_reads * 100
+        object@libstats_qc$per_unmapped_reads <- round(object@libstats_qc$per_unmapped_reads, 2)
+
+        object@libstats_qc$num_missing_var <- length(object@missing_meta_seqs)
+        object@libstats_qc$per_missing_var <- object@libstats_qc$num_missing_var / length(object@meta_mseqs) * 100
+        object@libstats_qc$per_missing_var <- round(object@libstats_qc$per_missing_var, 2)
+
+        object@libstats_qc$gini_coeff <- cal_gini(object@libcounts$count, corr = FALSE, na.rm = TRUE)
+        object@libstats_qc$gini_coeff <- round(object@libstats_qc$gini_coeff, 3)
 
         # library independent counts
         qc_count <- object@allcounts[object@allcounts$is_ref == 1, "count"]
         object@allstats_qc$num_ref_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
         object@allstats_qc$per_ref_reads <- object@allstats_qc$num_ref_reads / total_num_sequenced_reads * 100
+        object@allstats_qc$per_ref_reads <- round(object@allstats_qc$per_ref_reads, 2)
 
         qc_count <- object@allcounts[object@allcounts$is_pam == 1, "count"]
         object@allstats_qc$num_pam_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
         object@allstats_qc$per_pam_reads <- object@allstats_qc$num_pam_reads / total_num_sequenced_reads * 100
+        object@allstats_qc$per_pam_reads <- round(object@allstats_qc$per_pam_reads, 2)
 
         qc_count <- sum(object@allcounts[object@allcounts$is_ref == 0 & object@allcounts$is_pam == 0, "count"])
         object@allstats_qc$num_eff_reads <- ifelse(length(qc_count) == 0, 0, qc_count)
         object@allstats_qc$per_eff_reads <- object@allstats_qc$num_eff_reads / total_num_sequenced_reads * 100
+        object@allstats_qc$per_eff_reads <- round(object@allstats_qc$per_eff_reads, 2)
 
         qc_count <- total_num_sequenced_reads - object@allstats_qc$num_ref_reads - object@allstats_qc$num_pam_reads - object@allstats_qc$num_eff_reads
         object@allstats_qc$num_unmapped_reads <- qc_count
         object@allstats_qc$per_unmapped_reads <- object@allstats_qc$num_unmapped_reads / total_num_sequenced_reads * 100
+        object@allstats_qc$per_unmapped_reads <- round(object@allstats_qc$per_unmapped_reads, 2)
 
         return(object)
     }

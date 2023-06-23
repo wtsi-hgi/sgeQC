@@ -300,6 +300,7 @@ setMethod(
         rownames(effcounts_pos) <- 1:dim(effcounts_pos)[1]
         colnames(effcounts_pos) <- sample_names
 
+        # normalisation?
         effcounts_pos <- apply(effcounts_pos, 2, function(x) x / (sum(x, na.rm = TRUE) / 1000000))
         effcounts_pos_log <- log2(effcounts_pos + 1)
 

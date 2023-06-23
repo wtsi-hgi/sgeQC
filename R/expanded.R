@@ -154,3 +154,23 @@ mixsort <- function(x) {
 
     return(x[order(order1, order2)])
 }
+
+#' calculate gini coefficiency for a sample
+#'
+#' @export
+#' @param x a vector
+#' @return a value
+cal_gini <- function(x, corr = FALSE, na.rm = TRUE) {
+    if (!na.rm && any(is.na(x))) return(NA_real_)
+    x <- as.numeric(na.omit(x))
+    n <- length(x)
+    x <- sort(x)
+    G <- sum(x * 1L:n)
+    G <- 2 * G/sum(x) - (n + 1L)
+
+    if (corr) {
+        return(G / (n - 1L))
+    } else {
+        return(G / n)
+    }
+}
