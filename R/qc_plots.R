@@ -275,34 +275,15 @@ setMethod(
             stop(paste0("====> Error: plotdir is not provided, no output directory."))
         }
 
-        sample_names <- character()
-        effcounts_pos <- data.frame()
-        for (s in object@samples) {
-            sample_names <- append(sample_names, s@sample)
-
-            obj_effcounts <- object@effective_counts[, s@sample, drop = FALSE]
-            obj_effcounts <- obj_effcounts[!is.na(obj_effcounts[, 1]), 1, drop = FALSE]
-
-            tmp_effcounts <- data.frame(matrix(NA, length(s@meta_mseqs), 1))
-            colnames(tmp_effcounts) <- s@sample
-            rownames(tmp_effcounts) <- s@meta_mseqs
-            tmp_effcounts[, 1] <- 0
-
-            tmp_effcounts[rownames(obj_effcounts), 1] <- obj_effcounts[, 1]
-            rownames(tmp_effcounts) <- 1:length(s@meta_mseqs)
-
-            if (nrow(effcounts_pos) == 0) {
-                effcounts_pos <- tmp_effcounts
-            } else {
-                effcounts_pos <- cbind_fill(effcounts_pos, tmp_effcounts)
-            }
-        }
-        rownames(effcounts_pos) <- 1:dim(effcounts_pos)[1]
-        colnames(effcounts_pos) <- sample_names
-
         # normalisation?
+        effcounts_pos <- object@effective_counts_pos
         effcounts_pos <- apply(effcounts_pos, 2, function(x) x / (sum(x, na.rm = TRUE) / 1000000))
         effcounts_pos_log <- log2(effcounts_pos + 1)
+
+        sample_names <- character()
+        for (s in object@samples) {
+            sample_names <- append(sample_names, s@sample)
+        }
 
         pheight <- 200 * length(sample_names)
         png(paste0(plotdir, "/", "sample_qc_position_cov.heatmap.png"), width = 2400, height = pheight, res = 200)
@@ -344,6 +325,70 @@ setMethod(
         png(paste0(plotdir, "/", "sample_qc_position_cov.dots.png"), width = 2400, height = pheight, res = 200)
         print(p1)
         dev.off()
+    }
+)
+
+#' initialize function
+setGeneric("qcplot_position_anno", function(object, ...) {
+  standardGeneric("qcplot_position_anno")
+})
+
+#' create the position plot
+#'
+#' @export
+#' @param object    sampleQC object
+#' @param samples   a vector of sample names
+#' @param type      plot type, lof or all
+#' @param major_cut the qc cutoff of major variants
+#' @param plotdir the output plot directory
+setMethod(
+    "qcplot_position_anno",
+    signature = "sampleQC",
+    definition = function(object,
+                          samples,
+                          type,
+                          major_cut = 0.005,
+                          plotdir) {
+        if (length(plotdir) == 0) {
+            stop(paste0("====> Error: plotdir is not provided, no output directory."))
+        }
+
+        if (type %nin% c("lof", "all")) {
+            stop(paste0("====> Error: wrong type, please use lof or all."))
+        }
+
+        effcounts_pos <- object@effective_counts_pos_anno
+
+        if (type == "lof") {
+            effcounts_pos <- effcounts_pos[, c(samples, "consequence")]
+            effcounts_pos$consequence <- ifelse(effcounts_pos$consequence == "lof", "lof", "others")
+            effcounts_pos[, samples] <- effcounts_pos[, samples] / object@stats[samples, ]$filtered_reads * 100
+
+            dt_effcounts_pos <- reshape2::melt(effcounts_pos, id.vars = "consequence", variable.name = "samples", value.name = "counts")
+            dt_effcounts_pos$index <- 1:nrow(effcounts_pos)
+            dt_effcounts_pos$samples <- factor(dt_effcounts_pos$samples, levels = samples)
+
+            dt_effcounts_pos[dt_effcounts_pos == 0] <- NA
+
+            p1 <- ggplot(dt_effcounts_pos, aes(x = index, y = counts)) +
+                    geom_point(shape = 19, size = 0.5, aes(fill = factor(consequence), color = factor(consequence))) +
+                    geom_hline(yintercept = major_cut, linetype = "dashed", color = "springgreen4", size = 0.4) +
+                    scale_color_manual(values = c(t_col("red", 1), t_col("royalblue", 0.2))) +
+                    labs(x = "sequence position", y = "percentage", title = "Sample QC position percentage") +
+                    coord_trans(y = "log2") +
+                    scale_y_continuous(breaks = c(0.001, 0.005, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.4, 0.6, 0.8, 1)) +
+                    theme(legend.position = "none", panel.grid.major = element_blank()) +
+                    theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
+                    theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
+                    theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
+                    theme(axis.text = element_text(size = 6, face = "bold")) +
+                    facet_wrap(~samples, dir = "v")
+
+            pheight <- 300 * length(sample_names)
+            png(paste0(plotdir, "/", "sample_qc_position_anno.dots.png"), width = 2400, height = pheight, res = 200)
+            print(p1)
+            dev.off()
+        }
     }
 )
 

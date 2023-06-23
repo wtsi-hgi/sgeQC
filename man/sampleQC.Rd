@@ -26,7 +26,11 @@ A class representing a primary qc object
 
 \item{\code{effective_counts}}{a data frame of effective counts of all the samples}
 
+\item{\code{effective_counts_pos}}{a data frame of effective counts of all the samples sorted by position}
+
 \item{\code{effective_counts_anno}}{a data frame of effective counts of all the samples, annotated with consequences}
+
+\item{\code{effective_counts_pos_anno}}{a data frame of effective counts of all the samples, annotated with consequences, sorted by position}
 
 \item{\code{stats}}{a data frame of samples and stats, eg. total no, filtered no.}
 

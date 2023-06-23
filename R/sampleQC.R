@@ -250,8 +250,37 @@ setMethod(
         }
         object@stats$effective_cov <- as.integer(object@stats$effective_cov)
 
+        #-----------------------------------------------#
+        # 6. Sorting effective coverage by position     #
+        #-----------------------------------------------#
+        effcounts_pos <- data.frame()
+        for (s in object@samples) {
+            obj_effcounts <- object@effective_counts[, s@sample, drop = FALSE]
+            obj_effcounts <- obj_effcounts[!is.na(obj_effcounts[, 1]), 1, drop = FALSE]
+
+            tmp_effcounts <- data.frame(matrix(NA, length(s@meta_mseqs), 1))
+            colnames(tmp_effcounts) <- s@sample
+            rownames(tmp_effcounts) <- s@meta_mseqs
+            tmp_effcounts[, 1] <- 0
+
+            tmp_effcounts[rownames(obj_effcounts), 1] <- obj_effcounts[, 1]
+            rownames(tmp_effcounts) <- 1:length(s@meta_mseqs)
+
+            if (nrow(effcounts_pos) == 0) {
+                effcounts_pos <- tmp_effcounts
+            } else {
+                effcounts_pos <- cbind_fill(effcounts_pos, tmp_effcounts)
+            }
+        }
+        # cbind_fill ignores rownames
+        # assuming all the samples have the same meta sheet
+        rownames(effcounts_pos) <- object@samples[[1]]@meta_mseqs
+        colnames(effcounts_pos) <- sample_names
+
+        object@effective_counts_pos <- as.data.frame(effcounts_pos)
+
         #------------------#
-        # 6. QC results    #
+        # 7. QC results    #
         #------------------#
         object@stats$qcpass_filtered_reads <- unlist(lapply(object@stats$filtered_reads, function(x) ifelse(x >= cutoff_filtered, TRUE, FALSE)))
         object@stats$qcpass_mapping_per <- unlist(lapply(object@stats$per_unmapped_reads, function(x) ifelse(x < (1 - cutoff_mapping), TRUE, FALSE)))
@@ -262,7 +291,7 @@ setMethod(
         object@stats$qcpass <- apply(object@stats[, qc_lables], 1, function(x) all(x))
 
         #------------------------#
-        # 7. Filtered samples    #
+        # 8. Filtered samples    #
         #------------------------#
 
         object@filtered_samples <- rownames(object@stats[object@stats$qcpass == TRUE, ])
@@ -313,18 +342,28 @@ setMethod(
         #------------------------#
         cat("Mapping consequencing annotation...", "\n", sep = "")
 
+        # assuming all the samples have the same vep annotations
+        vep_anno <- object@samples[[1]]@vep_anno
+        rownames(vep_anno) <- vep_anno$Seq # may change
+
+        # effective counts
         effective_counts_anno <- object@effective_counts[, object@filtered_samples]
         effective_counts_anno[is.na(effective_counts_anno)] <- 0
 
-        vep_anno <- object@samples[[1]]@vep_anno
-        # may change
-        rownames(vep_anno) <- vep_anno$Seq
-        # may change
-        effective_counts_anno$consequence <- vep_anno[rownames(effective_counts_anno), ]$assigned
-        # may change
-        rownames(effective_counts_anno) <- vep_anno[rownames(effective_counts_anno), ]$unique_oligo_name
+        effective_counts_anno$consequence <- vep_anno[rownames(effective_counts_anno), ]$assigned # may change
+        rownames(effective_counts_anno) <- vep_anno[rownames(effective_counts_anno), ]$unique_oligo_name # may change
 
         object@effective_counts_anno <- effective_counts_anno
+
+        # sorted effective counts
+        effective_counts_pos_anno <- object@effective_counts_pos[, object@filtered_samples]
+        effective_counts_pos_anno[is.na(effective_counts_pos_anno)] <- 0
+
+        effective_counts_pos_anno$consequence <- vep_anno[rownames(effective_counts_pos_anno), ]$assigned # may change
+        # careful: not all the meta mseqs have consequence annotation, so they don't have IDs in vep
+        #rownames(effective_counts_pos_anno) <- vep_anno[rownames(effective_counts_pos_anno), ]$unique_oligo_name # may change
+
+        object@effective_counts_pos_anno <- effective_counts_pos_anno
 
         #-------------------#
         # 2. DESeq2 process #
