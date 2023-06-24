@@ -340,7 +340,7 @@ setGeneric("qcplot_position_anno", function(object, ...) {
 #' @param samples   a vector of sample names
 #' @param type      plot type, lof or all
 #' @param major_cut the qc cutoff of major variants
-#' @param plotdir the output plot directory
+#' @param plotdir   the output plot directory
 setMethod(
     "qcplot_position_anno",
     signature = "sampleQC",
@@ -499,8 +499,10 @@ setGeneric("qcplot_pca_samples", function(object, ...) {
 #' create the pca of samples
 #'
 #' @export
-#' @param object  sampleQC object
-#' @param plotdir the output plot directory
+#' @param object     sampleQC object
+#' @param ds_coldata deseq coldata
+#' @param ntop       the number of top variances
+#' @param plotdir    the output plot directory
 setMethod(
     "qcplot_pca_samples",
     signature = "sampleQC",
@@ -568,5 +570,84 @@ setMethod(
         legend("topright", legend = levels(ds_coldata$replicate), pch = select_pchs, cex = 1, bty = "n")
         legend("right", legend = levels(ds_coldata$condition), pch = 19, col = select_colors, cex = 1, bty = "n")
         dev.off()
+    }
+)
+
+#' initialize function
+setGeneric("qcplot_deseq_fc", function(object, ...) {
+  standardGeneric("qcplot_deseq_fc")
+})
+
+#' create fold change and consequence plot
+#'
+#' @export
+#' @param object  sampleQC object
+#' @param cons    a vector of consequences showed in the figure
+#' @param pcut    the padj cutoff
+#' @param dcut    the depleted cutoff
+#' @param ecut    the enriched cutoff
+#' @param plotdir the output plot directory
+setMethod(
+    "qcplot_deseq_fc",
+    signature = "sampleQC",
+    definition = function(object,
+                          cons = c("synonymous", "lof", "missense"),
+                          pcut = 0.05,
+                          dcut = 0,
+                          ecut = 0,
+                          plotdir) {
+        if (length(plotdir) == 0) {
+            stop(paste0("====> Error: plotdir is not provided, no output directory."))
+        }
+
+        comparisions <- names(object@deseq_res)
+        for (i in 1:length(object@deseq_res)) {
+            res <- object@deseq_res[[i]]$shrunken[, c("log2FoldChange", "padj")]
+            res <- as.data.frame(res)
+
+            res$consequence <- object@effective_counts_anno[rownames(res), ]$consequence
+            res$stat <- "no impact"
+            res[(res$padj < pcut) & (res$log2FoldChange > ecut), ]$stat <- "enriched"
+            res[(res$padj < pcut) & (res$log2FoldChange < dcut), ]$stat <- "depleted"
+
+            res_cons <- res[res$consequence %in% cons, ]
+            res_cons$stat <- factor(res_cons$stat, levels = c("no impact", "enriched", "depleted"))
+
+            p1 <- ggplot(res_cons, aes(x = consequence, y = log2FoldChange)) +
+                    geom_violin(trim = FALSE, scale = "width", fill = 'white', color = "yellowgreen") +
+                    geom_quasirandom(size = 1, varwidth = TRUE, method = "tukeyDense", aes(color = factor(stat))) +
+                    scale_color_manual(values = c(t_col("grey", 0.3), t_col("tomato", 0.8), t_col("royalblue", 0.8))) +
+                    labs(y = "log2FoldChange", title = comparisions[i]) +
+                    theme(legend.position = "right", panel.grid.major = element_blank()) +
+                    theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
+                    theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
+                    theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
+                    theme(axis.text = element_text(size = 8, face = "bold")) +
+                    ylim(-4, 1)
+
+            pwidth <- 300 * length(cons)
+            png(paste0(plotdir, "/", "sample_qc_deseq_fc.", comparisions[i], ".beeswarm.png"), width = pwidth, height = 1200, res = 200)
+            print(p1)
+            dev.off()
+
+            res_cons_volcano <- res_cons
+            res_cons_volcano$padj <- -log10(res_cons_volcano$padj)
+            p2 <- ggplot(res_cons_volcano, aes(x = log2FoldChange, y = padj)) +
+                    geom_point(shape = 19, size = 0.5, aes(color = factor(stat))) +
+                    scale_color_manual(values = c(t_col("grey", 0.3), t_col("tomato", 0.8), t_col("royalblue", 0.8))) +
+                    labs(x = "log2FoldChange", y = "-log10(padj)", title = comparisions[i]) +
+                    theme(legend.position = "right", panel.grid.major = element_blank()) +
+                    theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
+                    theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
+                    theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
+                    theme(axis.text = element_text(size = 12, face = "bold")) +
+                    xlim(-2, 2) +
+                    facet_wrap(~consequence, dir = "v")
+
+            pheight <- 300 * length(cons)
+            png(paste0(plotdir, "/", "sample_qc_deseq_fc.", comparisions[i], ".volcano.png"), width = 1200, height = pheight, res = 200)
+            print(p2)
+            dev.off()
+        }
     }
 )

@@ -9,4 +9,5 @@
 #' @import DEGreport
 #' @import apeglm
 #' @import corrplot
+#' @import ggbeeswarm
 NULL

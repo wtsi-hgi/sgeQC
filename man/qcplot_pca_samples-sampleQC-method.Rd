@@ -9,6 +9,10 @@
 \arguments{
 \item{object}{sampleQC object}
 
+\item{ds_coldata}{deseq coldata}
+
+\item{ntop}{the number of top variances}
+
 \item{plotdir}{the output plot directory}
 }
 \description{
