@@ -207,6 +207,9 @@ setMethod(
         object@allstats_qc$per_unmapped_reads <- object@allstats_qc$num_unmapped_reads / total_num_sequenced_reads * 100
         object@allstats_qc$per_unmapped_reads <- round(object@allstats_qc$per_unmapped_reads, 2)
 
+        object@allstats_qc$gini_coeff <- cal_gini(object@allcounts$count, corr = FALSE, na.rm = TRUE)
+        object@allstats_qc$gini_coeff <- round(object@allstats_qc$gini_coeff, 3)
+
         return(object)
     }
 )
