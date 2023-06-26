@@ -257,6 +257,71 @@ setMethod(
 )
 
 #' initialize function
+setGeneric("qcplot_gini", function(object, ...) {
+  standardGeneric("qcplot_gini")
+})
+
+#' create the gini plot
+#'
+#' @export
+#' @param object  sampleQC object
+#' @param plotdir the output plot directory
+setMethod(
+    "qcplot_gini",
+    signature = "sampleQC",
+    definition = function(object,
+                          plotdir) {
+        if (length(plotdir) == 0) {
+            stop(paste0("====> Error: plotdir is not provided, no output directory."))
+        }
+
+        sample_names <- character()
+        all_gini <- character()
+        for (s in object@samples) {
+            sample_names <- append(sample_names, s@sample)
+            all_gini <- append(all_gini, s@allstats_qc$gini_coeff)
+        }
+        names(all_gini) <- sample_names
+
+        lib_gini <- object@stats$gini_coeff_before_qc
+        names(lib_gini) <- rownames(object@stats)
+        qc_gini <- object@stats$gini_coeff_after_qc
+        names(qc_gini) <- rownames(object@stats)
+
+        num_samples <- length(sample_names)
+        df_gini <- data.frame(matrix(NA, num_samples * 3, 3))
+        colnames(df_gini) <- c("gini", "sample", "type")
+        df_gini$gini <- c(all_gini, lib_gini, qc_gini)
+        df_gini$sample <- c(names(all_gini), names(lib_gini), names(qc_gini))
+        df_gini$type <- c(rep("independent", num_samples), rep("dependent", num_samples), rep("after_qc", num_samples))
+
+        df_gini$gini <- as.numeric(df_gini$gini)
+        df_gini$sample <- factor(df_gini$sample, levels = sample_names)
+        df_gini$type <- factor(df_gini$type, levels = c("independent", "dependent", "after_qc"))
+
+        gg_colors_fill <- c(t_col("tomato", 0.5), t_col("royalblue", 0.5), t_col("yellowgreen", 0.5))
+        gg_colors <- c(c("tomato", "royalblue", "yellowgreen"))
+        p1 <- ggplot(df_gini,  aes(x = sample, y = gini, fill = type)) +
+                geom_bar(position = "dodge", stat = "identity") +
+                scale_fill_manual(values = gg_colors_fill) +
+                scale_color_manual(values = gg_colors) +
+                labs(x = "samples", y = "score", title = "Sample QC Gini Efficiency") +
+                theme(legend.position = "right", legend.title = element_blank()) +
+                theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
+                theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
+                theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
+                theme(axis.text = element_text(size = 12, face = "bold")) +
+                theme(axis.text.x = element_text(angle = 90)) +
+                scale_y_continuous(limits = c(0, 1))
+
+        pwidth <- 150 * num_samples
+        png(paste0(plotdir, "/", "sample_qc_gini.png"), width = pwidth, height = 1200, res = 200)
+        print(p1)
+        dev.off()
+    }
+)
+
+#' initialize function
 setGeneric("qcplot_position", function(object, ...) {
   standardGeneric("qcplot_position")
 })
