@@ -31,9 +31,13 @@ install.packages("Ckmeans.1d.dp")
 install.packages("reshape2")
 install.packages("ggplot2")
 install.packages("gplots")
+install.packages("corrplot")
+install.packages("ggbeeswarm")
 
 install.packages("BiocManager")
 BiocManager::install("DESeq2")
+BiocManager::install("DEGreport")
+BiocManager::install("apeglm")
 ```
 
 <p align="right">(<a href="#top">TOP</a>)</p>
@@ -81,6 +85,11 @@ library("Ckmeans.1d.dp")
 library("reshape2")
 library("ggplot2")
 library("gplots")
+library("corrplot")
+library("ggbeeswarm")
+library("DESeq2")
+library("DEGreport")
+library("apeglm")
 ```
 
 #### Import files
