@@ -33,6 +33,7 @@ install.packages("ggplot2")
 install.packages("gplots")
 install.packages("corrplot")
 install.packages("ggbeeswarm")
+install.packages("see")
 
 install.packages("BiocManager")
 BiocManager::install("DESeq2")
@@ -90,6 +91,7 @@ library("ggbeeswarm")
 library("DESeq2")
 library("DEGreport")
 library("apeglm")
+library("see")
 ```
 
 #### Import files

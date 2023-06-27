@@ -34,16 +34,16 @@ setMethod(
         read_lens$samples <- factor(read_lens$samples, levels = colnames(object@effective_counts))
 
         p1 <- ggplot(read_lens, aes(x = factor(samples), y = length)) +
-                geom_violin(alpha = 0.3, scale = "width", color = "tomato", fill = t_col("tomato", 0.5)) +
+                geom_violinhalf(alpha = 0.3, scale = "width", color = "royalblue", fill = t_col("royalblue", 0.5)) +
+                coord_flip() +
                 labs(x = "read length", y = "frequency", title = "Sample QC read lengths") +
                 theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                 theme(axis.title = element_text(size = 16,face = "bold", family = "Arial")) +
                 theme(plot.title = element_text(size = 16,face = "bold.italic", family = "Arial")) +
-                theme(axis.text = element_text(size = 12, face = "bold")) +
-                theme(axis.text.x = element_text(angle = 90))
+                theme(axis.text = element_text(size = 10, face = "bold"))
 
-        pwidth <- 150 * length(object@lengths)
-        png(paste0(plotdir, "/", "sample_qc_read_length.violin.png"), width = pwidth, height = 1200, res = 200)
+        pheight <- 150 * length(object@lengths)
+        png(paste0(plotdir, "/", "sample_qc_read_length.violin.png"), width = 1200, height = pheight, res = 200)
         print(p1)
         dev.off()
     }
@@ -350,11 +350,11 @@ setMethod(
             sample_names <- append(sample_names, s@sample)
         }
 
-        pheight <- 200 * length(sample_names)
+        pheight <- 100 * length(sample_names)
         png(paste0(plotdir, "/", "sample_qc_position_cov.heatmap.png"), width = 2400, height = pheight, res = 200)
         lmat <- rbind(c(3, 4), c(2, 1))
-        lhei <- c(3, 8)
-        lwid <- c(3, 8)
+        lhei <- c(2, 8)
+        lwid <- c(2, 8)
 
         heatmap.2(t(as.matrix(effcounts_pos_log)),
                   distfun=function(x) dist(x, method = "euclidean"),
@@ -371,6 +371,7 @@ setMethod(
                   lmat = lmat, lhei = lhei, lwid = lwid)
         dev.off()
 
+        rownames(effcounts_pos_log) <- 1:nrow(effcounts_pos_log)
         dt_effcounts_pos_log <- reshape2::melt(effcounts_pos_log)
         colnames(dt_effcounts_pos_log) <- c("index", "samples", "log_counts")
 
@@ -378,13 +379,13 @@ setMethod(
 
         p1 <- ggplot(dt_effcounts_pos_log, aes(x = index, y = log_counts)) +
                 geom_point(shape = 16, size = 0.5, color = "tomato", alpha = 0.8) +
-                labs(x = "sequence position", y = "log2(count+1)", title = "Sample QC position coverage") +
+                labs(x = "sequence position index", y = "log2(count+1)", title = "Sample QC position coverage") +
                 theme(legend.position = "none", panel.grid.major = element_blank()) +
                 theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                 theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
                 theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
-                theme(axis.text = element_text(size = 12, face = "bold")) +
-                facet_wrap(~samples, dir = "v")
+                theme(axis.text = element_text(size = 6, face = "bold")) +
+                facet_wrap(~samples, dir = "v", ncol = 2)
 
         pheight <- 300 * length(sample_names)
         png(paste0(plotdir, "/", "sample_qc_position_cov.dots.png"), width = 2400, height = pheight, res = 200)
@@ -695,9 +696,26 @@ setMethod(
             print(p1)
             dev.off()
 
+            p2 <- ggplot(res_cons, aes(x = consequence, y = log2FoldChange)) +
+                    geom_violinhalf(trim = FALSE, scale = "width", fill = t_col("yellowgreen", 0.5), color = "yellowgreen", position = position_nudge(x = .2, y = 0)) +
+                    geom_jitter(width = 0.15, size = 0.75, aes(color = factor(stat))) +
+                    scale_color_manual(values = c(t_col("grey", 0.3), t_col("tomato", 0.8), t_col("royalblue", 0.8))) +
+                    labs(y = "log2FoldChange", title = comparisions[1]) +
+                    theme(legend.position = "right", panel.grid.major = element_blank()) +
+                    theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
+                    theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
+                    theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
+                    theme(axis.text = element_text(size = 8, face = "bold")) +
+                    ylim(-4, 1)
+
+            pwidth <- 300 * length(cons)
+            png(paste0(plotdir, "/", "sample_qc_deseq_fc.", comparisions[i], ".violin.png"), width = pwidth, height = 1200, res = 200)
+            print(p2)
+            dev.off()
+
             res_cons_volcano <- res_cons
             res_cons_volcano$padj <- -log10(res_cons_volcano$padj)
-            p2 <- ggplot(res_cons_volcano, aes(x = log2FoldChange, y = padj)) +
+            p3 <- ggplot(res_cons_volcano, aes(x = log2FoldChange, y = padj)) +
                     geom_point(shape = 19, size = 0.5, aes(color = factor(stat))) +
                     scale_color_manual(values = c(t_col("grey", 0.3), t_col("tomato", 0.8), t_col("royalblue", 0.8))) +
                     labs(x = "log2FoldChange", y = "-log10(padj)", title = comparisions[i]) +
@@ -711,7 +729,7 @@ setMethod(
 
             pheight <- 300 * length(cons)
             png(paste0(plotdir, "/", "sample_qc_deseq_fc.", comparisions[i], ".volcano.png"), width = 1200, height = pheight, res = 200)
-            print(p2)
+            print(p3)
             dev.off()
         }
     }
