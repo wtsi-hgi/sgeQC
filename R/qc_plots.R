@@ -549,19 +549,24 @@ setMethod(
                   lmat = lmat, lhei = lhei, lwid = lwid)
         dev.off()
 
+        sample_corr <- cor(scale(sample_rlog))
+        min_corr <- floor(min(sample_corr) * 10) / 10
+
         png(paste0(plotdir, "/", "sample_qc_distance_samples.corr.png"), width = 1200, height = 1200, res = 200)
-        corrplot(cor(scale(sample_rlog)),
+        corrplot(sample_corr,
                  method = "color",
                  order = "hclust",
+                 col = colorpanel(100, "royalblue", "ivory", "tomato"),
+                 col.lim = c(min_corr, 1),
+                 is.corr = FALSE,
                  addrect = 3,
                  rect.col = "black",
                  rect.lwd = 1.5,
-                 col = colorpanel(100, "royalblue", "ivory", "tomato"),
+                 addgrid.col = "white",
                  tl.col = "black",
+                 tl.cex = 0.75,
                  addCoef.col = "black",
-                 number.cex = 0.5,
-                 col.lim = c(0.8, 1),
-                 is.corr = FALSE)
+                 number.cex = 0.75)
         dev.off()
     }
 )
