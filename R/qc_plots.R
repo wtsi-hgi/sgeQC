@@ -528,7 +528,8 @@ setMethod(
         min_rlog <- round(min(sample_rlog))
         max_rlog <- round(max(sample_rlog))
 
-        png(paste0(plotdir, "/", "sample_qc_distance_samples.heatmap.png"), width = 1200, height = 1200, res = 200)
+        pwidth <- 100 * ncol(sample_rlog)
+        png(paste0(plotdir, "/", "sample_qc_distance_samples.heatmap.png"), width = pwidth, height = 1200, res = 200)
         lmat <- rbind(c(4, 3), c(2, 1))
         lhei <- c(3, 8)
         lwid <- c(3, 8)
