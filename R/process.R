@@ -80,6 +80,7 @@ setMethod(
         # use library dependent sequences to get meta mseqs
         # may change as meta and counts will have the same seqs with adaptors
         # assuming library dependent sequences have the same order with meta mseqs
+        # library dependent sequences are not unique
         tmp_mseqs <- unique(object@libcounts$sequence)
         object@meta_mseqs <- tmp_mseqs[tmp_mseqs %nin% c(object@refseq, object@pamseq)]
 
