@@ -182,13 +182,13 @@ create_sge_object <- function(file_libcount,
 #' @slot counts                    a list of sample counts
 #' @slot lengths                   a list of sequence lengths
 #' @slot seq_clusters              a list of dataframes of sequences and cluster IDs
-#' @slot filtered_seqs             a list of sequences with counts > clustering cutoff for screen QC in the references
-#' @slot filtered_counts           a list of filtered counts of all the samples
-#' @slot effective_counts          a list of effective counts of all the samples
+#' @slot accepted_seqs             a list of sequences with counts > clustering cutoff for screen QC in the references
+#' @slot accepted_counts           a list of filtered counts of all the samples
+#' @slot library_counts          a list of effective counts of all the samples
 #' @slot unmapped_counts           a list of unmapped counts against meta library sequences of all the samples
-#' @slot effective_counts_pos      a list of effective counts of all the samples sorted by position in meta
-#' @slot effective_counts_anno     a data frame of effective counts of all the samples, annotated with consequences
-#' @slot effective_counts_pos_anno a data frame of effective counts of all the samples, annotated with consequences, sorted by position
+#' @slot library_counts_pos      a list of effective counts of all the samples sorted by position in meta
+#' @slot library_counts_anno     a data frame of effective counts of all the samples, annotated with consequences
+#' @slot library_counts_pos_anno a data frame of effective counts of all the samples, annotated with consequences, sorted by position
 #' @slot stats                     a data frame of samples and stats, eg. total no, filtered no.
 #' @slot bad_seqs_bycluster        a list of filter-out sequences by cluster
 #' @slot bad_seqs_bydepth          a list of filter-out sequences by depth
@@ -203,13 +203,13 @@ setClass("sampleQC",
         counts = "list",
         lengths = "list",
         seq_clusters = "list",
-        filtered_seqs = "list",
-        filtered_counts = "list",
-        effective_counts = "list",
+        accepted_seqs = "list",
+        accepted_counts = "list",
+        library_counts = "list",
         unmapped_counts = "list",
-        effective_counts_pos = "list",
-        effective_counts_anno = "data.frame",
-        effective_counts_pos_anno = "data.frame",
+        library_counts_pos = "list",
+        library_counts_anno = "data.frame",
+        library_counts_pos_anno = "data.frame",
         stats = "data.frame",
         bad_seqs_bycluster = "list",
         bad_seqs_bydepth = "list",
@@ -224,13 +224,13 @@ setClass("sampleQC",
         counts = list(),
         lengths = list(),
         seq_clusters = list(),
-        filtered_seqs = list(),
-        filtered_counts = list(),
-        effective_counts = list(),
+        accepted_seqs = list(),
+        accepted_counts = list(),
+        library_counts = list(),
         unmapped_counts = list(),
-        effective_counts_pos = list(),
-        effective_counts_anno = data.frame(),
-        effective_counts_pos_anno = data.frame(),
+        library_counts_pos = list(),
+        library_counts_anno = data.frame(),
+        library_counts_pos_anno = data.frame(),
         stats = data.frame(),
         bad_seqs_bycluster = list(),
         bad_seqs_bydepth = list(),
@@ -279,24 +279,24 @@ create_sampleqc_object <- function(samples) {
     }
 
     cols <- c("total_reads",
-              "failed_reads",
-              "filtered_reads",
+              "excluded_reads",
+              "accepted_reads",
               "missing_meta_seqs",
-              "effective_reads",
-              "per_effective_reads",
+              "library_reads",
+              "per_library_reads",
               "unmapped_reads",
               "per_unmapped_reads",
               "ref_reads",
               "per_ref_reads",
               "pam_reads",
               "per_pam_reads",
-              "effective_cov",
+              "library_cov",
               "gini_coeff_before_qc",
               "gini_coeff_after_qc",
-              "qcpass_filtered_reads",
+              "qcpass_accepted_reads",
               "qcpass_mapping_per",
-              "qcpass_effective_per",
-              "qcpass_effective_cov",
+              "qcpass_library_per",
+              "qcpass_library_cov",
               "qcpass")
     df_stats <- data.frame(matrix(NA, num_samples, length(cols)))
     rownames(df_stats) <- sample_names

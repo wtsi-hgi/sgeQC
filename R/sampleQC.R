@@ -110,17 +110,21 @@ setMethod(
                 names(unfiltered_counts) <- s@allcounts$sequence
 
                 object@seq_clusters[[s@sample]] <- ref_clusters
-                object@filtered_seqs[[s@sample]] <- rownames(ref_clusters[ref_clusters$cluster == 2, ])
+                object@accepted_seqs[[s@sample]] <- rownames(ref_clusters[ref_clusters$cluster == 2, ])
 
                 # considering missing seqs
-                name_check <- names(unfiltered_counts) %in% object@filtered_seqs[[s@sample]]
-                object@filtered_counts[[s@sample]] <- unfiltered_counts[name_check]
+                name_check <- names(unfiltered_counts) %in% object@accepted_seqs[[s@sample]]
+                object@accepted_counts[[s@sample]] <- unfiltered_counts[name_check]
 
                 object@bad_seqs_bycluster[[s@sample]] <- rownames(ref_clusters[ref_clusters$cluster == 1, ])
             }
         } else {
+            cat("    |--> Creating k-means clusters...", "\n", sep = "")
+
             for (s in object@samples) {
-                tmp_counts <- s@allcounts$countq
+                cat("        |--> Filtering on ", s@sample, "\n", sep = "")
+
+                tmp_counts <- s@allcounts$count
                 names(tmp_counts) <- s@allcounts$sequence
 
                 tmp_counts_log2 <- log2(tmp_counts + 1)
@@ -130,8 +134,8 @@ setMethod(
                 tmp_clusters <- data.frame(tmp_clusters)
 
                 object@seq_clusters[[s@sample]] <- tmp_clusters
-                object@filtered_seqs[[s@sample]] <- rownames(tmp_clusters[tmp_clusters$cluster == 2, ])
-                object@filtered_counts[[s@sample]] <- tmp_counts[object@filtered_seqs[[s@sample]]]
+                object@accepted_seqs[[s@sample]] <- rownames(tmp_clusters[tmp_clusters$cluster == 2, ])
+                object@accepted_counts[[s@sample]] <- tmp_counts[object@accepted_seqs[[s@sample]]]
 
                 object@bad_seqs_bycluster[[s@sample]] <- rownames(tmp_clusters[tmp_clusters$cluster == 1, ])
             }
@@ -148,29 +152,29 @@ setMethod(
             cat("Filtering by depth and percentage in samples...", "\n", sep = "")
 
             # note library independent counts may have different sequences
-            filtered_counts <- merge_list_to_df(object@filtered_counts)
-            filtered_counts_depth <- cbind(filtered_counts, rowSums(filtered_counts >= effect_count, na.rm = TRUE))
-            filtered_counts_depth <- cbind(filtered_counts_depth, filtered_counts_depth[, ncol(filtered_counts_depth)] / length(sample_names))
-            colnames(filtered_counts_depth) <- c(sample_names, "sample_number", "sample_percentage")
+            accepted_counts <- merge_list_to_df(object@accepted_counts)
+            accepted_counts_depth <- cbind(accepted_counts, rowSums(accepted_counts >= effect_count, na.rm = TRUE))
+            accepted_counts_depth <- cbind(accepted_counts_depth, accepted_counts_depth[, ncol(accepted_counts_depth)] / length(sample_names))
+            colnames(accepted_counts_depth) <- c(sample_names, "sample_number", "sample_percentage")
 
-            filtered_counts_final <- filtered_counts_depth[filtered_counts_depth$sample_percentage >= effect_per, sample_names]
+            accepted_counts_final <- accepted_counts_depth[accepted_counts_depth$sample_percentage >= effect_per, sample_names]
 
             for (s in object@samples) {
-                tmp_counts <- filtered_counts_final[, s@sample]
-                names(tmp_counts) <- rownames(filtered_counts_final)
-                object@filtered_counts[[s@sample]] <- tmp_counts[!is.na(tmp_counts)]
+                tmp_counts <- accepted_counts_final[, s@sample]
+                names(tmp_counts) <- rownames(accepted_counts_final)
+                object@accepted_counts[[s@sample]] <- tmp_counts[!is.na(tmp_counts)]
 
-                f_per <- filtered_counts_depth$sample_percentage < effect_per
-                f_na <- !is.na(filtered_counts_depth[, s@sample])
-                filtered_counts_bad <- filtered_counts_depth[f_per & f_na, s@sample, drop = FALSE]
-                object@bad_seqs_bydepth[[s@sample]] <- rownames(filtered_counts_bad)
+                f_per <- accepted_counts_depth$sample_percentage < effect_per
+                f_na <- !is.na(accepted_counts_depth[, s@sample])
+                accepted_counts_bad <- accepted_counts_depth[f_per & f_na, s@sample, drop = FALSE]
+                object@bad_seqs_bydepth[[s@sample]] <- rownames(accepted_counts_bad)
             }
         } else {
             cat("Filtering by depth...", "\n", sep = "")
 
             for (s in object@samples) {
-                tmp_counts <- object@filtered_counts[[s@sample]]
-                object@filtered_counts[[s@sample]] <- tmp_counts[tmp_counts >= effect_count]
+                tmp_counts <- object@accepted_counts[[s@sample]]
+                object@accepted_counts[[s@sample]] <- tmp_counts[tmp_counts >= effect_count]
 
                 object@bad_seqs_bydepth[[s@sample]] <- names(tmp_counts[tmp_counts < effect_count])
             }
@@ -183,11 +187,11 @@ setMethod(
         cat("Filtering by effective mapping...", "\n", sep = "")
 
         for (s in object@samples) {
-            tmp_counts <- object@filtered_counts[[s@sample]]
+            tmp_counts <- object@accepted_counts[[s@sample]]
 
             # meta_mseqs without ref and pam by format_count
-            # filtered_counts have ref and pam
-            object@effective_counts[[s@sample]] <- tmp_counts[names(tmp_counts) %in% s@meta_mseqs]
+            # accepted_counts have ref and pam
+            object@library_counts[[s@sample]] <- tmp_counts[names(tmp_counts) %in% s@meta_mseqs]
             object@unmapped_counts[[s@sample]] <- tmp_counts[names(tmp_counts) %nin% c(s@meta_mseqs, s@refseq, s@pamseq)]
 
             object@bad_seqs_byeff[[s@sample]] <- names(object@unmapped_counts[[s@sample]])
@@ -201,19 +205,19 @@ setMethod(
 
         for (s in object@samples) {
             samplename <- s@sample
-            object@stats[samplename, ]$filtered_reads <- sum(object@filtered_counts[[samplename]], na.rm = TRUE)
-            object@stats[samplename, ]$effective_reads <- sum(object@effective_counts[[samplename]], na.rm = TRUE)
+            object@stats[samplename, ]$accepted_reads <- sum(object@accepted_counts[[samplename]], na.rm = TRUE)
+            object@stats[samplename, ]$excluded_reads <- object@stats[samplename, ]$total_reads - object@stats[samplename, ]$accepted_reads
+            object@stats[samplename, ]$library_reads <- sum(object@library_counts[[samplename]], na.rm = TRUE)
             object@stats[samplename, ]$unmapped_reads <- sum(object@unmapped_counts[[samplename]], na.rm = TRUE)
-            object@stats[samplename, ]$failed_reads <- object@stats[samplename, ]$total_reads - object@stats[samplename, ]$filtered_reads
 
-            object@stats[samplename, ]$per_effective_reads <- object@stats[samplename, ]$effective_reads / object@stats[samplename, ]$filtered_reads
-            object@stats[samplename, ]$per_unmapped_reads <- object@stats[samplename, ]$unmapped_reads / object@stats[samplename, ]$filtered_reads
-            object@stats[samplename, ]$per_ref_reads <- object@stats[samplename, ]$ref_reads / object@stats[samplename, ]$filtered_reads
-            object@stats[samplename, ]$per_pam_reads <- object@stats[samplename, ]$pam_reads / object@stats[samplename, ]$filtered_reads
+            object@stats[samplename, ]$per_library_reads <- object@stats[samplename, ]$library_reads / object@stats[samplename, ]$accepted_reads
+            object@stats[samplename, ]$per_unmapped_reads <- object@stats[samplename, ]$unmapped_reads / object@stats[samplename, ]$accepted_reads
+            object@stats[samplename, ]$per_ref_reads <- object@stats[samplename, ]$ref_reads / object@stats[samplename, ]$accepted_reads
+            object@stats[samplename, ]$per_pam_reads <- object@stats[samplename, ]$pam_reads / object@stats[samplename, ]$accepted_reads
 
             object@stats[samplename, ]$missing_meta_seqs <- length(s@missing_meta_seqs)
 
-            object@stats[samplename, ]$effective_cov <- as.integer(object@stats[samplename, ]$effective_reads / length(s@meta_mseqs))
+            object@stats[samplename, ]$library_cov <- as.integer(object@stats[samplename, ]$library_reads / length(s@meta_mseqs))
         }
 
         #--------------------- -------------------#
@@ -239,7 +243,7 @@ setMethod(
             colnames(tmp_vep) <- c("oligo_name", "seq")
             tmp_vep <- as.data.table(tmp_vep)
 
-            tmp_eff <- object@effective_counts[[s@sample]]
+            tmp_eff <- object@library_counts[[s@sample]]
             effcounts_pos <- cbind(tmp_eff, rep(0, length(tmp_eff)))
             effcounts_pos <- as.data.frame(effcounts_pos)
             colnames(effcounts_pos) <- c("count", "position")
@@ -250,7 +254,7 @@ setMethod(
             effcounts_pos[tmp_meta, position := i.mut_position, on = .(oligo_name)]
             setorder(effcounts_pos, cols = "position")
 
-            object@effective_counts_pos[[s@sample]] <- effcounts_pos
+            object@library_counts_pos[[s@sample]] <- effcounts_pos
         }
 
         #------------------------#
@@ -259,7 +263,7 @@ setMethod(
         cat("Calculating gini coefficiency...", "\n", sep = "")
 
         for (s in object@samples) {
-            gini_coeff <- cal_gini(object@effective_counts[[s@sample]], corr = FALSE, na.rm = TRUE)
+            gini_coeff <- cal_gini(object@library_counts[[s@sample]], corr = FALSE, na.rm = TRUE)
             object@stats[s@sample, ]$gini_coeff_after_qc <- round(gini_coeff, 3)
         }
 
@@ -267,12 +271,12 @@ setMethod(
         # 8. QC results    #
         #------------------#
 
-        object@stats$qcpass_filtered_reads <- unlist(lapply(object@stats$filtered_reads, function(x) ifelse(x >= cutoff_filtered, TRUE, FALSE)))
+        object@stats$qcpass_accepted_reads <- unlist(lapply(object@stats$accepted_reads, function(x) ifelse(x >= cutoff_filtered, TRUE, FALSE)))
         object@stats$qcpass_mapping_per <- unlist(lapply(object@stats$per_unmapped_reads, function(x) ifelse(x < (1 - cutoff_mapping), TRUE, FALSE)))
-        object@stats$qcpass_effective_per <- unlist(lapply(object@stats$per_effective_reads, function(x) ifelse(x >= cutoff_effect, TRUE, FALSE)))
-        object@stats$qcpass_effective_cov <- unlist(lapply(object@stats$effective_cov, function(x) ifelse(x >= cutoff_cov, TRUE, FALSE)))
+        object@stats$qcpass_library_per <- unlist(lapply(object@stats$per_library_reads, function(x) ifelse(x >= cutoff_effect, TRUE, FALSE)))
+        object@stats$qcpass_library_cov <- unlist(lapply(object@stats$library_cov, function(x) ifelse(x >= cutoff_cov, TRUE, FALSE)))
 
-        qc_lables <- c("qcpass_filtered_reads", "qcpass_mapping_per", "qcpass_effective_per", "qcpass_effective_cov")
+        qc_lables <- c("qcpass_accepted_reads", "qcpass_mapping_per", "qcpass_library_per", "qcpass_library_cov")
         object@stats$qcpass <- apply(object@stats[, qc_lables], 1, function(x) all(x))
 
         #------------------------#
@@ -336,35 +340,35 @@ setMethod(
         rownames(vep_anno) <- vep_anno$seq
 
         # merge all the effective counts
-        effective_counts_anno <- merge_list_to_df(object@effective_counts)
-        effective_counts_anno[is.na(effective_counts_anno)] <- 0
+        library_counts_anno <- merge_list_to_df(object@library_counts)
+        library_counts_anno[is.na(library_counts_anno)] <- 0
 
-        effective_counts_anno$consequence <- vep_anno[rownames(effective_counts_anno), ]$assigned # may change
-        object@effective_counts_anno <- effective_counts_anno
+        library_counts_anno$consequence <- vep_anno[rownames(library_counts_anno), ]$assigned # may change
+        object@library_counts_anno <- library_counts_anno
 
         # merge all the sorted effective counts
-        effective_counts_pos_anno <- data.table()
+        library_counts_pos_anno <- data.table()
         for (s in object@samples) {
-            tmp_pos <- object@effective_counts_pos[[s@sample]]
+            tmp_pos <- object@library_counts_pos[[s@sample]]
             tmp_pos <- tmp_pos[, c("seq", "position", "count")]
             colnames(tmp_pos) <- c("seq", "position", s@sample)
 
-            if (nrow(effective_counts_pos_anno) == 0) {
-                effective_counts_pos_anno <- tmp_pos
+            if (nrow(library_counts_pos_anno) == 0) {
+                library_counts_pos_anno <- tmp_pos
             } else {
-                effective_counts_pos_anno <- merge(effective_counts_pos_anno, tmp_pos, by = c("seq", "position"), all = TRUE)
+                library_counts_pos_anno <- merge(library_counts_pos_anno, tmp_pos, by = c("seq", "position"), all = TRUE)
             }
         }
-        effective_counts_pos_anno <- as.data.frame(effective_counts_pos_anno)
-        rownames(effective_counts_pos_anno) <- effective_counts_pos_anno$seq
-        effective_counts_pos_anno <- subset(effective_counts_pos_anno, select = -seq)
+        library_counts_pos_anno <- as.data.frame(library_counts_pos_anno)
+        rownames(library_counts_pos_anno) <- library_counts_pos_anno$seq
+        library_counts_pos_anno <- subset(library_counts_pos_anno, select = -seq)
 
-        effective_counts_pos_anno[is.na(effective_counts_pos_anno)] <- 0
-        effective_counts_pos_anno <- effective_counts_pos_anno[, c("position", object@filtered_samples)]
+        library_counts_pos_anno[is.na(library_counts_pos_anno)] <- 0
+        library_counts_pos_anno <- library_counts_pos_anno[, c("position", object@filtered_samples)]
 
-        effective_counts_pos_anno$consequence <- vep_anno[rownames(effective_counts_pos_anno), ]$assigned # may change
+        library_counts_pos_anno$consequence <- vep_anno[rownames(library_counts_pos_anno), ]$assigned # may change
 
-        object@effective_counts_pos_anno <- effective_counts_pos_anno
+        object@library_counts_pos_anno <- library_counts_pos_anno
 
         #-------------------#
         # 2. DESeq2 process #
@@ -373,7 +377,7 @@ setMethod(
         # run control
         cat("Running control deseq2 to get size factor...", "\n", sep = "")
 
-        syn_counts <- effective_counts_anno[effective_counts_anno$consequence == "synonymous", rownames(ds_coldata)]
+        syn_counts <- library_counts_anno[library_counts_anno$consequence == "synonymous", rownames(ds_coldata)]
 
         syn_ds_obj <- DESeqDataSetFromMatrix(countData = syn_counts, colData = ds_coldata, design = ~condition)
         syn_ds_obj <- syn_ds_obj[rowSums(counts(syn_ds_obj)) > 0, ]
@@ -383,7 +387,7 @@ setMethod(
 
         # run all
         cat("Running deseq2 on all the filtered samples...", "\n", sep = "")
-        deseq_counts <- effective_counts_anno[, rownames(ds_coldata)]
+        deseq_counts <- library_counts_anno[, rownames(ds_coldata)]
 
         ds_obj <- DESeqDataSetFromMatrix(countData = deseq_counts, colData = ds_coldata, design = ~condition)
         ds_obj <- ds_obj[rowSums(counts(ds_obj)) > 0, ]

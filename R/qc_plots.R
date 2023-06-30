@@ -6,12 +6,14 @@ setGeneric("qcplot_readlens", function(object, ...) {
 #' create the read length plot
 #'
 #' @export
-#' @param object  sampleQC object
+#' @param object   sampleQC object
+#' @param len_bins the bins of length distribution
 #' @param plotdir the output plot directory
 setMethod(
     "qcplot_readlens",
     signature = "sampleQC",
     definition = function(object,
+                          len_bins = seq(0, 300, 50),
                           plotdir) {
         if (length(plotdir) == 0) {
             stop(paste0("====> Error: plotdir is not provided, no output directory."))
@@ -20,7 +22,7 @@ setMethod(
         read_lens <- data.table()
         for (i in 1:length(object@lengths)) {
             tmp_lens <- object@lengths[[i]][, "length", drop = FALSE]
-            tmp_lens$samples <- names(object@lengths)[i]
+            tmp_lens$sample <- names(object@lengths)[i]
             tmp_lens <- as.data.table(tmp_lens)
 
             if (nrow(read_lens) == 0) {
@@ -30,19 +32,27 @@ setMethod(
             }
         }
 
-        read_lens <- as.data.frame(read_lens)
-        read_lens$samples <- factor(read_lens$samples, levels = colnames(object@effective_counts))
+        sample_names <- vector()
+        for (s in object@samples) {
+            sample_names <- append(sample_names, s@sample)
+        }
 
-        p1 <- ggplot(read_lens, aes(x = factor(samples), y = length)) +
-                geom_violinhalf(alpha = 0.3, scale = "width", color = "royalblue", fill = t_col("royalblue", 0.5)) +
-                coord_flip() +
-                labs(x = "read length", y = "frequency", title = "Sample QC read lengths") +
+        read_lens <- as.data.frame(read_lens)
+        read_lens$sample <- factor(read_lens$sample, levels = sample_names)
+
+        p1 <- ggplot(read_lens, aes(x = length)) +
+                geom_histogram(aes(y = after_stat(width * density)), breaks = len_bins, color = "black", fill = "grey") +
+                geom_hline(yintercept = c(0.25, 0.5, 0.75, 1), linetype = "dashed", color = "yellowgreen", size = 0.3) +
+                scale_y_continuous(labels = scales::percent) +
+                coord_trans(y = "sqrt") +
+                labs(x = "Length Distribution", y = "Composition Percentage", title = "Sample QC read lengths") +
                 theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                 theme(axis.title = element_text(size = 16,face = "bold", family = "Arial")) +
                 theme(plot.title = element_text(size = 16,face = "bold.italic", family = "Arial")) +
-                theme(axis.text = element_text(size = 10, face = "bold"))
+                theme(axis.text = element_text(size = 8, face = "bold")) +
+                facet_wrap(~sample, scales = "free", dir = "v", ncol = 4)
 
-        pheight <- 150 * length(object@lengths)
+        pheight <- 400 * as.integer((length(sample_names) / 3))
         png(paste0(plotdir, "/", "sample_qc_read_length.violin.png"), width = 1200, height = pheight, res = 200)
         print(p1)
         dev.off()
@@ -92,10 +102,13 @@ setMethod(
             seq_clusters_2 <- seq_clusters[seq_clusters$cluster==2, ]
             seq_clusters_new <- rbind(seq_clusters_1, seq_clusters_2)
 
+            select_colors <- select_colorblind("col8")[1:2]
+            fill_colors <- sapply(select_colors, function(x) t_col(x, 0.5), USE.NAMES = FALSE)
+
             p1 <- ggplot(seq_clusters_new, aes(x = 1:dim(seq_clusters_new)[1], y = count_log2, color = factor(cluster))) +
                     geom_point(shape = 21, size = 1, aes(fill = factor(cluster), color = factor(cluster))) +
-                    scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
-                    scale_color_manual(values = c("tomato", "royalblue")) +
+                    scale_fill_manual(values = fill_colors) +
+                    scale_color_manual(values = select_colors) +
                     labs(x = "sequence index", y = "log2(count+1)", title = "Sample QC clusters") +
                     theme(legend.position = "none", panel.grid.major = element_blank()) +
                     theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
@@ -142,35 +155,25 @@ setMethod(
                 tmp_cluster <- object@seq_clusters[[i]][, c("count_log2", "cluster")]
                 tmp_cluster$samples <- names(object@seq_clusters)[i]
                 tmp_cluster <- as.data.table(tmp_cluster)
+                tmp_cluster$samples <- object@samples[[i]]@sample
+                tmp_cluster[cluster == 1, group := "low-count cluster"]
+                tmp_cluster[cluster == 2, group := "high-count cluster"]
 
                 if (nrow(seq_clusters) == 0) {
                     seq_clusters <- tmp_cluster
                 } else {
-                    seq_clusters <- rbind(clusters, tmp_cluster)
+                    seq_clusters <- rbind(seq_clusters, tmp_cluster)
                 }
             }
 
-            num_samples <- length(object@samples)
-
-            p1 <- ggplot(seq_clusters_new, aes(x = 1:dim(seq_clusters_new)[1], y = count_log2, color = factor(cluster))) +
-                    geom_point(shape = 21, size = 1, aes(fill = factor(cluster), color = factor(cluster))) +
-                    scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
-                    scale_color_manual(values = c("tomato", "royalblue")) +
-                    labs(x = "sequence index", y = "log2(count+1)", title = "Sample QC clusters") +
-                    theme(legend.position = "none", panel.grid.major = element_blank()) +
-                    theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
-                    theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
-                    theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
-                    theme(axis.text = element_text(size = 12, face = "bold"))
-
-            p1 <- ggplot(seq_clusters, aes(x = count_log2, color = samples, fill = samples)) +
-                    geom_density(alpha = 0.2) +
+            p1 <- ggplot(seq_clusters, aes(x = count_log2, color = samples)) +
+                    geom_density() +
                     labs(x = "log2(count+1)", y = "frequency", title = "Sample QC clusters") +
                     theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                     theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
                     theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
                     theme(axis.text = element_text(size = 12, face = "bold")) +
-                    facet_wrap(~cluster, scales = "free")
+                    facet_wrap(~group, scales = "free", dir = "v")
 
             png(paste0(plotdir, "/", "sample_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 200)
             print(p1)
@@ -198,16 +201,19 @@ setMethod(
             stop(paste0("====> Error: plotdir is not provided, no output directory."))
         }
 
-        df_total <- object@stats[, c("failed_reads", "filtered_reads")]
+        df_total <- object@stats[, c("excluded_reads", "accepted_reads")]
         df_total$samples <- rownames(df_total)
         dt_total <- reshape2::melt(as.data.table(df_total), id.vars = "samples", variable.name = "types", value.name = "counts")
 
         dt_total$samples <- factor(dt_total$samples, levels = df_total$samples)
 
+        select_colors <- select_colorblind("col8")[1:2]
+        fill_colors <- sapply(select_colors, function(x) t_col(x, 0.5), USE.NAMES = FALSE)
+
         p1 <- ggplot(dt_total,  aes(x = samples, y = counts, fill = types)) +
                 geom_bar(stat = "identity") +
-                scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
-                scale_color_manual(values = c("tomato", "royalblue")) +
+                scale_fill_manual(values = fill_colors) +
+                scale_color_manual(values = select_colors) +
                 labs(x = "samples", y = "counts", title = "Sample QC Stats") +
                 scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
                 theme(legend.position = "right", legend.title = element_blank()) +
@@ -222,20 +228,21 @@ setMethod(
         print(p1)
         dev.off()
 
-        df_filtered <- object@stats[, c("per_unmapped_reads", "per_ref_reads", "per_pam_reads", "per_effective_reads")]
-        colnames(df_filtered) <- c("unmapped_reads", "ref_reads", "pam_reads", "effective_reads")
+        df_filtered <- object@stats[, c("per_unmapped_reads", "per_ref_reads", "per_pam_reads", "per_library_reads")]
+        colnames(df_filtered) <- c("unmapped_reads", "ref_reads", "pam_reads", "library_reads")
         df_filtered <- round(df_filtered*100, 1)
         df_filtered$samples <- rownames(df_filtered)
         dt_filtered <- reshape2::melt(as.data.table(df_filtered), id.vars = "samples", variable.name = "types", value.name = "percent")
 
         dt_filtered$samples <- factor(dt_filtered$samples, levels = df_filtered$samples)
 
-        gg_colors_fill <- c(t_col("tomato", 0.5), t_col("grey", 0.5), t_col("yellowgreen", 0.5), t_col("royalblue", 0.5))
-        gg_colors <- c(c("tomato", "grey", "yellowgreen", "royalblue"))
+        select_colors <- select_colorblind("col8")[1:4]
+        fill_colors <- sapply(select_colors, function(x) t_col(x, 0.5), USE.NAMES = FALSE)
+
         p2 <- ggplot(dt_filtered,  aes(x = samples, y = percent, fill = types)) +
                 geom_bar(stat = "identity", position = "fill") +
-                scale_fill_manual(values = gg_colors_fill) +
-                scale_color_manual(values = gg_colors) +
+                scale_fill_manual(values = fill_colors) +
+                scale_color_manual(values = select_colors) +
                 labs(x = "samples", y = "percent", title = "Sample QC Stats") +
                 scale_y_continuous(labels = scales::percent) +
                 theme(legend.position = "right", legend.title = element_blank()) +
@@ -251,12 +258,13 @@ setMethod(
         print(p2)
         dev.off()
 
-        df_cov <- object@stats[, c("total_reads", "effective_reads", "effective_cov")]
+        df_cov <- object@stats[, c("total_reads", "library_reads", "library_cov")]
         df_cov$samples <- rownames(df_cov)
 
-        p3 <- ggplot(df_cov,  aes(x = total_reads, y = effective_reads, color = samples)) +
-                geom_point(alpha = 0.7, aes(size = effective_cov)) +
-                geom_text(size = 3, color = "black", aes(label = effective_cov)) +
+        p3 <- ggplot(df_cov,  aes(x = total_reads, y = library_reads, color = samples)) +
+                geom_point(alpha = 0.7, aes(size = library_cov)) +
+                geom_text(size = 2, color = "black", aes(label = library_cov)) +
+                geom_text(size = 2, color = "black", vjust = -1, aes(label = samples)) +
                 labs(x = "total reads", y = "effective reads", title = "Sample QC Stats") +
                 scale_x_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
                 scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
@@ -267,9 +275,9 @@ setMethod(
                 theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
                 theme(axis.text = element_text(size = 12, face = "bold"))
 
-        png(paste0(plotdir, "/", "sample_qc_stats_cov.png"), width = 1200, height = 1200, res = 200)
-        print(p3)
-        dev.off()
+        #png(paste0(plotdir, "/", "sample_qc_stats_cov.png"), width = 1200, height = 1200, res = 200)
+        #print(p3)
+        #dev.off()
     }
 )
 
@@ -357,53 +365,35 @@ setMethod(
             stop(paste0("====> Error: plotdir is not provided, no output directory."))
         }
 
-        # normalisation?
-        effcounts_pos <- object@effective_counts_pos
-        effcounts_pos <- apply(effcounts_pos, 2, function(x) x / (sum(x, na.rm = TRUE) / 1000000))
-        effcounts_pos_log <- log2(effcounts_pos + 1)
-
-        sample_names <- character()
+        sample_names <- vector()
+        effcounts_pos <- data.table()
         for (s in object@samples) {
             sample_names <- append(sample_names, s@sample)
+
+            tmp_counts <- object@library_counts_pos[[s@sample]][, c("position", "count")]
+            tmp_counts <- as.data.table(tmp_counts)
+            tmp_counts[, sample := s@sample]
+
+            if (nrow(effcounts_pos) == 0) {
+                effcounts_pos <- tmp_counts
+            } else {
+                effcounts_pos <- rbind(effcounts_pos, tmp_counts)
+            }
         }
+        effcounts_pos[, log2p1 := log2(count+1)]
 
-        #pheight <- 100 * length(sample_names)
-        #png(paste0(plotdir, "/", "sample_qc_position_cov.heatmap.png"), width = 2400, height = pheight, res = 200)
-        #lmat <- rbind(c(3, 4), c(2, 1))
-        #lhei <- c(2, 8)
-        #lwid <- c(2, 8)
-
-        #heatmap.2(t(as.matrix(effcounts_pos_log)),
-        #          distfun=function(x) dist(x, method = "euclidean"),
-        #          hclustfun=function(x) hclust(x, method = "ward.D2"),
-        #          col = colorpanel(100, "royalblue", "ivory", "tomato"),
-        #          na.color = "grey",
-        #          breaks = seq(0, 10, length.out = 101),
-        #          density.info = "none", trace = "none", dendrogram = "none",
-        #          Rowv = FALSE, Colv = FALSE,
-        #          labCol = FALSE, cexRow = 1,
-        #          key = FALSE,
-        #          margins = c(4, 8), rowsep = 1:length(sample_names),
-        #          lmat = lmat, lhei = lhei, lwid = lwid)
-        #dev.off()
-
-        rownames(effcounts_pos_log) <- 1:nrow(effcounts_pos_log)
-        dt_effcounts_pos_log <- reshape2::melt(effcounts_pos_log)
-        colnames(dt_effcounts_pos_log) <- c("index", "samples", "log_counts")
-
-        dt_effcounts_pos_log$samples <- factor(dt_effcounts_pos_log$samples, levels = sample_names)
-
-        p1 <- ggplot(dt_effcounts_pos_log, aes(x = index, y = log_counts)) +
+        p1 <- ggplot(effcounts_pos, aes(x = position, y = log2p1)) +
                 geom_point(shape = 16, size = 0.5, color = "tomato", alpha = 0.8) +
-                labs(x = "sequence position index", y = "log2(count+1)", title = "Sample QC position coverage") +
+                labs(x = "Genomic Coordinate", y = "log2(count+1)", title = "Sample QC position coverage") +
                 theme(legend.position = "none", panel.grid.major = element_blank()) +
                 theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                 theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
                 theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
                 theme(axis.text = element_text(size = 6, face = "bold")) +
-                facet_wrap(~samples, dir = "v", ncol = 2)
+                theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+                facet_wrap(~sample, dir = "v", ncol = 4)
 
-        pheight <- 300 * length(sample_names)
+        pheight <- 400 * as.integer((length(sample_names) / 3))
         png(paste0(plotdir, "/", "sample_qc_position_cov.dots.png"), width = 2400, height = pheight, res = 200)
         print(p1)
         dev.off()
@@ -439,24 +429,23 @@ setMethod(
             stop(paste0("====> Error: wrong type, please use lof or all."))
         }
 
-        effcounts_pos <- object@effective_counts_pos_anno
-        effcounts_pos <- effcounts_pos[, c(samples, "consequence")]
+        effcounts_pos <- object@library_counts_pos_anno
+        effcounts_pos <- effcounts_pos[, c(samples, "position", "consequence")]
 
         if (type == "lof") {
             effcounts_pos$consequence <- ifelse(effcounts_pos$consequence == "lof", "lof", "others")
-            effcounts_pos[, samples] <- effcounts_pos[, samples] / object@stats[samples, ]$filtered_reads * 100
+            effcounts_pos[, samples] <- effcounts_pos[, samples] / object@stats[samples, ]$accepted_reads * 100
 
-            dt_effcounts_pos <- reshape2::melt(effcounts_pos, id.vars = "consequence", variable.name = "samples", value.name = "counts")
-            dt_effcounts_pos$index <- 1:nrow(effcounts_pos)
-            dt_effcounts_pos$samples <- factor(dt_effcounts_pos$samples, levels = samples)
+            df_effcounts_pos <- reshape2::melt(effcounts_pos, id.vars = c("consequence", "position"), variable.name = "samples", value.name = "counts")
+            df_effcounts_pos$samples <- factor(df_effcounts_pos$samples, levels = samples)
 
-            dt_effcounts_pos[dt_effcounts_pos == 0] <- NA
+            df_effcounts_pos[df_effcounts_pos == 0] <- NA
 
-            p1 <- ggplot(dt_effcounts_pos, aes(x = index, y = counts)) +
-                    geom_point(shape = 19, size = 0.5, aes(fill = factor(consequence), color = factor(consequence))) +
+            p1 <- ggplot(dt_effcounts_pos, aes(x = position, y = counts)) +
+                    geom_point(shape = 19, size = 0.5, aes(color = factor(consequence))) +
                     geom_hline(yintercept = major_cut, linetype = "dashed", color = "springgreen4", size = 0.4) +
-                    scale_color_manual(values = c(t_col("red", 1), t_col("royalblue", 0.2))) +
-                    labs(x = "sequence position", y = "percentage", title = "Sample QC position percentage") +
+                    scale_color_manual(values = c(t_col("red", 1), t_col("royalblue", 0.2)), labels = c("LOF", "Others")) +
+                    labs(x = "sequence position", y = "percentage", title = "Sample QC position percentage", color = "Type") +
                     coord_trans(y = "log2") +
                     scale_y_continuous(breaks = c(0.001, 0.005, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.4, 0.6, 0.8, 1)) +
                     theme(legend.position = "right", panel.grid.major = element_blank()) +
@@ -471,18 +460,16 @@ setMethod(
             print(p1)
             dev.off()
         } else {
-            effcounts_pos[, samples] <- effcounts_pos[, samples] / object@stats[samples, ]$filtered_reads * 100
+            effcounts_pos[, samples] <- effcounts_pos[, samples] / object@stats[samples, ]$accepted_reads * 100
 
-            dt_effcounts_pos <- reshape2::melt(effcounts_pos, id.vars = "consequence", variable.name = "samples", value.name = "counts")
-            dt_effcounts_pos$index <- 1:nrow(effcounts_pos)
-            dt_effcounts_pos$samples <- factor(dt_effcounts_pos$samples, levels = samples)
+            df_effcounts_pos <- reshape2::melt(effcounts_pos, id.vars = c("consequence", "position"), variable.name = "samples", value.name = "counts")
+            df_effcounts_pos$samples <- factor(df_effcounts_pos$samples, levels = samples)
 
-            dt_effcounts_pos[dt_effcounts_pos == 0] <- NA
+            df_effcounts_pos[df_effcounts_pos == 0] <- NA
 
-            default_colors <- c("tomato", "royalblue", "yellowgreen", "orange",
-                                "pink", "purple", "coral", "cyan",
-                                "violet", "springgreen", "skyblue", "lightgrey")
-            select_colors <- default_colors[1:length(unique(effcounts_pos$consequence))]
+            num_colors <- length(unique(effcounts_pos$consequence))
+            index_colors <- sample(seq(1, length(select_colorblind("col21"))), num_colors)
+            select_colors <- select_colorblind("col21")[index_colors]
 
             freq_cons <- table(effcounts_pos$consequence)
             names(select_colors) <- names(freq_cons)
@@ -497,11 +484,11 @@ setMethod(
             }
             select_colors <- as.vector(select_colors)
 
-            p1 <- ggplot(dt_effcounts_pos, aes(x = index, y = counts)) +
-                    geom_point(shape = 19, size = 0.5, aes(fill = factor(consequence), color = factor(consequence))) +
+            p1 <- ggplot(df_effcounts_pos, aes(x = position, y = counts)) +
+                    geom_point(shape = 19, size = 0.5, aes(color = factor(consequence))) +
                     geom_hline(yintercept = major_cut, linetype = "dashed", color = "springgreen4", linewidth = 0.4) +
                     scale_color_manual(values = select_colors) +
-                    labs(x = "sequence position", y = "percentage", title = "Sample QC position percentage") +
+                    labs(x = "sequence position", y = "percentage", title = "Sample QC position percentage", color = "Type") +
                     coord_trans(y = "log2") +
                     scale_y_continuous(breaks = c(0.001, 0.005, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.4, 0.6, 0.8, 1)) +
                     theme(legend.position = "right", panel.grid.major = element_blank()) +
@@ -665,7 +652,7 @@ setMethod(
         b <- barplot(percentVar, col = t_col("royalblue", 0.5), border = "royalblue", ylim = c(0, 105))
         text(b, percentVar + 5, paste0(percentVar, "%"), cex = 0.6)
         legend("topright", legend = levels(ds_coldata$replicate), pch = select_pchs, cex = 1, bty = "n")
-        legend("right", legend = levels(ds_coldata$condition), pch = 19, col = select_colors, cex = 1, bty = "n")
+        legend("top", legend = levels(ds_coldata$condition), pch = 19, col = select_colors, cex = 1, bty = "n")
         dev.off()
     }
 )
@@ -702,7 +689,7 @@ setMethod(
             res <- object@deseq_res[[i]]$shrunken[, c("log2FoldChange", "padj")]
             res <- as.data.frame(res)
 
-            res$consequence <- object@effective_counts_anno[rownames(res), ]$consequence
+            res$consequence <- object@library_counts_anno[rownames(res), ]$consequence
             res$stat <- "no impact"
             res[(res$padj < pcut) & (res$log2FoldChange > ecut), ]$stat <- "enriched"
             res[(res$padj < pcut) & (res$log2FoldChange < dcut), ]$stat <- "depleted"
