@@ -81,12 +81,6 @@ setMethod(
         } else {
             if (qctype %nin% c("plasmid", "screen")) {
                 stop(paste0("====> Error: wrong qctype, plasmid or screen."))
-            } else {
-                if (qctype == "screen") {
-                    if (is.null(object@seq_clusters[["ref"]])) {
-                        stop(paste0("====> Error: selected wrong qctype, no ref in object seq_clusters."))
-                    }
-                }
             }
         }
 
@@ -114,7 +108,7 @@ setMethod(
                     theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                     theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
                     theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
-                    theme(axis.text = element_text(size = 12, face = "bold"))
+                    theme(axis.text = element_text(size = 8, face = "bold"))
 
             png(paste0(plotdir, "/", "sample_qc_seq_clusters.point.png"), width = 1200, height = 1200, res = 200)
             print(p1)
@@ -441,7 +435,7 @@ setMethod(
 
             df_effcounts_pos[df_effcounts_pos == 0] <- NA
 
-            p1 <- ggplot(dt_effcounts_pos, aes(x = position, y = counts)) +
+            p1 <- ggplot(df_effcounts_pos, aes(x = position, y = counts)) +
                     geom_point(shape = 19, size = 0.5, aes(color = factor(consequence))) +
                     geom_hline(yintercept = major_cut, linetype = "dashed", color = "springgreen4", size = 0.4) +
                     scale_color_manual(values = c(t_col("red", 1), t_col("royalblue", 0.2)), labels = c("LOF", "Others")) +
@@ -456,7 +450,7 @@ setMethod(
                     facet_wrap(~samples, dir = "v")
 
             pheight <- 300 * length(samples)
-            png(paste0(plotdir, "/", "sample_qc_position_anno.lof_dots.png"), width = 2400, height = pheight, res = 200)
+            png(paste0(plotdir, "/", "sample_qc_position_anno.lof_dots.png"), width = 1200, height = pheight, res = 200)
             print(p1)
             dev.off()
         } else {
@@ -499,7 +493,7 @@ setMethod(
                     facet_wrap(~samples, dir = "v")
 
             pheight <- 300 * length(samples)
-            png(paste0(plotdir, "/", "sample_qc_position_anno.all_dots.png"), width = 2400, height = pheight, res = 200)
+            png(paste0(plotdir, "/", "sample_qc_position_anno.all_dots.png"), width = 1200, height = pheight, res = 200)
             print(p1)
             dev.off()
         }
