@@ -85,7 +85,9 @@ setMethod(
         }
 
         if (qctype == "screen") {
-            seq_clusters <- object@seq_clusters[["ref"]]
+            # assuming all the samples in screen qc have the same library sequence.
+            # so using data of reference samples to create plots
+            seq_clusters <- object@seq_clusters[[1]]
             seq_clusters_1 <- seq_clusters[seq_clusters$cluster==1, ]
             seq_clusters_2 <- seq_clusters[seq_clusters$cluster==2, ]
             seq_clusters_new <- rbind(seq_clusters_1, seq_clusters_2)
@@ -131,9 +133,9 @@ setMethod(
                     theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
                     theme(axis.text = element_text(size = 12, face = "bold"))
 
-            png(paste0(plotdir, "/", "sample_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 200)
-            print(p3)
-            dev.off()
+            #png(paste0(plotdir, "/", "sample_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 200)
+            #print(p3)
+            #dev.off()
         } else {
             seq_clusters <- data.table()
             for (i in 1:length(object@seq_clusters)) {
@@ -147,6 +149,19 @@ setMethod(
                     seq_clusters <- rbind(clusters, tmp_cluster)
                 }
             }
+
+            num_samples <- length(object@samples)
+
+            p1 <- ggplot(seq_clusters_new, aes(x = 1:dim(seq_clusters_new)[1], y = count_log2, color = factor(cluster))) +
+                    geom_point(shape = 21, size = 1, aes(fill = factor(cluster), color = factor(cluster))) +
+                    scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
+                    scale_color_manual(values = c("tomato", "royalblue")) +
+                    labs(x = "sequence index", y = "log2(count+1)", title = "Sample QC clusters") +
+                    theme(legend.position = "none", panel.grid.major = element_blank()) +
+                    theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
+                    theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
+                    theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
+                    theme(axis.text = element_text(size = 12, face = "bold"))
 
             p1 <- ggplot(seq_clusters, aes(x = count_log2, color = samples, fill = samples)) +
                     geom_density(alpha = 0.2) +
@@ -352,26 +367,25 @@ setMethod(
             sample_names <- append(sample_names, s@sample)
         }
 
-        pheight <- 100 * length(sample_names)
-        png(paste0(plotdir, "/", "sample_qc_position_cov.heatmap.png"), width = 2400, height = pheight, res = 200)
-        lmat <- rbind(c(3, 4), c(2, 1))
-        lhei <- c(2, 8)
-        lwid <- c(2, 8)
+        #pheight <- 100 * length(sample_names)
+        #png(paste0(plotdir, "/", "sample_qc_position_cov.heatmap.png"), width = 2400, height = pheight, res = 200)
+        #lmat <- rbind(c(3, 4), c(2, 1))
+        #lhei <- c(2, 8)
+        #lwid <- c(2, 8)
 
-        heatmap.2(t(as.matrix(effcounts_pos_log)),
-                  distfun=function(x) dist(x, method = "euclidean"),
-                  hclustfun=function(x) hclust(x, method = "ward.D2"),
-                  col = colorpanel(100, "royalblue", "ivory", "tomato"),
-                  na.color = "grey",
-                  breaks = seq(0, 10, length.out = 101),
-                  density.info = "none", trace = "none", dendrogram = "none",
-                  Rowv = FALSE, Colv = FALSE,
-                  labCol = FALSE, cexRow = 1,
-                  key = FALSE,
-                  #key.xlab = "Log2(count+1)", key.title = "", key.par = list(cex.lab = 1.2),
-                  margins = c(4, 8), rowsep = 1:length(sample_names),
-                  lmat = lmat, lhei = lhei, lwid = lwid)
-        dev.off()
+        #heatmap.2(t(as.matrix(effcounts_pos_log)),
+        #          distfun=function(x) dist(x, method = "euclidean"),
+        #          hclustfun=function(x) hclust(x, method = "ward.D2"),
+        #          col = colorpanel(100, "royalblue", "ivory", "tomato"),
+        #          na.color = "grey",
+        #          breaks = seq(0, 10, length.out = 101),
+        #          density.info = "none", trace = "none", dendrogram = "none",
+        #          Rowv = FALSE, Colv = FALSE,
+        #          labCol = FALSE, cexRow = 1,
+        #          key = FALSE,
+        #          margins = c(4, 8), rowsep = 1:length(sample_names),
+        #          lmat = lmat, lhei = lhei, lwid = lwid)
+        #dev.off()
 
         rownames(effcounts_pos_log) <- 1:nrow(effcounts_pos_log)
         dt_effcounts_pos_log <- reshape2::melt(effcounts_pos_log)
@@ -530,27 +544,27 @@ setMethod(
         min_rlog <- round(min(sample_rlog))
         max_rlog <- round(max(sample_rlog))
 
-        pwidth <- 100 * ncol(sample_rlog)
-        png(paste0(plotdir, "/", "sample_qc_distance_samples.heatmap.png"), width = pwidth, height = 1200, res = 200)
-        lmat <- rbind(c(4, 3), c(2, 1))
-        lhei <- c(3, 8)
-        lwid <- c(3, 8)
+        #pwidth <- 100 * ncol(sample_rlog)
+        #png(paste0(plotdir, "/", "sample_qc_distance_samples.heatmap.png"), width = pwidth, height = 1200, res = 200)
+        #lmat <- rbind(c(4, 3), c(2, 1))
+        #lhei <- c(3, 8)
+        #lwid <- c(3, 8)
 
-        heatmap.2(sample_rlog,
-                  distfun = function(x) dist(x, method = "euclidean"),
-                  hclustfun = function(x) hclust(x, method = "ward.D2"),
-                  col = colorpanel(100, "royalblue", "ivory", "tomato"),
-                  na.color = "grey",
-                  breaks = seq(min_rlog, max_rlog, length.out = 101),
-                  density.info = "none", trace = "none", dendrogram = "both",
-                  Rowv = TRUE, Colv = TRUE, labRow = FALSE,
-                  cexCol = 0.6, cexRow = 0.6,
-                  key.xlab = "deseq rlog", key.title = "", key.par = list(cex.lab = 1),
-                  margins = c(8, 1),
-                  colsep = 1:ncol(sample_dist),
-                  sepwidth=c(0.01, 0.01),
-                  lmat = lmat, lhei = lhei, lwid = lwid)
-        dev.off()
+        #heatmap.2(sample_rlog,
+        #          distfun = function(x) dist(x, method = "euclidean"),
+        #          hclustfun = function(x) hclust(x, method = "ward.D2"),
+        #          col = colorpanel(100, "royalblue", "ivory", "tomato"),
+        #          na.color = "grey",
+        #          breaks = seq(min_rlog, max_rlog, length.out = 101),
+        #          density.info = "none", trace = "none", dendrogram = "both",
+        #          Rowv = TRUE, Colv = TRUE, labRow = FALSE,
+        #          cexCol = 0.6, cexRow = 0.6,
+        #          key.xlab = "deseq rlog", key.title = "", key.par = list(cex.lab = 1),
+        #          margins = c(8, 1),
+        #          colsep = 1:ncol(sample_dist),
+        #          sepwidth=c(0.01, 0.01),
+        #          lmat = lmat, lhei = lhei, lwid = lwid)
+        #dev.off()
 
         sample_corr <- cor(scale(sample_rlog))
         min_corr <- floor(min(sample_corr) * 10) / 10
@@ -708,10 +722,10 @@ setMethod(
                     theme(axis.text = element_text(size = 8, face = "bold")) +
                     ylim(-4, 1)
 
-            pwidth <- 300 * length(cons)
-            png(paste0(plotdir, "/", "sample_qc_deseq_fc.", comparisions[i], ".beeswarm.png"), width = pwidth, height = 1200, res = 200)
-            print(p1)
-            dev.off()
+            #pwidth <- 300 * length(cons)
+            #png(paste0(plotdir, "/", "sample_qc_deseq_fc.", comparisions[i], ".beeswarm.png"), width = pwidth, height = 1200, res = 200)
+            #print(p1)
+            #dev.off()
 
             p2 <- ggplot(res_cons, aes(x = consequence, y = log2FoldChange)) +
                     geom_violinhalf(trim = FALSE, scale = "width", fill = t_col("yellowgreen", 0.5), color = "yellowgreen", position = position_nudge(x = .2, y = 0)) +
@@ -744,10 +758,10 @@ setMethod(
                     xlim(-2, 2) +
                     facet_wrap(~consequence, dir = "v")
 
-            pheight <- 300 * length(cons)
-            png(paste0(plotdir, "/", "sample_qc_deseq_fc.", comparisions[i], ".volcano.png"), width = 1200, height = pheight, res = 200)
-            print(p3)
-            dev.off()
+            #pheight <- 300 * length(cons)
+            #png(paste0(plotdir, "/", "sample_qc_deseq_fc.", comparisions[i], ".volcano.png"), width = 1200, height = pheight, res = 200)
+            #print(p3)
+            #dev.off()
         }
     }
 )

@@ -83,7 +83,6 @@ setMethod(
         # library dependent sequences are not unique
         tmp_mseqs <- unique(object@libcounts$sequence)
         object@meta_mseqs <- tmp_mseqs[tmp_mseqs %nin% c(object@refseq, object@pamseq)]
-
         object@missing_meta_seqs <- object@meta_mseqs[object@meta_mseqs %nin% object@allcounts$sequence]
 
         return(object)

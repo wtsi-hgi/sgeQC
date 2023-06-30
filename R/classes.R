@@ -182,15 +182,18 @@ create_sge_object <- function(file_libcount,
 #' @slot counts                    a list of sample counts
 #' @slot lengths                   a list of sequence lengths
 #' @slot seq_clusters              a list of dataframes of sequences and cluster IDs
-#' @slot filtered_seqs             a vector of sequences with counts > clustering cutoff for screen QC in the references
-#' @slot filtered_counts           a data frame of filtered counts of all the samples
-#' @slot effective_counts          a data frame of effective counts of all the samples
-#' @slot effective_counts_pos      a data frame of effective counts of all the samples sorted by position
+#' @slot filtered_seqs             a list of sequences with counts > clustering cutoff for screen QC in the references
+#' @slot filtered_counts           a list of filtered counts of all the samples
+#' @slot effective_counts          a list of effective counts of all the samples
+#' @slot unmapped_counts           a list of unmapped counts against meta library sequences of all the samples
+#' @slot effective_counts_pos      a list of effective counts of all the samples sorted by position in meta
 #' @slot effective_counts_anno     a data frame of effective counts of all the samples, annotated with consequences
 #' @slot effective_counts_pos_anno a data frame of effective counts of all the samples, annotated with consequences, sorted by position
 #' @slot stats                     a data frame of samples and stats, eg. total no, filtered no.
+#' @slot bad_seqs_bycluster        a list of filter-out sequences by cluster
+#' @slot bad_seqs_bydepth          a list of filter-out sequences by depth
+#' @slot bad_seqs_byeff            a list of filter-out sequences by effective mapping
 #' @slot filtered_samples          a vector of filtered sample names
-#' @slot bad_seqs                  a list of filter-out sequences
 #' @slot deseq_rlog                a data frame of deseq rlog counts of all the samples using effective counts
 #' @slot deseq_res                 a list of deseq results of all the comparison against reference
 setClass("sampleQC",
@@ -200,15 +203,18 @@ setClass("sampleQC",
         counts = "list",
         lengths = "list",
         seq_clusters = "list",
-        filtered_seqs = "character",
-        filtered_counts = "data.frame",
-        effective_counts = "data.frame",
-        effective_counts_pos = "data.frame",
+        filtered_seqs = "list",
+        filtered_counts = "list",
+        effective_counts = "list",
+        unmapped_counts = "list",
+        effective_counts_pos = "list",
         effective_counts_anno = "data.frame",
         effective_counts_pos_anno = "data.frame",
         stats = "data.frame",
+        bad_seqs_bycluster = "list",
+        bad_seqs_bydepth = "list",
+        bad_seqs_byeff = "list",
         filtered_samples = "character",
-        bad_seqs = "list",
         deseq_rlog = "data.frame",
         deseq_res = "list"
     ),
@@ -218,15 +224,18 @@ setClass("sampleQC",
         counts = list(),
         lengths = list(),
         seq_clusters = list(),
-        filtered_seqs = character(),
-        filtered_counts = data.frame(),
-        effective_counts = data.frame(),
-        effective_counts_pos = data.frame(),
+        filtered_seqs = list(),
+        filtered_counts = list(),
+        effective_counts = list(),
+        unmapped_counts = list(),
+        effective_counts_pos = list(),
         effective_counts_anno = data.frame(),
         effective_counts_pos_anno = data.frame(),
         stats = data.frame(),
+        bad_seqs_bycluster = list(),
+        bad_seqs_bydepth = list(),
+        bad_seqs_byeff = list(),
         filtered_samples = character(),
-        bad_seqs = list(),
         deseq_rlog = data.frame(),
         deseq_res = list()
     )
