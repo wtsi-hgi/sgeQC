@@ -35,6 +35,7 @@ install.packages("gplots")
 install.packages("corrplot")
 install.packages("ggbeeswarm")
 install.packages("see")
+install.packages("reactable")
 
 install.packages("BiocManager")
 BiocManager::install("DESeq2")
@@ -113,17 +114,18 @@ All the files are in the same directory including library dependent counts, libr
 
 #### Load dependencies if required
 ```
-library("data.table")
-library("Ckmeans.1d.dp")
-library("reshape2")
-library("ggplot2")
-library("gplots")
-library("corrplot")
-library("ggbeeswarm")
-library("DESeq2")
-library("DEGreport")
-library("apeglm")
-library("see")
+library(data.table)
+library(Ckmeans.1d.dp)
+library(reshape2)
+library(ggplot2)
+library(gplots)
+library(corrplot)
+library(ggbeeswarm)
+library(DESeq2)
+library(DEGreport)
+library(apeglm)
+library(see)
+library(reactable)
 ```
 
 #### Import files

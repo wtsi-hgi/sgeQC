@@ -24,6 +24,7 @@ Depends:
     apeglm (>= 1.20.0),
     corrplot (>= 0.92),
     ggbeeswarm (>= 0.7.2),
-    see (>= 0.8.0)
+    see (>= 0.8.0),
+    reactable (>= 0.4.4)
 Imports:
     reshape2 (>= 1.4.4)

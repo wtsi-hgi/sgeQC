@@ -10,6 +10,8 @@ A class representing a primary qc object
 \section{Slots}{
 
 \describe{
+\item{\code{cutoffs}}{a data frame of cutoffs using in sample QC}
+
 \item{\code{samples}}{a list of SGE objects}
 
 \item{\code{samples_ref}}{a list of SGE objects which are the references for screen QC}

@@ -11,4 +11,5 @@
 #' @import corrplot
 #' @import ggbeeswarm
 #' @importFrom see geom_violinhalf
+#' @import reactable
 NULL

@@ -47,6 +47,20 @@ setMethod(
             }
         }
 
+        cols <- c("total_reads",
+                  "effective_percent",
+                  "effective_cov",
+                  "low_abundance_percent")
+        df_cutoffs <- data.frame(matrix(NA, 1, length(cols)))
+        colnames(df_cutoffs) <- cols
+
+        df_cutoffs$total_reads <- cutoff_filtered
+        df_cutoffs$effective_percent <- cutoff_effect * 100
+        df_cutoffs$effective_cov <- cutoff_cov
+        df_cutoffs$low_abundance_percent <- effect_count
+
+        object@cutoffs <- df_cutoffs
+
         #-------------------------------------------#
         # 1. Filtering by the total number of reads #
         #-------------------------------------------#

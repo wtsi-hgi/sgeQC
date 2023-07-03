@@ -2,23 +2,23 @@
 #'
 #' @export
 #' @name SGE
-#' @slot sample            the sample name
-#' @slot libname           library name
-#' @slot libtype           library type
-#' @slot adapt5            adaptor sequence at 5 prime end
-#' @slot adapt3            adaptor sequence at 3 prime end
-#' @slot refseq            reference sequence
-#' @slot pamseq            sequence with pam variants
-#' @slot libcounts         QUANTS library-dependent counts, per sequence per count
-#' @slot allcounts         QUANTS library-independent counts, per sequence per count
-#' @slot valiant_meta      VaLiAnT meta file
-#' @slot vep_anno          vep consequence annotation file
-#' @slot meta_mseqs        non-redundant mseq in VaLiAnT meta file
-#' @slot missing_meta_seqs missing sequenced in library compared to VaLiAnT meta file
-#' @slot libstats          summaries of library dependent counts
-#' @slot allstats          summaries of library independent counts
-#' @slot libstats_qc       qc stats of library dependent counts
-#' @slot allstats_qc       qc stats of library independent counts
+#' @slot sample             the sample name
+#' @slot libname            library name
+#' @slot libtype            library type
+#' @slot adapt5             adaptor sequence at 5 prime end
+#' @slot adapt3             adaptor sequence at 3 prime end
+#' @slot refseq             reference sequence
+#' @slot pamseq             sequence with pam variants
+#' @slot libcounts          QUANTS library-dependent counts, per sequence per count
+#' @slot allcounts          QUANTS library-independent counts, per sequence per count
+#' @slot valiant_meta       VaLiAnT meta file
+#' @slot vep_anno           vep consequence annotation file
+#' @slot meta_mseqs         non-redundant mseq in VaLiAnT meta file
+#' @slot missing_meta_seqs  missing sequenced in library compared to VaLiAnT meta file
+#' @slot libstats           summaries of library dependent counts
+#' @slot allstats           summaries of library independent counts
+#' @slot libstats_qc        qc stats of library dependent counts
+#' @slot allstats_qc        qc stats of library independent counts
 setClass("SGE",
     slots = list(
         sample = "character",
@@ -64,18 +64,18 @@ setClass("SGE",
 #'
 #' @export
 #' @name create_sge_object
-#' @param file_libcount           QUANTS library-dependent count file, per sequence per count
-#' @param file_allcount           QUANTS library-independent count file, per sequence per count
-#' @param file_valiant_meta       VaLiAnT meta file
-#' @param file_vep_anno           vep annotation file
-#' @param file_libcount_hline     line number of header in library-dependent count file
-#' @param file_allcount_hline     line number of header in library-independent count file
-#' @param file_valiant_meta_hline line number of header in VaLiAnT meta file
-#' @param file_vep_anno_hline     line number of header in vep annotation file
-#' @param file_libcount_cols      a vector of numbers of selected columns in library-dependent count file, default is none
-#' @param file_allcount_cols      a vector of numbers of selected columns in library-independent count file, default is none
-#' @param file_valiant_meta_cols  a vector of numbers of selected columns in VaLiAnT meta file, default is none
-#' @param file_vep_anno_cols      a vector of numbers of selected columns in vep annotation file, default is none
+#' @param file_libcount            QUANTS library-dependent count file, per sequence per count
+#' @param file_allcount            QUANTS library-independent count file, per sequence per count
+#' @param file_valiant_meta        VaLiAnT meta file
+#' @param file_vep_anno            vep annotation file
+#' @param file_libcount_hline      line number of header in library-dependent count file
+#' @param file_allcount_hline      line number of header in library-independent count file
+#' @param file_valiant_meta_hline  line number of header in VaLiAnT meta file
+#' @param file_vep_anno_hline      line number of header in vep annotation file
+#' @param file_libcount_cols       a vector of numbers of selected columns in library-dependent count file, default is none
+#' @param file_allcount_cols       a vector of numbers of selected columns in library-independent count file, default is none
+#' @param file_valiant_meta_cols   a vector of numbers of selected columns in VaLiAnT meta file, default is none
+#' @param file_vep_anno_cols       a vector of numbers of selected columns in vep annotation file, default is none
 #' @return An object of class SGE
 create_sge_object <- function(file_libcount,
                               file_allcount,
@@ -177,27 +177,29 @@ create_sge_object <- function(file_libcount,
 #'
 #' @export
 #' @name sampleQC
-#' @slot samples                   a list of SGE objects
-#' @slot samples_ref               a list of SGE objects which are the references for screen QC
-#' @slot counts                    a list of sample counts
-#' @slot lengths                   a list of sequence lengths
-#' @slot seq_clusters              a list of dataframes of sequences and cluster IDs
-#' @slot accepted_seqs             a list of sequences with counts > clustering cutoff for screen QC in the references
-#' @slot accepted_counts           a list of filtered counts of all the samples
-#' @slot library_counts          a list of effective counts of all the samples
-#' @slot unmapped_counts           a list of unmapped counts against meta library sequences of all the samples
-#' @slot library_counts_pos      a list of effective counts of all the samples sorted by position in meta
-#' @slot library_counts_anno     a data frame of effective counts of all the samples, annotated with consequences
-#' @slot library_counts_pos_anno a data frame of effective counts of all the samples, annotated with consequences, sorted by position
-#' @slot stats                     a data frame of samples and stats, eg. total no, filtered no.
-#' @slot bad_seqs_bycluster        a list of filter-out sequences by cluster
-#' @slot bad_seqs_bydepth          a list of filter-out sequences by depth
-#' @slot bad_seqs_byeff            a list of filter-out sequences by effective mapping
-#' @slot filtered_samples          a vector of filtered sample names
-#' @slot deseq_rlog                a data frame of deseq rlog counts of all the samples using effective counts
-#' @slot deseq_res                 a list of deseq results of all the comparison against reference
+#' @slot cutoffs                  a data frame of cutoffs using in sample QC
+#' @slot samples                  a list of SGE objects
+#' @slot samples_ref              a list of SGE objects which are the references for screen QC
+#' @slot counts                   a list of sample counts
+#' @slot lengths                  a list of sequence lengths
+#' @slot seq_clusters             a list of dataframes of sequences and cluster IDs
+#' @slot accepted_seqs            a list of sequences with counts > clustering cutoff for screen QC in the references
+#' @slot accepted_counts          a list of filtered counts of all the samples
+#' @slot library_counts           a list of effective counts of all the samples
+#' @slot unmapped_counts          a list of unmapped counts against meta library sequences of all the samples
+#' @slot library_counts_pos       a list of effective counts of all the samples sorted by position in meta
+#' @slot library_counts_anno      a data frame of effective counts of all the samples, annotated with consequences
+#' @slot library_counts_pos_anno  a data frame of effective counts of all the samples, annotated with consequences, sorted by position
+#' @slot stats                    a data frame of samples and stats, eg. total no, filtered no.
+#' @slot bad_seqs_bycluster       a list of filter-out sequences by cluster
+#' @slot bad_seqs_bydepth         a list of filter-out sequences by depth
+#' @slot bad_seqs_byeff           a list of filter-out sequences by effective mapping
+#' @slot filtered_samples         a vector of filtered sample names
+#' @slot deseq_rlog               a data frame of deseq rlog counts of all the samples using effective counts
+#' @slot deseq_res                a list of deseq results of all the comparison against reference
 setClass("sampleQC",
     slots = list(
+        cutoffs = "data.frame",
         samples = "list",
         samples_ref = "list",
         counts = "list",
@@ -219,6 +221,7 @@ setClass("sampleQC",
         deseq_res = "list"
     ),
     prototype = list(
+        cutoffs = data.frame(),
         samples = list(),
         samples_ref = list(),
         counts = list(),
