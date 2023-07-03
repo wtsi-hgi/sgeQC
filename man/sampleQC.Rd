@@ -30,6 +30,8 @@ A class representing a primary qc object
 
 \item{\code{unmapped_counts}}{a list of unmapped counts against meta library sequences of all the samples}
 
+\item{\code{library_counts_chr}}{a list of chromosomes for library counts}
+
 \item{\code{library_counts_pos}}{a list of library counts of all the samples sorted by position in meta}
 
 \item{\code{library_counts_anno}}{a data frame of library counts of all the samples, annotated with consequences}

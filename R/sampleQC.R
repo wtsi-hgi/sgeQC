@@ -270,6 +270,10 @@ setMethod(
             setorder(effcounts_pos, cols = "position")
 
             object@library_counts_pos[[s@sample]] <- effcounts_pos
+            object@library_counts_chr[[s@sample]] <- c(unique(s@valiant_meta$ref_chr),
+                                                       unique(s@valiant_meta$ref_strand),
+                                                       unique(s@valiant_meta$ref_start),
+                                                       unique(s@valiant_meta$ref_end))
         }
 
         #------------------------#

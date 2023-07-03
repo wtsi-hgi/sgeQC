@@ -187,6 +187,7 @@ create_sge_object <- function(file_libcount,
 #' @slot accepted_counts          a list of filtered counts of all the samples
 #' @slot library_counts           a list of library counts of all the samples
 #' @slot unmapped_counts          a list of unmapped counts against meta library sequences of all the samples
+#' @slot library_counts_chr       a list of chromosomes for library counts
 #' @slot library_counts_pos       a list of library counts of all the samples sorted by position in meta
 #' @slot library_counts_anno      a data frame of library counts of all the samples, annotated with consequences
 #' @slot library_counts_pos_anno  a data frame of library counts of all the samples, annotated with consequences, sorted by position
@@ -209,6 +210,7 @@ setClass("sampleQC",
         accepted_counts = "list",
         library_counts = "list",
         unmapped_counts = "list",
+        library_counts_chr = "list",
         library_counts_pos = "list",
         library_counts_anno = "data.frame",
         library_counts_pos_anno = "data.frame",
@@ -231,6 +233,7 @@ setClass("sampleQC",
         accepted_counts = list(),
         library_counts = list(),
         unmapped_counts = list(),
+        library_counts_chr = list(),
         library_counts_pos = list(),
         library_counts_anno = data.frame(),
         library_counts_pos_anno = data.frame(),

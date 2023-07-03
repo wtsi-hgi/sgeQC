@@ -428,7 +428,9 @@ setMethod(
 
         if (type == "lof") {
             libcounts_pos$consequence <- ifelse(libcounts_pos$consequence == "lof", "lof", "others")
-            libcounts_pos[, samples] <- libcounts_pos[, samples] / object@stats[samples, ]$accepted_reads * 100
+
+            # be careful, df / vec is by row, not column
+            libcounts_pos[, samples] <- t(t(libcounts_pos[, samples]) / object@stats[samples, ]$accepted_reads * 100)
 
             df_libcounts_pos <- reshape2::melt(libcounts_pos, id.vars = c("consequence", "position"), variable.name = "samples", value.name = "counts")
             df_libcounts_pos$samples <- factor(df_libcounts_pos$samples, levels = samples)
@@ -454,7 +456,7 @@ setMethod(
             print(p1)
             dev.off()
         } else {
-            libcounts_pos[, samples] <- libcounts_pos[, samples] / object@stats[samples, ]$accepted_reads * 100
+            libcounts_pos[, samples] <- t(t(libcounts_pos[, samples]) / object@stats[samples, ]$accepted_reads * 100)
 
             df_libcounts_pos <- reshape2::melt(libcounts_pos, id.vars = c("consequence", "position"), variable.name = "samples", value.name = "counts")
             df_libcounts_pos$samples <- factor(df_libcounts_pos$samples, levels = samples)
