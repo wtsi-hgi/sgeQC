@@ -2,9 +2,9 @@
 % Please edit documentation in R/qc_outs.R
 \name{qcout_sampleqc_total,sampleQC-method}
 \alias{qcout_sampleqc_total,sampleQC-method}
-\title{create output file of bad seqs which fail filtering}
+\title{create output file of total reads stats}
 \usage{
-\S4method{qcout_sampleqc_total}{sampleQC}(object, outdir)
+\S4method{qcout_sampleqc_total}{sampleQC}(object, outdir = NULL)
 }
 \arguments{
 \item{object}{sampleQC object}
@@ -12,5 +12,5 @@
 \item{outdir}{the output directory}
 }
 \description{
-create output file of bad seqs which fail filtering
+create output file of total reads stats
 }

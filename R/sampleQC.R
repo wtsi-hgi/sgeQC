@@ -6,25 +6,25 @@ setGeneric("run_sample_qc", function(object, ...) {
 #' run sample QC for the list of samples
 #'
 #' @export
-#' @param object          sampleQC object
-#' @param qc_type         plasmid or screen
-#' @param effect_count    count cutoff of effective reads
-#' @param effect_per      sample percentage cutoff of effective reads
-#' @param cutoff_filtered qc cutoff of the total filtered reads
-#' @param cutoff_mapping  qc cutoff of mapping percentage (ref + pam + effect)
-#' @param cutoff_effect   qc cutoff of effective reads percentage
-#' @param cutoff_cov      qc cutoff of effective coverage
+#' @param object           sampleQC object
+#' @param qc_type          plasmid or screen
+#' @param library_count    count cutoff of library reads
+#' @param library_per      sample percentage cutoff of library reads
+#' @param cutoff_filtered  qc cutoff of the total filtered reads
+#' @param cutoff_mapping   qc cutoff of mapping percentage (ref + pam + library)
+#' @param cutoff_library   qc cutoff of library reads percentage
+#' @param cutoff_cov       qc cutoff of library coverage
 #' @return object
 setMethod(
     "run_sample_qc",
     signature = "sampleQC",
     definition = function(object,
                           qc_type,
-                          effect_count = 5,
-                          effect_per = 0.25,
+                          library_count = 5,
+                          library_per = 0.25,
                           cutoff_filtered = 1000000,
                           cutoff_mapping = 0.6,
-                          cutoff_effect = 0.4,
+                          cutoff_library = 0.4,
                           cutoff_cov = 100) {
         #----------#
         # checking #
@@ -48,16 +48,16 @@ setMethod(
         }
 
         cols <- c("total_reads",
-                  "effective_percent",
-                  "effective_cov",
+                  "library_percent",
+                  "library_cov",
                   "low_abundance_percent")
         df_cutoffs <- data.frame(matrix(NA, 1, length(cols)))
         colnames(df_cutoffs) <- cols
 
         df_cutoffs$total_reads <- cutoff_filtered
-        df_cutoffs$effective_percent <- cutoff_effect * 100
-        df_cutoffs$effective_cov <- cutoff_cov
-        df_cutoffs$low_abundance_percent <- effect_count
+        df_cutoffs$library_percent <- cutoff_library * 100
+        df_cutoffs$library_cov <- cutoff_cov
+        df_cutoffs$low_abundance_percent <- library_count
 
         object@cutoffs <- df_cutoffs
 
@@ -167,18 +167,18 @@ setMethod(
 
             # note library independent counts may have different sequences
             accepted_counts <- merge_list_to_df(object@accepted_counts)
-            accepted_counts_depth <- cbind(accepted_counts, rowSums(accepted_counts >= effect_count, na.rm = TRUE))
+            accepted_counts_depth <- cbind(accepted_counts, rowSums(accepted_counts >= library_count, na.rm = TRUE))
             accepted_counts_depth <- cbind(accepted_counts_depth, accepted_counts_depth[, ncol(accepted_counts_depth)] / length(sample_names))
             colnames(accepted_counts_depth) <- c(sample_names, "sample_number", "sample_percentage")
 
-            accepted_counts_final <- accepted_counts_depth[accepted_counts_depth$sample_percentage >= effect_per, sample_names]
+            accepted_counts_final <- accepted_counts_depth[accepted_counts_depth$sample_percentage >= library_per, sample_names]
 
             for (s in object@samples) {
                 tmp_counts <- accepted_counts_final[, s@sample]
                 names(tmp_counts) <- rownames(accepted_counts_final)
                 object@accepted_counts[[s@sample]] <- tmp_counts[!is.na(tmp_counts)]
 
-                f_per <- accepted_counts_depth$sample_percentage < effect_per
+                f_per <- accepted_counts_depth$sample_percentage < library_per
                 f_na <- !is.na(accepted_counts_depth[, s@sample])
                 accepted_counts_bad <- accepted_counts_depth[f_per & f_na, s@sample, drop = FALSE]
                 object@bad_seqs_bydepth[[s@sample]] <- rownames(accepted_counts_bad)
@@ -188,17 +188,17 @@ setMethod(
 
             for (s in object@samples) {
                 tmp_counts <- object@accepted_counts[[s@sample]]
-                object@accepted_counts[[s@sample]] <- tmp_counts[tmp_counts >= effect_count]
+                object@accepted_counts[[s@sample]] <- tmp_counts[tmp_counts >= library_count]
 
-                object@bad_seqs_bydepth[[s@sample]] <- names(tmp_counts[tmp_counts < effect_count])
+                object@bad_seqs_bydepth[[s@sample]] <- names(tmp_counts[tmp_counts < library_count])
             }
         }
 
         #--------------------------------------#
-        # 4. Filtering by effective mapping    #
+        # 4. Filtering by library mapping      #
         #    a) reads mapped to VaLiAnT output #
         #--------------------------------------#
-        cat("Filtering by effective mapping...", "\n", sep = "")
+        cat("Filtering by library mapping...", "\n", sep = "")
 
         for (s in object@samples) {
             tmp_counts <- object@accepted_counts[[s@sample]]
@@ -208,36 +208,37 @@ setMethod(
             object@library_counts[[s@sample]] <- tmp_counts[names(tmp_counts) %in% s@meta_mseqs]
             object@unmapped_counts[[s@sample]] <- tmp_counts[names(tmp_counts) %nin% c(s@meta_mseqs, s@refseq, s@pamseq)]
 
-            object@bad_seqs_byeff[[s@sample]] <- names(object@unmapped_counts[[s@sample]])
+            object@bad_seqs_bylib[[s@sample]] <- names(object@unmapped_counts[[s@sample]])
         }
 
-        #----------------------------------------#
-        # 5. Filtering by effective coverage     #
-        #    a) effective reads / oligos in meta #
-        #----------------------------------------#
-        cat("Filtering by effective coverage...", "\n", sep = "")
+        #--------------------------------------#
+        # 5. Filtering by library coverage     #
+        #    a) library reads / oligos in meta #
+        #--------------------------------------#
+        cat("Filtering by library coverage...", "\n", sep = "")
 
         for (s in object@samples) {
-            samplename <- s@sample
-            object@stats[samplename, ]$accepted_reads <- sum(object@accepted_counts[[samplename]], na.rm = TRUE)
-            object@stats[samplename, ]$excluded_reads <- object@stats[samplename, ]$total_reads - object@stats[samplename, ]$accepted_reads
-            object@stats[samplename, ]$library_reads <- sum(object@library_counts[[samplename]], na.rm = TRUE)
-            object@stats[samplename, ]$unmapped_reads <- sum(object@unmapped_counts[[samplename]], na.rm = TRUE)
+            sample_name <- s@sample
+            object@stats[sample_name, ]$accepted_reads <- sum(object@accepted_counts[[sample_name]], na.rm = TRUE)
+            object@stats[sample_name, ]$excluded_reads <- object@stats[sample_name, ]$total_reads - object@stats[sample_name, ]$accepted_reads
+            object@stats[sample_name, ]$library_reads <- sum(object@library_counts[[sample_name]], na.rm = TRUE)
+            object@stats[sample_name, ]$unmapped_reads <- sum(object@unmapped_counts[[sample_name]], na.rm = TRUE)
 
-            object@stats[samplename, ]$per_library_reads <- object@stats[samplename, ]$library_reads / object@stats[samplename, ]$accepted_reads
-            object@stats[samplename, ]$per_unmapped_reads <- object@stats[samplename, ]$unmapped_reads / object@stats[samplename, ]$accepted_reads
-            object@stats[samplename, ]$per_ref_reads <- object@stats[samplename, ]$ref_reads / object@stats[samplename, ]$accepted_reads
-            object@stats[samplename, ]$per_pam_reads <- object@stats[samplename, ]$pam_reads / object@stats[samplename, ]$accepted_reads
+            object@stats[sample_name, ]$per_library_reads <- object@stats[sample_name, ]$library_reads / object@stats[sample_name, ]$accepted_reads
+            object@stats[sample_name, ]$per_unmapped_reads <- object@stats[sample_name, ]$unmapped_reads / object@stats[sample_name, ]$accepted_reads
+            object@stats[sample_name, ]$per_ref_reads <- object@stats[sample_name, ]$ref_reads / object@stats[sample_name, ]$accepted_reads
+            object@stats[sample_name, ]$per_pam_reads <- object@stats[sample_name, ]$pam_reads / object@stats[sample_name, ]$accepted_reads
 
-            object@stats[samplename, ]$missing_meta_seqs <- length(s@missing_meta_seqs)
+            object@stats[sample_name, ]$missing_meta_seqs <- length(s@missing_meta_seqs)
 
-            object@stats[samplename, ]$library_cov <- as.integer(object@stats[samplename, ]$library_reads / length(s@meta_mseqs))
+            object@stats[sample_name, ]$library_seqs <- length(s@meta_mseqs)
+            object@stats[sample_name, ]$library_cov <- as.integer(object@stats[sample_name, ]$library_reads / length(s@meta_mseqs))
         }
 
-        #--------------------- -------------------#
-        # 6. Sorting effective counts by position #
-        #-----------------------------------------#
-        cat("Sorting effective counts by position...", "\n", sep = "")
+        #--------------------- -----------------#
+        # 6. Sorting library counts by position #
+        #---------------------------------------#
+        cat("Sorting library counts by position...", "\n", sep = "")
 
         # meta_mseqs are not unique, a oligo seq may have serveral meta records according to annotation
         # one position may have different sequence, like C>A, C>G, C>T
@@ -287,7 +288,7 @@ setMethod(
 
         object@stats$qcpass_accepted_reads <- unlist(lapply(object@stats$accepted_reads, function(x) ifelse(x >= cutoff_filtered, TRUE, FALSE)))
         object@stats$qcpass_mapping_per <- unlist(lapply(object@stats$per_unmapped_reads, function(x) ifelse(x < (1 - cutoff_mapping), TRUE, FALSE)))
-        object@stats$qcpass_library_per <- unlist(lapply(object@stats$per_library_reads, function(x) ifelse(x >= cutoff_effect, TRUE, FALSE)))
+        object@stats$qcpass_library_per <- unlist(lapply(object@stats$per_library_reads, function(x) ifelse(x >= cutoff_library, TRUE, FALSE)))
         object@stats$qcpass_library_cov <- unlist(lapply(object@stats$library_cov, function(x) ifelse(x >= cutoff_cov, TRUE, FALSE)))
 
         qc_lables <- c("qcpass_accepted_reads", "qcpass_mapping_per", "qcpass_library_per", "qcpass_library_cov")
@@ -353,14 +354,14 @@ setMethod(
         vep_anno <- object@samples[[1]]@vep_anno
         rownames(vep_anno) <- vep_anno$seq
 
-        # merge all the effective counts
+        # merge all the library counts
         library_counts_anno <- merge_list_to_df(object@library_counts)
         library_counts_anno[is.na(library_counts_anno)] <- 0
 
         library_counts_anno$consequence <- vep_anno[rownames(library_counts_anno), ]$assigned # may change
         object@library_counts_anno <- library_counts_anno
 
-        # merge all the sorted effective counts
+        # merge all the sorted library counts
         library_counts_pos_anno <- data.table()
         for (s in object@samples) {
             tmp_pos <- object@library_counts_pos[[s@sample]]

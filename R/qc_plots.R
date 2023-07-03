@@ -245,7 +245,7 @@ setMethod(
                 theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
                 theme(axis.text = element_text(size = 12, face = "bold")) +
                 theme(axis.text.x = element_text(angle = 90)) +
-                geom_text(aes(label = paste0(percent, "%")), position = position_fill(vjust = 0.5), size = 3)
+                geom_text(aes(label = percent), position = position_fill(vjust = 0.5), size = 3)
 
         pwidth <- 150 * nrow(df_filtered)
         png(paste0(plotdir, "/", "sample_qc_stats_filtered.png"), width = pwidth, height = 1200, res = 200)
@@ -259,7 +259,7 @@ setMethod(
                 geom_point(alpha = 0.7, aes(size = library_cov)) +
                 geom_text(size = 2, color = "black", aes(label = library_cov)) +
                 geom_text(size = 2, color = "black", vjust = -1, aes(label = samples)) +
-                labs(x = "total reads", y = "effective reads", title = "Sample QC Stats") +
+                labs(x = "total reads", y = "library reads", title = "Sample QC Stats") +
                 scale_x_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
                 scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
                 scale_size_continuous(range = c(6, 12)) +
@@ -360,7 +360,7 @@ setMethod(
         }
 
         sample_names <- vector()
-        effcounts_pos <- data.table()
+        libcounts_pos <- data.table()
         for (s in object@samples) {
             sample_names <- append(sample_names, s@sample)
 
@@ -368,15 +368,15 @@ setMethod(
             tmp_counts <- as.data.table(tmp_counts)
             tmp_counts[, sample := s@sample]
 
-            if (nrow(effcounts_pos) == 0) {
-                effcounts_pos <- tmp_counts
+            if (nrow(libcounts_pos) == 0) {
+                libcounts_pos <- tmp_counts
             } else {
-                effcounts_pos <- rbind(effcounts_pos, tmp_counts)
+                libcounts_pos <- rbind(libcounts_pos, tmp_counts)
             }
         }
-        effcounts_pos[, log2p1 := log2(count+1)]
+        libcounts_pos[, log2p1 := log2(count+1)]
 
-        p1 <- ggplot(effcounts_pos, aes(x = position, y = log2p1)) +
+        p1 <- ggplot(libcounts_pos, aes(x = position, y = log2p1)) +
                 geom_point(shape = 16, size = 0.5, color = "tomato", alpha = 0.8) +
                 labs(x = "Genomic Coordinate", y = "log2(count+1)", title = "Sample QC position coverage") +
                 theme(legend.position = "none", panel.grid.major = element_blank()) +
@@ -423,19 +423,19 @@ setMethod(
             stop(paste0("====> Error: wrong type, please use lof or all."))
         }
 
-        effcounts_pos <- object@library_counts_pos_anno
-        effcounts_pos <- effcounts_pos[, c(samples, "position", "consequence")]
+        libcounts_pos <- object@library_counts_pos_anno
+        libcounts_pos <- libcounts_pos[, c(samples, "position", "consequence")]
 
         if (type == "lof") {
-            effcounts_pos$consequence <- ifelse(effcounts_pos$consequence == "lof", "lof", "others")
-            effcounts_pos[, samples] <- effcounts_pos[, samples] / object@stats[samples, ]$accepted_reads * 100
+            libcounts_pos$consequence <- ifelse(libcounts_pos$consequence == "lof", "lof", "others")
+            libcounts_pos[, samples] <- libcounts_pos[, samples] / object@stats[samples, ]$accepted_reads * 100
 
-            df_effcounts_pos <- reshape2::melt(effcounts_pos, id.vars = c("consequence", "position"), variable.name = "samples", value.name = "counts")
-            df_effcounts_pos$samples <- factor(df_effcounts_pos$samples, levels = samples)
+            df_libcounts_pos <- reshape2::melt(libcounts_pos, id.vars = c("consequence", "position"), variable.name = "samples", value.name = "counts")
+            df_libcounts_pos$samples <- factor(df_libcounts_pos$samples, levels = samples)
 
-            df_effcounts_pos[df_effcounts_pos == 0] <- NA
+            df_libcounts_pos[df_libcounts_pos == 0] <- NA
 
-            p1 <- ggplot(df_effcounts_pos, aes(x = position, y = counts)) +
+            p1 <- ggplot(df_libcounts_pos, aes(x = position, y = counts)) +
                     geom_point(shape = 19, size = 0.5, aes(color = factor(consequence))) +
                     geom_hline(yintercept = major_cut, linetype = "dashed", color = "springgreen4", size = 0.4) +
                     scale_color_manual(values = c(t_col("red", 1), t_col("royalblue", 0.2)), labels = c("LOF", "Others")) +
@@ -454,18 +454,18 @@ setMethod(
             print(p1)
             dev.off()
         } else {
-            effcounts_pos[, samples] <- effcounts_pos[, samples] / object@stats[samples, ]$accepted_reads * 100
+            libcounts_pos[, samples] <- libcounts_pos[, samples] / object@stats[samples, ]$accepted_reads * 100
 
-            df_effcounts_pos <- reshape2::melt(effcounts_pos, id.vars = c("consequence", "position"), variable.name = "samples", value.name = "counts")
-            df_effcounts_pos$samples <- factor(df_effcounts_pos$samples, levels = samples)
+            df_libcounts_pos <- reshape2::melt(libcounts_pos, id.vars = c("consequence", "position"), variable.name = "samples", value.name = "counts")
+            df_libcounts_pos$samples <- factor(df_libcounts_pos$samples, levels = samples)
 
-            df_effcounts_pos[df_effcounts_pos == 0] <- NA
+            df_libcounts_pos[df_libcounts_pos == 0] <- NA
 
-            num_colors <- length(unique(effcounts_pos$consequence))
+            num_colors <- length(unique(libcounts_pos$consequence))
             index_colors <- sample(seq(1, length(select_colorblind("col21"))), num_colors)
             select_colors <- select_colorblind("col21")[index_colors]
 
-            freq_cons <- table(effcounts_pos$consequence)
+            freq_cons <- table(libcounts_pos$consequence)
             names(select_colors) <- names(freq_cons)
 
             freq_cons <- sort(freq_cons, decreasing = TRUE)
@@ -478,7 +478,7 @@ setMethod(
             }
             select_colors <- as.vector(select_colors)
 
-            p1 <- ggplot(df_effcounts_pos, aes(x = position, y = counts)) +
+            p1 <- ggplot(df_libcounts_pos, aes(x = position, y = counts)) +
                     geom_point(shape = 19, size = 0.5, aes(color = factor(consequence))) +
                     geom_hline(yintercept = major_cut, linetype = "dashed", color = "springgreen4", linewidth = 0.4) +
                     scale_color_manual(values = select_colors) +
