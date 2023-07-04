@@ -405,7 +405,6 @@ setGeneric("qcplot_position_anno", function(object, ...) {
 #' @param object    sampleQC object
 #' @param samples   a vector of sample names
 #' @param type      plot type, lof or all
-#' @param major_cut the qc cutoff of major variants
 #' @param plotdir   the output plot directory
 setMethod(
     "qcplot_position_anno",
@@ -413,7 +412,6 @@ setMethod(
     definition = function(object,
                           samples,
                           type,
-                          major_cut = 0.005,
                           plotdir) {
         if (length(plotdir) == 0) {
             stop(paste0("====> Error: plotdir is not provided, no output directory."))
@@ -439,7 +437,7 @@ setMethod(
 
             p1 <- ggplot(df_libcounts_pos, aes(x = position, y = counts)) +
                     geom_point(shape = 19, size = 0.5, aes(color = factor(consequence))) +
-                    geom_hline(yintercept = major_cut, linetype = "dashed", color = "springgreen4", size = 0.4) +
+                    geom_hline(yintercept = object@cutoffs$low_abundance_lof, linetype = "dashed", color = "springgreen4", size = 0.4) +
                     scale_color_manual(values = c(t_col("red", 1), t_col("royalblue", 0.2)), labels = c("LOF", "Others")) +
                     labs(x = "sequence position", y = "percentage", title = "Sample QC position percentage", color = "Type") +
                     coord_trans(y = "log2") +
@@ -482,7 +480,7 @@ setMethod(
 
             p1 <- ggplot(df_libcounts_pos, aes(x = position, y = counts)) +
                     geom_point(shape = 19, size = 0.5, aes(color = factor(consequence))) +
-                    geom_hline(yintercept = major_cut, linetype = "dashed", color = "springgreen4", linewidth = 0.4) +
+                    geom_hline(yintercept = object@cutoffs$low_abundance_lof, linetype = "dashed", color = "springgreen4", linewidth = 0.4) +
                     scale_color_manual(values = select_colors) +
                     labs(x = "sequence position", y = "percentage", title = "Sample QC position percentage", color = "Type") +
                     coord_trans(y = "log2") +

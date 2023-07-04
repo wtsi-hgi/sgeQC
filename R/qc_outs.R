@@ -158,7 +158,7 @@ setMethod(
         tmp_out <- object@stats$per_unmapped_reads * 100
         tmp_out <- sapply(tmp_out, function(x) round(x, 1))
         df_outs[, 6] <- tmp_out
-        df_outs[, 7] <- object@cutoffs$library_percent
+        df_outs[, 7] <- object@cutoffs$library_percent * 100
         df_outs[, 8] <- object@stats$qcpass_library_per
 
         if (length(outdir) == 0) {
@@ -169,7 +169,7 @@ setMethod(
                           "Group" = colDef(minWidth = 150),
                           "Sample" = colDef(minWidth = 150),
                           "% Library Reads" = colDef(style = function(value) {
-                                                                 if (value < object@cutoffs$library_percent) {
+                                                                 if (value < object@cutoffs$library_percent * 100) {
                                                                     color <- "red"
                                                                     fweight <- "bold"
                                                                 } else {
@@ -280,7 +280,10 @@ setMethod(
                   "Strand",
                   "Genomic Start",
                   "Genomic End",
-                  "% Low Abundance",
+                  "% Low Abundance (LOF)",
+                  "% Low Abundance (Others)",
+                  "% Low Abundance (ALL)",
+                  "% Low Abundance cutoff",
                   "Pass Threshold",
                   "Pass")
         df_outs <- data.frame(matrix(NA, nrow(object@stats), length(cols)))
@@ -293,21 +296,32 @@ setMethod(
         df_outs[, 5] <- sapply(object@library_counts_chr, function (x) x[[3]])
         df_outs[, 6] <- sapply(object@library_counts_chr, function (x) x[[4]])
 
-
         libcounts_pos <- object@library_counts_pos_anno
-        libcounts_pos <- libcounts_pos[, c(samples, "position", "consequence")]
+        libcounts_pos <- libcounts_pos[, c(rownames(object@stats), "consequence")]
         libcounts_pos$consequence <- ifelse(libcounts_pos$consequence == "lof", "lof", "others")
         libcounts_pos[, rownames(object@stats)] <- t(t(libcounts_pos[, rownames(object@stats)]) / object@stats$accepted_reads * 100)
-        df_libcounts_pos[df_libcounts_pos == 0] <- NA
+        libcounts_pos[libcounts_pos == 0] <- NA
 
-        df_outs[, 7] <- sapply(object@library_counts_chr, function (x) x[[4]])
-        df_outs[, 8] <- object@cutoffs$library_cov
-        df_outs[, 9] <- object@stats$qcpass_library_cov
+        lof_counts <- libcounts_pos[libcounts_pos$consequence == "lof", rownames(object@stats)]
+        # the number of seqs with low abundance
+        lof_low_num <- colSums(lof_counts < object@cutoffs$low_abundance_per * 100)
+        # the percentage of seqs with low abundance
+        lof_low_per <- lof_low_num / nrow(libcounts_pos) * 100
+        lof_low_per <- round(lof_low_per, 1)
 
+        others_counts <- libcounts_pos[libcounts_pos$consequence == "others", rownames(object@stats)]
+        # the number of seqs with low abundance
+        others_low_num <- colSums(others_counts < object@cutoffs$low_abundance_per * 100)
+        # the percentage of seqs with low abundance
+        others_low_per <- others_low_num / nrow(libcounts_pos) * 100
+        others_low_per <- round(others_low_per, 1)
 
-
-
-
+        df_outs[, 7] <- lof_low_per
+        df_outs[, 8] <- others_low_per
+        df_outs[, 9] <- lof_low_per + others_low_per
+        df_outs[, 10] <- object@cutoffs$low_abundance_per * 100
+        df_outs[, 11] <- (1 - object@cutoffs$low_abundance_lib_per) * 100
+        df_outs[, 12] <- df_outs[, 9] < (1 - object@cutoffs$low_abundance_lib_per) * 100
 
         if (length(outdir) == 0) {
             reactable(df_outs, highlight = TRUE, bordered = TRUE,  striped = TRUE, compact = TRUE, wrap = FALSE,
@@ -316,18 +330,17 @@ setMethod(
                       columns = list(
                           "Group" = colDef(minWidth = 150),
                           "Sample" = colDef(minWidth = 150),
-                          "Total Library Reads" = colDef(format = colFormat(separators = TRUE)),
-                          "Total Template Oligo Sequences" = colDef(format = colFormat(separators = TRUE)),
-                          "Library Coverage" = colDef(format = colFormat(separators = TRUE),
-                                                      style = function(value) {
-                                                                  if (value < object@cutoffs$library_cov) {
-                                                                      color <- "red"
-                                                                      fweight <- "bold"
-                                                                  } else {
-                                                                      color <- "forestgreen"
-                                                                      fweight <- "plain"
-                                                                  }
-                                                                  list(color = color, fontWeight = fweight)}),
+                          "Genomic Start" = colDef(format = colFormat(separators = TRUE)),
+                          "Genomic End" = colDef(format = colFormat(separators = TRUE)),
+                          "% Low Abundance (ALL)" = colDef(style = function(value) {
+                                                                       if (value > (1 - object@cutoffs$low_abundance_lib_per) * 100) {
+                                                                           color <- "red"
+                                                                           fweight <- "bold"
+                                                                       } else {
+                                                                           color <- "forestgreen"
+                                                                           fweight <- "plain"
+                                                                       }
+                                                                       list(color = color, fontWeight = fweight)}),
                           "Pass" = colDef(cell = function(value) {
                                                    if (value) "\u2705" else "\u274c" }))
                      )
