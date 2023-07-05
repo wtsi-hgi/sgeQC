@@ -53,7 +53,7 @@ setMethod(
                 facet_wrap(~sample, scales = "free", dir = "v", ncol = 4)
 
         pheight <- 400 * as.integer((length(sample_names) / 3))
-        png(paste0(plotdir, "/", "sample_qc_read_length.violin.png"), width = 1200, height = pheight, res = 200)
+        png(paste0(plotdir, "/", "sample_qc_read_length.png"), width = 1200, height = pheight, res = 200)
         print(p1)
         dev.off()
     }
@@ -456,11 +456,13 @@ setMethod(
             df_libcounts_pos <- reshape2::melt(libcounts_pos, id.vars = c("consequence", "position"), variable.name = "samples", value.name = "counts")
             df_libcounts_pos$samples <- factor(df_libcounts_pos$samples, levels = samples)
 
+            tmp_cutoff <- object@cutoffs$low_abundance_per * 100
+
             p1 <- ggplot(df_libcounts_pos, aes(x = position, y = counts)) +
                     geom_point(shape = 19, size = 0.5, aes(color = factor(consequence))) +
-                    geom_hline(yintercept = object@cutoffs$low_abundance_lof, linetype = "dashed", color = "springgreen4", size = 0.4) +
+                    geom_hline(yintercept = tmp_cutoff, linetype = "dashed", color = "springgreen4", size = 0.4) +
                     scale_color_manual(values = c(t_col("red", 1), t_col("royalblue", 0.2)), labels = c("LOF", "Others")) +
-                    labs(x = "sequence position", y = "percentage", title = "Sample QC position percentage", color = "Type") +
+                    labs(x = "Genomic Coordinate", y = "Percentage", title = "Sample QC position percentage", color = "Type") +
                     coord_trans(y = "log2") +
                     scale_y_continuous(breaks = c(0.001, 0.005, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.4, 0.6, 0.8, 1)) +
                     theme(legend.position = "right", panel.grid.major = element_blank()) +
@@ -499,11 +501,13 @@ setMethod(
             }
             select_colors <- as.vector(select_colors)
 
+            tmp_cutoff <- object@cutoffs$low_abundance_per * 100
+
             p1 <- ggplot(df_libcounts_pos, aes(x = position, y = counts)) +
                     geom_point(shape = 19, size = 0.5, aes(color = factor(consequence))) +
-                    geom_hline(yintercept = object@cutoffs$low_abundance_lof, linetype = "dashed", color = "springgreen4", linewidth = 0.4) +
+                    geom_hline(yintercept = tmp_cutoff, linetype = "dashed", color = "springgreen4", linewidth = 0.4) +
                     scale_color_manual(values = select_colors) +
-                    labs(x = "sequence position", y = "percentage", title = "Sample QC position percentage", color = "Type") +
+                    labs(x = "Genomic Coordinate", y = "Percentage", title = "Sample QC position percentage", color = "Type") +
                     coord_trans(y = "log2") +
                     scale_y_continuous(breaks = c(0.001, 0.005, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.4, 0.6, 0.8, 1)) +
                     theme(legend.position = "right", panel.grid.major = element_blank()) +
@@ -736,16 +740,18 @@ setMethod(
                     geom_violinhalf(trim = FALSE, scale = "width", fill = t_col("yellowgreen", 0.5), color = "yellowgreen", position = position_nudge(x = .2, y = 0)) +
                     geom_jitter(width = 0.15, size = 0.75, aes(color = factor(stat))) +
                     scale_color_manual(values = c(t_col("grey", 0.3), t_col("tomato", 0.8), t_col("royalblue", 0.8))) +
-                    labs(y = "log2FoldChange", title = comparisions[i]) +
+                    ylim(-4, 1) +
+                    coord_flip() +
+                    labs(x = "log2FoldChange", title = comparisions[i], color = "Type") +
                     theme(legend.position = "right", panel.grid.major = element_blank()) +
                     theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
-                    theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
+                    theme(axis.title.y = element_blank(), axis.title.x = element_text(size = 12, face = "bold", family = "Arial")) +
                     theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
-                    theme(axis.text = element_text(size = 8, face = "bold")) +
-                    ylim(-4, 1)
+                    theme(axis.text = element_text(size = 8, face = "bold"))
 
-            pwidth <- 300 * length(cons)
-            png(paste0(plotdir, "/", "sample_qc_deseq_fc.", comparisions[i], ".violin.png"), width = pwidth, height = 1200, res = 200)
+
+            pheight <- 200 * length(cons)
+            png(paste0(plotdir, "/", "sample_qc_deseq_fc.", comparisions[i], ".violin.png"), width = 1500, height = pheight, res = 200)
             print(p2)
             dev.off()
 

@@ -4,12 +4,12 @@
 \alias{qcplot_position,sampleQC-method}
 \title{create the position plot}
 \usage{
-\S4method{qcplot_position}{sampleQC}(object, type = "plasmid", plotdir)
+\S4method{qcplot_position}{sampleQC}(object, qctype = "screen", plotdir)
 }
 \arguments{
 \item{object}{sampleQC object}
 
-\item{type}{plot type, screen or plasmid}
+\item{qctype}{plot type, screen or plasmid}
 
 \item{plotdir}{the output plot directory}
 }

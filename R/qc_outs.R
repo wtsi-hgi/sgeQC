@@ -296,22 +296,24 @@ setMethod(
         df_outs[, 5] <- sapply(object@library_counts_chr, function (x) x[[3]])
         df_outs[, 6] <- sapply(object@library_counts_chr, function (x) x[[4]])
 
-        libcounts_pos <- object@library_counts_pos_anno
+        libcounts_pos <- as.data.frame(object@library_counts_pos_anno)
         libcounts_pos <- libcounts_pos[, c(rownames(object@stats), "consequence")]
         libcounts_pos$consequence <- ifelse(libcounts_pos$consequence == "LOF", "LOF", "Others")
         libcounts_pos[, rownames(object@stats)] <- t(t(libcounts_pos[, rownames(object@stats)]) / object@stats$accepted_reads * 100)
-        libcounts_pos[libcounts_pos == 0] <- NA
+
+        # what about NA?
+        #libcounts_pos[is.na(libcounts_pos)] <- 0
 
         lof_counts <- libcounts_pos[libcounts_pos$consequence == "LOF", rownames(object@stats)]
         # the number of seqs with low abundance
-        lof_low_num <- colSums(lof_counts < object@cutoffs$low_abundance_per * 100)
+        lof_low_num <- colSums(lof_counts < object@cutoffs$low_abundance_per * 100, na.rm = TRUE)
         # the percentage of seqs with low abundance
         lof_low_per <- lof_low_num / nrow(libcounts_pos) * 100
         lof_low_per <- round(lof_low_per, 1)
 
         others_counts <- libcounts_pos[libcounts_pos$consequence == "Others", rownames(object@stats)]
         # the number of seqs with low abundance
-        others_low_num <- colSums(others_counts < object@cutoffs$low_abundance_per * 100)
+        others_low_num <- colSums(others_counts < object@cutoffs$low_abundance_per * 100, na.rm = TRUE)
         # the percentage of seqs with low abundance
         others_low_per <- others_low_num / nrow(libcounts_pos) * 100
         others_low_per <- round(others_low_per, 1)
@@ -332,7 +334,10 @@ setMethod(
                           "Sample" = colDef(minWidth = 150),
                           "Genomic Start" = colDef(format = colFormat(separators = TRUE)),
                           "Genomic End" = colDef(format = colFormat(separators = TRUE)),
-                          "% Low Abundance (ALL)" = colDef(style = function(value) {
+                          "% Low Abundance (LOF)" = colDef(minWidth = 200),
+                          "% Low Abundance (Others)" = colDef(minWidth = 200),
+                          "% Low Abundance (ALL)" = colDef(minWidth = 200,
+                                                           style = function(value) {
                                                                        if (value > (1 - object@cutoffs$low_abundance_lib_per) * 100) {
                                                                            color <- "red"
                                                                            fweight <- "bold"
@@ -341,6 +346,7 @@ setMethod(
                                                                            fweight <- "plain"
                                                                        }
                                                                        list(color = color, fontWeight = fweight)}),
+                          "% Low Abundance cutoff" = colDef(minWidth = 200),
                           "Pass" = colDef(cell = function(value) {
                                                    if (value) "\u2705" else "\u274c" }))
                      )
