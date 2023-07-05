@@ -195,7 +195,7 @@ setMethod(
                 theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                 theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
                 theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
-                theme(axis.text = element_text(size = 12, face = "bold")) +
+                theme(axis.text = element_text(size = 8, face = "bold")) +
                 theme(axis.text.x = element_text(angle = 90))
 
         pwidth <- 150 * nrow(df_total)
@@ -211,20 +211,31 @@ setMethod(
 
         dt_filtered$samples <- factor(dt_filtered$samples, levels = df_filtered$samples)
 
+        df_cov <- object@stats[, c("total_reads", "library_reads", "library_cov")]
+        colnames(df_cov) <- c("num_total_reads", "num_library_reads", "library_cov")
+        df_cov$samples <- rownames(df_cov)
+
+        df_merge <- cbind(df_filtered, df_cov$library_cov)
+        colnames(df_merge) <- c(colnames(df_filtered), "library_cov")
+        dt_merge <- reshape2::melt(as.data.table(df_merge), id.vars = c("samples", "library_cov"), , variable.name = "types", value.name = "percent")
+
         select_colors <- select_colorblind("col8")[1:4]
         fill_colors <- sapply(select_colors, function(x) t_col(x, 0.5), USE.NAMES = FALSE)
 
-        p2 <- ggplot(dt_filtered,  aes(x = samples, y = percent, fill = types)) +
+        y_scale <- max(dt_merge$library_cov) * 2
+
+        p2 <- ggplot(dt_merge,  aes(x = samples, y = percent, fill = types)) +
                 geom_bar(stat = "identity", position = "fill") +
+                geom_point(shape = 18, color = "darkred", size = 2, aes(y = library_cov / y_scale)) +
+                scale_y_continuous(labels = scales::percent, sec.axis = sec_axis(~. * y_scale, name = "library coverage")) +
                 scale_fill_manual(values = fill_colors) +
                 scale_color_manual(values = select_colors) +
                 labs(x = "samples", y = "percent", title = "Sample QC Stats") +
-                scale_y_continuous(labels = scales::percent) +
                 theme(legend.position = "right", legend.title = element_blank()) +
                 theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                 theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
                 theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
-                theme(axis.text = element_text(size = 12, face = "bold")) +
+                theme(axis.text = element_text(size = 8, face = "bold")) +
                 theme(axis.text.x = element_text(angle = 90)) +
                 geom_text(aes(label = percent), position = position_fill(vjust = 0.5), size = 3)
 
@@ -232,9 +243,6 @@ setMethod(
         png(paste0(plotdir, "/", "sample_qc_stats_filtered.png"), width = pwidth, height = 1200, res = 200)
         print(p2)
         dev.off()
-
-        df_cov <- object@stats[, c("total_reads", "library_reads", "library_cov")]
-        df_cov$samples <- rownames(df_cov)
 
         p3 <- ggplot(df_cov,  aes(x = total_reads, y = library_reads, color = samples)) +
                 geom_point(alpha = 0.7, aes(size = library_cov)) +
