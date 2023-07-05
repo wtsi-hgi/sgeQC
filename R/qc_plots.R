@@ -74,14 +74,10 @@ setMethod(
     "qcplot_clusters",
     signature = "sampleQC",
     definition = function(object,
-                          qctype,
+                          qctype = "screen",
                           plotdir) {
-        if (length(qctype) == 0) {
-            stop(paste0("====> Error: qctype is not provided, plasmid or screen."))
-        } else {
-            if (qctype %nin% c("plasmid", "screen")) {
+        if (qctype %nin% c("plasmid", "screen")) {
                 stop(paste0("====> Error: wrong qctype, plasmid or screen."))
-            }
         }
 
         if (length(plotdir) == 0) {
@@ -115,21 +111,6 @@ setMethod(
             dev.off()
 
             p2 <- ggplot(seq_clusters_new, aes(x = count_log2, color = factor(cluster))) +
-                    geom_histogram(aes(fill = factor(cluster), color = factor(cluster))) +
-                    scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
-                    scale_color_manual(values = c("tomato", "royalblue")) +
-                    labs(x = "log2(count+1)", y = "frequency", title = "Sample QC clusters") +
-                    theme(legend.position = "none", panel.grid.major = element_blank()) +
-                    theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
-                    theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
-                    theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
-                    theme(axis.text = element_text(size = 12, face = "bold"))
-
-            #png(paste0(plotdir, "/", "sample_qc_seq_clusters.hist.png"), width = 1200, height = 1200, res = 200)
-            #print(p2)
-            #dev.off()
-
-            p3 <- ggplot(seq_clusters_new, aes(x = count_log2, color = factor(cluster))) +
                     geom_density(aes(fill = factor(cluster), color = factor(cluster))) +
                     scale_fill_manual(values = c(t_col("tomato", 0.5), t_col("royalblue", 0.5))) +
                     scale_color_manual(values = c("tomato", "royalblue")) +
@@ -141,7 +122,7 @@ setMethod(
                     theme(axis.text = element_text(size = 12, face = "bold"))
 
             #png(paste0(plotdir, "/", "sample_qc_seq_clusters.density.png"), width = 1200, height = 1200, res = 200)
-            #print(p3)
+            #print(p2)
             #dev.off()
         } else {
             seq_clusters <- data.table()
@@ -349,14 +330,20 @@ setGeneric("qcplot_position", function(object, ...) {
 #'
 #' @export
 #' @param object  sampleQC object
+#' @param qctype  plot type, screen or plasmid
 #' @param plotdir the output plot directory
 setMethod(
     "qcplot_position",
     signature = "sampleQC",
     definition = function(object,
+                          qctype = "screen",
                           plotdir) {
         if (length(plotdir) == 0) {
             stop(paste0("====> Error: plotdir is not provided, no output directory."))
+        }
+
+        if (qctype %nin% c("plasmid", "screen")) {
+            stop(paste0("====> Error: wrong qctype, plasmid or screen."))
         }
 
         sample_names <- vector()
@@ -364,7 +351,7 @@ setMethod(
         for (s in object@samples) {
             sample_names <- append(sample_names, s@sample)
 
-            tmp_counts <- object@library_counts_pos[[s@sample]][, c("position", "count")]
+            tmp_counts <- object@library_counts_pos[[s@sample]][, c("seq", "position", "count")]
             tmp_counts <- as.data.table(tmp_counts)
             tmp_counts[, sample := s@sample]
 
@@ -376,8 +363,35 @@ setMethod(
         }
         libcounts_pos[, log2p1 := log2(count+1)]
 
+        if (qctype == "plasmid") {
+            libcounts_dependent_pos <- data.table()
+
+            for (s in object@samples) {
+                tmp_counts <- s@libcounts[, c("name", "count")]
+                colnames(tmp_counts) <- c("oligo_name", "count")
+                tmp_counts <- as.data.table(tmp_counts)
+                tmp_counts[, sample := s@sample]
+
+                tmp_meta <- s@valiant_meta[, c("oligo_name", "mut_position")]
+                tmp_meta <- as.data.table(tmp_meta)
+
+                tmp_counts[tmp_meta, position := i.mut_position, on = .(oligo_name)]
+                setorder(tmp_counts, cols = "position")
+
+                if (nrow(libcounts_dependent_pos) == 0) {
+                libcounts_dependent_pos <- tmp_counts
+                } else {
+                    libcounts_dependent_pos <- rbind(libcounts_dependent_pos, tmp_counts)
+                }
+            }
+
+            libcounts_pos <- libcounts_dependent_pos
+            libcounts_pos[, log2p1 := log2(count+1)]
+        }
+
         p1 <- ggplot(libcounts_pos, aes(x = position, y = log2p1)) +
                 geom_point(shape = 16, size = 0.5, color = "tomato", alpha = 0.8) +
+                geom_hline(yintercept = object@cutoffs$seq_low_count, linetype = "dashed", color = "springgreen4", size = 0.4) +
                 labs(x = "Genomic Coordinate", y = "log2(count+1)", title = "Sample QC position coverage") +
                 theme(legend.position = "none", panel.grid.major = element_blank()) +
                 theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
