@@ -410,30 +410,32 @@ setMethod(
     "qcplot_position_anno",
     signature = "sampleQC",
     definition = function(object,
-                          samples,
-                          type,
+                          samples = NULL,
+                          type = "lof",
                           plotdir) {
         if (length(plotdir) == 0) {
             stop(paste0("====> Error: plotdir is not provided, no output directory."))
+        }
+
+        if (is.null(samples)) {
+            stop(paste0("====> Error: please provide samples, a vector."))
         }
 
         if (type %nin% c("lof", "all")) {
             stop(paste0("====> Error: wrong type, please use lof or all."))
         }
 
-        libcounts_pos <- object@library_counts_pos_anno
+        libcounts_pos <- as.data.frame(object@library_counts_pos_anno)
         libcounts_pos <- libcounts_pos[, c(samples, "position", "consequence")]
 
         if (type == "lof") {
-            libcounts_pos$consequence <- ifelse(libcounts_pos$consequence == "lof", "lof", "others")
+            libcounts_pos$consequence <- ifelse(libcounts_pos$consequence == "LOF", "LOF", "Others")
 
             # be careful, df / vec is by row, not column
             libcounts_pos[, samples] <- t(t(libcounts_pos[, samples]) / object@stats[samples, ]$accepted_reads * 100)
 
             df_libcounts_pos <- reshape2::melt(libcounts_pos, id.vars = c("consequence", "position"), variable.name = "samples", value.name = "counts")
             df_libcounts_pos$samples <- factor(df_libcounts_pos$samples, levels = samples)
-
-            df_libcounts_pos[df_libcounts_pos == 0] <- NA
 
             p1 <- ggplot(df_libcounts_pos, aes(x = position, y = counts)) +
                     geom_point(shape = 19, size = 0.5, aes(color = factor(consequence))) +
@@ -669,7 +671,7 @@ setMethod(
     "qcplot_deseq_fc",
     signature = "sampleQC",
     definition = function(object,
-                          cons = c("synonymous", "lof", "missense"),
+                          cons = c("Synonymous_Variant", "LOF", "Missense_Variant"),
                           pcut = 0.05,
                           dcut = 0,
                           ecut = 0,
@@ -683,7 +685,10 @@ setMethod(
             res <- object@deseq_res[[i]]$shrunken[, c("log2FoldChange", "padj")]
             res <- as.data.frame(res)
 
-            res$consequence <- object@library_counts_anno[rownames(res), ]$consequence
+            tmp_anno <- as.data.frame(object@library_counts_anno)
+            rownames(tmp_anno) <- tmp_anno$seq
+
+            res$consequence <- tmp_anno[rownames(res), ]$consequence
             res$stat <- "no impact"
             res[(res$padj < pcut) & (res$log2FoldChange > ecut), ]$stat <- "enriched"
             res[(res$padj < pcut) & (res$log2FoldChange < dcut), ]$stat <- "depleted"
@@ -712,7 +717,7 @@ setMethod(
                     geom_violinhalf(trim = FALSE, scale = "width", fill = t_col("yellowgreen", 0.5), color = "yellowgreen", position = position_nudge(x = .2, y = 0)) +
                     geom_jitter(width = 0.15, size = 0.75, aes(color = factor(stat))) +
                     scale_color_manual(values = c(t_col("grey", 0.3), t_col("tomato", 0.8), t_col("royalblue", 0.8))) +
-                    labs(y = "log2FoldChange", title = comparisions[1]) +
+                    labs(y = "log2FoldChange", title = comparisions[i]) +
                     theme(legend.position = "right", panel.grid.major = element_blank()) +
                     theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
                     theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +

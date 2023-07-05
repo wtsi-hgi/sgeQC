@@ -6,7 +6,7 @@
 \usage{
 \S4method{qcplot_deseq_fc}{sampleQC}(
   object,
-  cons = c("synonymous", "lof", "missense"),
+  cons = c("Synonymous_Variant", "LOF", "Missense_Variant"),
   pcut = 0.05,
   dcut = 0,
   ecut = 0,

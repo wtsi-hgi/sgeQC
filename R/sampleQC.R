@@ -250,13 +250,10 @@ setMethod(
         #---------------------------------------#
         cat("Sorting library counts by position...", "\n", sep = "")
 
-        # meta_mseqs are not unique, a oligo seq may have serveral meta records according to annotation
-        # one position may have different sequence, like C>A, C>G, C>T
-
-        # screen qc, all the samples use the same meta file
-        # plasmid qc, each sample has its own meta file
-
-        # may change later, because sequences in meta have adaptor
+        # main issue:
+        # meta seqs are not right
+        # oligo names are not unique
+        # a seq has a consequence, but has many names, don't know which name is right
 
         for (s in object@samples) {
             cat("    |--> Sorting on ", s@sample, "\n", sep = "")
@@ -264,22 +261,26 @@ setMethod(
             tmp_meta <- s@valiant_meta[, c("oligo_name", "mut_position")]
             tmp_meta <- as.data.table(tmp_meta)
 
-            tmp_vep <- s@vep_anno[, c("unique_oligo_name", "seq")]
-            colnames(tmp_vep) <- c("oligo_name", "seq")
-            tmp_vep <- as.data.table(tmp_vep)
+            # fecth oligo name using library dependent counts
+            tmp_map <- s@libcounts[, c("name", "sequence")]
+            colnames(tmp_map) <- c("oligo_name", "seq")
+            tmp_map <- as.data.table(tmp_map)
 
-            tmp_eff <- object@library_counts[[s@sample]]
-            effcounts_pos <- cbind(tmp_eff, rep(0, length(tmp_eff)))
-            effcounts_pos <- as.data.frame(effcounts_pos)
-            colnames(effcounts_pos) <- c("count", "position")
-            effcounts_pos$seq <- names(tmp_eff)
-            effcounts_pos <- as.data.table(effcounts_pos)
+            tmp_lib <- object@library_counts[[s@sample]]
+            libcounts_pos <- cbind(tmp_lib, rep(0, length(tmp_lib)))
+            libcounts_pos <- as.data.frame(libcounts_pos)
+            colnames(libcounts_pos) <- c("count", "position")
+            libcounts_pos$seq <- names(tmp_lib)
+            libcounts_pos <- as.data.table(libcounts_pos)
 
-            effcounts_pos[tmp_vep, oligo_name := i.oligo_name, on = .(seq)]
-            effcounts_pos[tmp_meta, position := i.mut_position, on = .(oligo_name)]
-            setorder(effcounts_pos, cols = "position")
+            # multiple oligo names have the same seq and the same position
+            # so here is fine, but need to refine
+            # oligo name may not right, but position is good
+            libcounts_pos[tmp_map, oligo_name := i.oligo_name, on = .(seq)]
+            libcounts_pos[tmp_meta, position := i.mut_position, on = .(oligo_name)]
+            setorder(libcounts_pos, cols = "position")
 
-            object@library_counts_pos[[s@sample]] <- effcounts_pos
+            object@library_counts_pos[[s@sample]] <- libcounts_pos
             object@library_counts_chr[[s@sample]] <- c(unique(s@valiant_meta$ref_chr),
                                                        unique(s@valiant_meta$ref_strand),
                                                        unique(s@valiant_meta$ref_start),
@@ -364,15 +365,27 @@ setMethod(
         #------------------------#
         cat("Mapping consequencing annotation...", "\n", sep = "")
 
-        # screen qc assuming all the samples have the same vep annotations
-        vep_anno <- object@samples[[1]]@vep_anno
-        rownames(vep_anno) <- vep_anno$seq
+        # main issue:
+        # meta_consequence seqs are reverse complement, fix it in create_sge_object
+        # but it may change later
+        # oligo names are not unique to sequence, cannot use as reference
+        # a seq has a consequence, but has many names, don't which name is right
+        # so, vep must have right seq, otherwise cannot determine the consequence
 
-        # merge all the library counts
+        # assuming all the samples have the sample library sequences and corresponding consequences
+        # using sequences in vep annotation to identify consequences
+        vep_anno <- object@samples[[1]]@vep_anno[, c("unique_oligo_name", "seq", "summary_plot")]
+        colnames(vep_anno) <- c("oligo_name", "seq", "consequence")
+        vep_anno <- as.data.table(vep_anno)
+
+        # merge counts, but use data table in case rownames of data frame is not unique
         library_counts_anno <- merge_list_to_df(object@library_counts)
         library_counts_anno[is.na(library_counts_anno)] <- 0
 
-        library_counts_anno$consequence <- vep_anno[rownames(library_counts_anno), ]$assigned # may change
+        library_counts_anno$seq <- rownames(library_counts_anno)
+        library_counts_anno <- as.data.table(library_counts_anno)
+
+        library_counts_anno[vep_anno, consequence := i.consequence, on = .(seq)]
         object@library_counts_anno <- library_counts_anno
 
         # merge all the sorted library counts
@@ -388,15 +401,14 @@ setMethod(
                 library_counts_pos_anno <- merge(library_counts_pos_anno, tmp_pos, by = c("seq", "position"), all = TRUE)
             }
         }
-        library_counts_pos_anno <- as.data.frame(library_counts_pos_anno)
-        rownames(library_counts_pos_anno) <- library_counts_pos_anno$seq
-        library_counts_pos_anno <- subset(library_counts_pos_anno, select = -seq)
 
-        library_counts_pos_anno[is.na(library_counts_pos_anno)] <- 0
-        library_counts_pos_anno <- library_counts_pos_anno[, c("position", object@filtered_samples)]
+        # any better way to do this?
+        # keep NA for now
+        #library_counts_pos_anno <- as.data.frame(library_counts_pos_anno)
+        #library_counts_pos_anno[is.na(library_counts_pos_anno)] <- 0
+        #library_counts_pos_anno <- as.data.table(library_counts_pos_anno)
 
-        library_counts_pos_anno$consequence <- vep_anno[rownames(library_counts_pos_anno), ]$assigned # may change
-
+        library_counts_pos_anno[vep_anno, consequence := i.consequence, on = .(seq)]
         object@library_counts_pos_anno <- library_counts_pos_anno
 
         #-------------------#
@@ -406,7 +418,12 @@ setMethod(
         # run control
         cat("Running control deseq2 to get size factor...", "\n", sep = "")
 
-        syn_counts <- library_counts_anno[library_counts_anno$consequence == "synonymous", rownames(ds_coldata)]
+        library_counts_anno <- as.data.frame(library_counts_anno)
+
+        # rownames are necessary for DESeq2, otherwise error happens to assign values in function
+        rownames(library_counts_anno) <- library_counts_anno$seq
+
+        syn_counts <- library_counts_anno[library_counts_anno$consequence == "Synonymous_Variant", rownames(ds_coldata)]
 
         syn_ds_obj <- DESeqDataSetFromMatrix(countData = syn_counts, colData = ds_coldata, design = ~condition)
         syn_ds_obj <- syn_ds_obj[rowSums(counts(syn_ds_obj)) > 0, ]

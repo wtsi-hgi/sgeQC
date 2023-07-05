@@ -298,18 +298,18 @@ setMethod(
 
         libcounts_pos <- object@library_counts_pos_anno
         libcounts_pos <- libcounts_pos[, c(rownames(object@stats), "consequence")]
-        libcounts_pos$consequence <- ifelse(libcounts_pos$consequence == "lof", "lof", "others")
+        libcounts_pos$consequence <- ifelse(libcounts_pos$consequence == "LOF", "LOF", "Others")
         libcounts_pos[, rownames(object@stats)] <- t(t(libcounts_pos[, rownames(object@stats)]) / object@stats$accepted_reads * 100)
         libcounts_pos[libcounts_pos == 0] <- NA
 
-        lof_counts <- libcounts_pos[libcounts_pos$consequence == "lof", rownames(object@stats)]
+        lof_counts <- libcounts_pos[libcounts_pos$consequence == "LOF", rownames(object@stats)]
         # the number of seqs with low abundance
         lof_low_num <- colSums(lof_counts < object@cutoffs$low_abundance_per * 100)
         # the percentage of seqs with low abundance
         lof_low_per <- lof_low_num / nrow(libcounts_pos) * 100
         lof_low_per <- round(lof_low_per, 1)
 
-        others_counts <- libcounts_pos[libcounts_pos$consequence == "others", rownames(object@stats)]
+        others_counts <- libcounts_pos[libcounts_pos$consequence == "Others", rownames(object@stats)]
         # the number of seqs with low abundance
         others_low_num <- colSums(others_counts < object@cutoffs$low_abundance_per * 100)
         # the percentage of seqs with low abundance

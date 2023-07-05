@@ -99,6 +99,14 @@ create_sge_object <- function(file_libcount,
         vep_anno <- data.frame()
     } else {
         vep_anno <- read_sge_file(file_vep_anno, file_vep_anno_hline, file_vep_anno_cols)
+
+        if (vep_anno[1, ]$unique_oligo_name %nin% valiant_meta$oligo_name) {
+            vep_anno$unique_oligo_name <- sapply(vep_anno$unique_oligo_name, function (x) paste(head(unlist(strsplit(x, "_")), -2), collapse = "_"))
+        }
+
+        if (vep_anno[1, ]$seq %nin% libcounts$sequence) {
+            vep_anno$seq <- sapply(vep_anno$seq, function (x) revcomp(x))
+        }
     }
 
     # initializing

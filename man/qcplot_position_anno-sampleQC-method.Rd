@@ -4,7 +4,7 @@
 \alias{qcplot_position_anno,sampleQC-method}
 \title{create the position plot}
 \usage{
-\S4method{qcplot_position_anno}{sampleQC}(object, samples, type, plotdir)
+\S4method{qcplot_position_anno}{sampleQC}(object, samples = NULL, type = "lof", plotdir)
 }
 \arguments{
 \item{object}{sampleQC object}

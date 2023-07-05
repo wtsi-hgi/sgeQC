@@ -50,9 +50,9 @@ read_sge_file <- function(file_path,
     }
 
     filedata <- data.frame(filedata)
-    # add header to dataframe
+    # add header to dataframe, and transfer to lower characters
     if (hline > 0) {
-        colnames(filedata) <- header
+        colnames(filedata) <- tolower(header)
     }
     # select columns
     if (length(colnums) > 0) {
@@ -100,7 +100,7 @@ import_sge_files <- function(dir_path,
     # read sample sheet and check format
     samplesheet <- read.table(paste0(dir_path, "/", sample_sheet), sep = "\t", comment.char = "#", header = TRUE, fill = TRUE)
     require_cols <- c("sample_name", "library_independent_count", "library_dependent_count",
-                      "valiant_meta", "adapt5", "adapt3", "library_name", "library_type")
+                      "valiant_meta", "vep_anno", "adapt5", "adapt3", "library_name", "library_type")
     for (s in require_cols) {
         if (s %nin% colnames(samplesheet)) {
             stop(paste0("====> Error: ", s, " must be in the sample sheet as the header"))
@@ -117,10 +117,14 @@ import_sge_files <- function(dir_path,
         cat("    |--> ", samplesheet[i, ]$sample_name, "\n", sep = "")
 
         # leave the access in case user provides vep anno
-        if (is.na(samplesheet[i, ]$vep_anno) | is.null(samplesheet[i, ]$vep_anno)) {
+        if (is.null(samplesheet[i, ]$vep_anno)) {
             file_vep_anno <- NULL
         } else {
-            file_vep_anno <- paste0(dir_path, "/", samplesheet[i, ]$vep_anno)
+            if (is.na(samplesheet[i, ]$vep_anno)) {
+                file_vep_anno <- NULL
+            } else {
+                file_vep_anno <- paste0(dir_path, "/", samplesheet[i, ]$vep_anno)
+            }
         }
 
         tmp_obj <- create_sge_object(file_libcount = paste0(dir_path, "/", samplesheet[i, ]$library_dependent_count),
