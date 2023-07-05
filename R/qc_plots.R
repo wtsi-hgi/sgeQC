@@ -215,18 +215,15 @@ setMethod(
         colnames(df_cov) <- c("num_total_reads", "num_library_reads", "library_cov")
         df_cov$samples <- rownames(df_cov)
 
-        df_merge <- cbind(df_filtered, df_cov$library_cov)
-        colnames(df_merge) <- c(colnames(df_filtered), "library_cov")
-        dt_merge <- reshape2::melt(as.data.table(df_merge), id.vars = c("samples", "library_cov"), , variable.name = "types", value.name = "percent")
-
         select_colors <- select_colorblind("col8")[1:4]
         fill_colors <- sapply(select_colors, function(x) t_col(x, 0.5), USE.NAMES = FALSE)
 
-        y_scale <- max(dt_merge$library_cov) * 2
+        y_scale <- max(df_cov$library_cov) * 2
 
-        p2 <- ggplot(dt_merge,  aes(x = samples, y = percent, fill = types)) +
+        p2 <- ggplot(dt_filtered,  aes(x = samples, y = percent, fill = types)) +
                 geom_bar(stat = "identity", position = "fill") +
-                geom_point(shape = 18, color = "darkred", size = 2, aes(y = library_cov / y_scale)) +
+                geom_line(data = df_cov, aes(x = samples, y = library_cov / y_scale, group = 1, linetype = "coverage"), linetype = "dashed", color = "red", inherit.aes = FALSE) +
+                geom_point(data = df_cov, aes(x = samples, y = library_cov / y_scale, group = 1), shape = 18, color = "red", size = 2, inherit.aes = FALSE) +
                 scale_y_continuous(labels = scales::percent, sec.axis = sec_axis(~. * y_scale, name = "library coverage")) +
                 scale_fill_manual(values = fill_colors) +
                 scale_color_manual(values = select_colors) +
