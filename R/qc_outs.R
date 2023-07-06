@@ -99,8 +99,8 @@ setMethod(
                       theme = reactableTheme(
                           style = list(fontFamily = "-apple-system", fontSize = "0.75rem")),
                       columns = list(
-                          "Group" = colDef(minWidth = 150),
-                          "Sample" = colDef(minWidth = 150),
+                          "Group" = colDef(minWidth = 100),
+                          "Sample" = colDef(minWidth = 100),
                           "Total Reads" = colDef(format = colFormat(separators = TRUE)),
                           "Pass" = colDef(cell = function(value) {
                                                    if (value) "\u2705" else "\u274c" }))
@@ -162,8 +162,8 @@ setMethod(
                       theme = reactableTheme(
                           style = list(fontFamily = "-apple-system", fontSize = "0.75rem")),
                       columns = list(
-                          "Group" = colDef(minWidth = 150),
-                          "Sample" = colDef(minWidth = 150),
+                          "Group" = colDef(minWidth = 100),
+                          "Sample" = colDef(minWidth = 100),
                           "Accepted Reads" = colDef(format = colFormat(separators = TRUE)),
                           "Excluded Reads" = colDef(format = colFormat(separators = TRUE)),
                           "Total Reads" = colDef(format = colFormat(separators = TRUE),
@@ -239,8 +239,8 @@ setMethod(
                       theme = reactableTheme(
                           style = list(fontFamily = "-apple-system", fontSize = "0.75rem")),
                       columns = list(
-                          "Group" = colDef(minWidth = 150),
-                          "Sample" = colDef(minWidth = 150),
+                          "Group" = colDef(minWidth = 100),
+                          "Sample" = colDef(minWidth = 100),
                           "% Library Reads" = colDef(style = function(value) {
                                                                  if (value < object@cutoffs$library_percent * 100) {
                                                                     color <- "red"
@@ -304,8 +304,8 @@ setMethod(
                       theme = reactableTheme(
                           style = list(fontFamily = "-apple-system", fontSize = "0.75rem")),
                       columns = list(
-                          "Group" = colDef(minWidth = 150),
-                          "Sample" = colDef(minWidth = 150),
+                          "Group" = colDef(minWidth = 100),
+                          "Sample" = colDef(minWidth = 100),
                           "Total Library Reads" = colDef(format = colFormat(separators = TRUE)),
                           "Total Template Oligo Sequences" = colDef(format = colFormat(separators = TRUE)),
                           "Library Coverage" = colDef(format = colFormat(separators = TRUE),
@@ -403,8 +403,8 @@ setMethod(
                       theme = reactableTheme(
                           style = list(fontFamily = "-apple-system", fontSize = "0.75rem")),
                       columns = list(
-                          "Group" = colDef(minWidth = 150),
-                          "Sample" = colDef(minWidth = 150),
+                          "Group" = colDef(minWidth = 100),
+                          "Sample" = colDef(minWidth = 100),
                           "Genomic Start" = colDef(format = colFormat(separators = TRUE)),
                           "Genomic End" = colDef(format = colFormat(separators = TRUE)),
                           "% Low Abundance (LOF)" = colDef(minWidth = 200),
@@ -494,8 +494,8 @@ setMethod(
                       theme = reactableTheme(
                           style = list(fontFamily = "-apple-system", fontSize = "0.75rem")),
                       columns = list(
-                          "Group" = colDef(minWidth = 150),
-                          "Sample" = colDef(minWidth = 150),
+                          "Group" = colDef(minWidth = 100),
+                          "Sample" = colDef(minWidth = 100),
                           "Genomic Start" = colDef(format = colFormat(separators = TRUE)),
                           "Genomic End" = colDef(format = colFormat(separators = TRUE)),
                           "% Low Abundance" = colDef(minWidth = 200,
