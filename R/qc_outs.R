@@ -44,6 +44,79 @@ setMethod(
 )
 
 #' initialize function
+setGeneric("qcout_sampleqc_length", function(object, ...) {
+  standardGeneric("qcout_sampleqc_length")
+})
+
+#' create output file of total reads stats
+#'
+#' @export
+#' @param object   sampleQC object
+#' @param len_bins the bins of length distribution
+#' @param outdir   the output directory
+setMethod(
+    "qcout_sampleqc_length",
+    signature = "sampleQC",
+    definition = function(object,
+                          len_bins = seq(0, 300, 50),
+                          outdir = NULL) {
+        cols <- c("Group",
+                  "Sample",
+                  "Total Reads",
+                  "% 0 ~ 50",
+                  "% 50 ~ 100",
+                  "% 100 ~ 150",
+                  "% 150 ~ 200",
+                  "% 200 ~ 250",
+                  "% 250 ~ 300",
+                  "Pass Threshold",
+                  "Pass")
+        df_outs <- data.frame(matrix(NA, nrow(object@stats), length(cols)))
+        colnames(df_outs) <- cols
+
+        df_outs[, 1] <- object@samples[[1]]@libname
+        df_outs[, 2] <- rownames(object@stats)
+        df_outs[, 3] <- object@stats$total_reads
+
+        bin_per <- data.frame()
+        for (i in 1:length(object@lengths)) {
+            tmp_lens <- object@lengths[[i]]$length
+            h <- hist(tmp_lens, breaks = len_bins, plot = FALSE)
+            bin_per <- rbind(bin_per, round(h$counts / nrow(object@samples[[i]]@allcounts) * 100, 1))
+        }
+
+        df_outs[, 4] <- bin_per[, 1]
+        df_outs[, 5] <- bin_per[, 2]
+        df_outs[, 6] <- bin_per[, 3]
+        df_outs[, 7] <- bin_per[, 4]
+        df_outs[, 8] <- bin_per[, 5]
+        df_outs[, 9] <- bin_per[, 6]
+        df_outs[, 10] <- 90
+        df_outs[, 11] <- (df_outs[, 8] + df_outs[, 9]) > df_outs[, 10]
+
+        if (length(outdir) == 0) {
+            reactable(df_outs, highlight = TRUE, bordered = TRUE,  striped = TRUE, compact = TRUE, wrap = FALSE,
+                      theme = reactableTheme(
+                          style = list(fontFamily = "-apple-system", fontSize = "0.75rem")),
+                      columns = list(
+                          "Group" = colDef(minWidth = 150),
+                          "Sample" = colDef(minWidth = 150),
+                          "Total Reads" = colDef(format = colFormat(separators = TRUE)),
+                          "Pass" = colDef(cell = function(value) {
+                                                   if (value) "\u2705" else "\u274c" }))
+                     )
+        } else {
+            write.table(df_outs,
+                        file = paste0(outdir, "/", "sampleqc_read_length.tsv"),
+                        quote = FALSE,
+                        sep = "\t",
+                        row.names = TRUE,
+                        col.names = TRUE)
+        }
+    }
+)
+
+#' initialize function
 setGeneric("qcout_sampleqc_total", function(object, ...) {
   standardGeneric("qcout_sampleqc_total")
 })
