@@ -48,10 +48,21 @@ setMethod(
                 theme(axis.text = element_text(size = 8, face = "bold")) +
                 facet_wrap(~sample, scales = "free", dir = "v", ncol = 4)
 
+        p2 <- ggplot(read_lens, aes(x = length)) +
+                geom_histogram(aes(y = after_stat(width * density)), breaks = len_bins, color = "black", fill = "grey") +
+                geom_hline(yintercept = c(0.25, 0.5, 0.75, 1), linetype = "dashed", color = "yellowgreen", linewidth = 0.3) +
+                scale_y_continuous(labels = scales::percent) +
+                labs(x = "Length Distribution", y = "Composition Percentage", title = "Sample QC read lengths") +
+                theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
+                theme(axis.title = element_text(size = 16, face = "bold", family = "Arial")) +
+                theme(plot.title = element_text(size = 16, face = "bold.italic", family = "Arial")) +
+                theme(axis.text = element_text(size = 8, face = "bold")) +
+                facet_wrap(~sample, scales = "free", dir = "v", ncol = 4)
+
         pheight <- 400 * as.integer((length(sample_names) / 3))
 
         if (is.null(plotdir)) {
-            ggplotly(p1)
+            ggplotly(p2)
         } else {
             png(paste0(plotdir, "/", "sample_qc_read_length.png"), width = 1200, height = pheight, res = 200)
             print(p1)
@@ -664,10 +675,14 @@ setMethod(
     "qcplot_pca_samples",
     signature = "sampleQC",
     definition = function(object,
-                          ds_coldata,
+                          ds_coldata = NULL,
                           ntop = 500,
-                          plotdir) {
-        if (length(plotdir) == 0) {
+                          plotdir = NULL) {
+        if (is.null(ds_coldata)) {
+            stop(paste0("====> Error: coldata is not provided, for DESeq2."))
+        }       
+        
+        if (is.null(plotdir)) {
             stop(paste0("====> Error: plotdir is not provided, no output directory."))
         }
 
