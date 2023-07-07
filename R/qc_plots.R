@@ -652,7 +652,7 @@ setMethod(
         if (is.null(plotdir)) {
             ggplotly(p1)
         } else {
-            png(paste0(plotdir, "/", "sample_qc_samples_corr.png"), width = 1200, height = pheight, res = 200)
+            png(paste0(plotdir, "/", "sample_qc_samples_corr.png"), width = 1200, height = 1200, res = 200)
             print(p1)
             dev.off()
         }
