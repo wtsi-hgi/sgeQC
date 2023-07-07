@@ -47,9 +47,5 @@ A class representing a primary qc object
 \item{\code{bad_seqs_bylib}}{a list of filter-out sequences by library mapping}
 
 \item{\code{filtered_samples}}{a vector of filtered sample names}
-
-\item{\code{deseq_rlog}}{a data frame of deseq rlog counts of all the samples using library counts}
-
-\item{\code{deseq_res}}{a list of deseq results of all the comparison against reference}
 }}
 

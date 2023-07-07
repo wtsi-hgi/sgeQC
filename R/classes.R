@@ -204,8 +204,6 @@ create_sge_object <- function(file_libcount,
 #' @slot bad_seqs_bydepth         a list of filter-out sequences by depth
 #' @slot bad_seqs_bylib           a list of filter-out sequences by library mapping
 #' @slot filtered_samples         a vector of filtered sample names
-#' @slot deseq_rlog               a data frame of deseq rlog counts of all the samples using library counts
-#' @slot deseq_res                a list of deseq results of all the comparison against reference
 setClass("sampleQC",
     slots = list(
         cutoffs = "data.frame",
@@ -226,9 +224,7 @@ setClass("sampleQC",
         bad_seqs_bycluster = "list",
         bad_seqs_bydepth = "list",
         bad_seqs_bylib = "list",
-        filtered_samples = "character",
-        deseq_rlog = "data.frame",
-        deseq_res = "list"
+        filtered_samples = "character"
     ),
     prototype = list(
         cutoffs = data.frame(),
@@ -249,9 +245,7 @@ setClass("sampleQC",
         bad_seqs_bycluster = list(),
         bad_seqs_bydepth = list(),
         bad_seqs_bylib = list(),
-        filtered_samples = character(),
-        deseq_rlog = data.frame(),
-        deseq_res = list()
+        filtered_samples = character()
     )
 )
 
@@ -326,4 +320,93 @@ create_sampleqc_object <- function(samples) {
 
     # Return the object
     return(sampleqc_object)
+}
+
+#' A class representing a primary qc object
+#'
+#' @export
+#' @name experimentQC
+#' @slot samples                  a list of SGE objects
+#' @slot coldata                  a data frame of coldata for DESeq2
+#' @slot ref_condition            the reference condition, like D4, others VS D4 in DESeq2
+#' @slot library_counts_anno      a data frame of library counts of all the samples, annotated with consequences
+#' @slot library_counts_pos_anno  a data frame of library counts of all the samples, annotated with consequences, sorted by position
+#' @slot comparisons              a list of comparisons for degComps
+#' @slot deseq_rlog               a data frame of deseq rlog counts of all the samples using library counts
+#' @slot deseq_res                a list of deseq results of all the comparison against reference
+setClass("experimentQC",
+    slots = list(
+        samples = "list",
+        coldata = "data.frame",
+        ref_condition = "character",
+        library_counts_anno = "data.frame",
+        library_counts_pos_anno = "data.frame",
+        comparisons = "list",
+        deseq_rlog = "data.frame",
+        deseq_res = "list"
+    ),
+    prototype = list(
+        samples = list(),
+        coldata = data.frame(),
+        ref_condition = character(),
+        library_counts_anno = data.frame(),
+        library_counts_pos_anno = data.frame(),
+        comparisons = list(),
+        deseq_rlog = data.frame(),
+        deseq_res = list()
+    )
+)
+
+#' Create a new experimentQC object
+#'
+#' @export
+#' @name create_experimentqc_object
+#' @param samqc_obj a sampleQC object
+#' @param coldata   a data frame of coldata for DESeq2
+#' @param refcond   the reference condition, eg. D4
+#' @return An object of class sampleQC
+create_experimentqc_object <- function(samqc_obj,
+                                       coldata = NULL,
+                                       refcond) {
+    # checking
+    if (is.null(coldata)) {
+         stop(paste0("====> Error: no coldata found in the input!"))
+    }
+
+    if (refcond %nin% coldata$condition) {
+        stop(paste0("====> Error: reference condition is not in the coldata!"))
+    }
+
+    # initializing
+    if ("condition" %nin% colnames(coldata)) {
+        stop(paste0("====> Error: coldata must have condition values!"))
+    } else {
+        coldata <- as.data.frame(coldata)
+
+        coldata$condition <- factor(coldata$condition)
+        coldata$condition <- factor(coldata$condition, levels = mixsort(levels(coldata$condition)))
+
+        coldata$replicate <- factor(coldata$replicate)
+        coldata$replicate <- factor(coldata$replicate, levels = mixsort(levels(coldata$replicate)))
+    }
+
+    conds <- levels(coldata$condition)
+    ds_contrast <- list()
+    for (i in 1:length(conds)) {
+        if (conds[i] != refcond) {
+            ds_contrast <- append(ds_contrast, paste0("condition_", conds[i], "_vs_", refcond))
+        }
+    }
+
+    # Create the object
+    experimentqc_object <- new("experimentQC",
+        samples = samqc_obj@samples,
+        coldata = coldata,
+        ref_condition = refcond,
+        library_counts_anno = samqc_obj@library_counts_anno,
+        library_counts_pos_anno = samqc_obj@library_counts_pos_anno,
+        comparisons = ds_contrast)
+
+    # Return the object
+    return(experimentqc_object)
 }

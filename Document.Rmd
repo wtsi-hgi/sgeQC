@@ -46,6 +46,10 @@ sge_objs <- import_sge_files("/path/to/input/directory", "sample_sheet.tsv")
 sge_objs <- import_sge_files("/Users/fs18/Desktop/Sang/HGI/codesRep/sgeQC/test/screen", "sample_sheet.tsv")
 ```
 
+```{r, echo = TRUE}
+sge_objs[[1]]
+```
+
 <br>
 
 #### Run Sample QC
@@ -57,6 +61,7 @@ Sample QC here needs the reference samples for the guidance, which can by provid
 samqc <- create_sampleqc_object(sge_objs)
 samqc@samples_ref <- select_objects(sge_objs, c(2,5,8))
 samqc <- run_sample_qc(samqc, "screen")
+samqc
 ```
 
 `coldata` is necessary for DESeq2. Example like below:
@@ -100,7 +105,7 @@ qcout_sampleqc_length(samqc)
 * ##### Basic Statistic
 
 ```{r, echo = TRUE, results = FALSE}
-qcplot_stats(samqc, plotdir = outputdir)
+qcplot_stats_total(samqc, plotdir = outputdir)
 ```
 
 ![](/Users/fs18/Desktop/test/sample_qc_stats_total.png)
@@ -109,7 +114,11 @@ qcplot_stats(samqc, plotdir = outputdir)
 qcout_sampleqc_total(samqc)
 ```
 
-![](/Users/fs18/Desktop/test/sample_qc_stats_filtered.png)
+```{r, echo = TRUE, results = FALSE}
+qcplot_stats_accepted(samqc, plotdir = outputdir)
+```
+
+![](/Users/fs18/Desktop/test/sample_qc_stats_accepted.png)
 
 ```{r, echo = TRUE}
 qcout_sampleqc_library(samqc)
@@ -138,7 +147,7 @@ qcout_sampleqc_pos_cov(samqc)
 qcplot_dist_samples(samqc, plotdir = outputdir)
 ```
 
-![](/Users/fs18/Desktop/test/sample_qc_distance_samples.corr.png)
+![](/Users/fs18/Desktop/test/sample_qc_samples_corr.png)
 
 <br>
 
@@ -165,4 +174,6 @@ qcout_sampleqc_pos_per(samqc)
 ```
 
 <br>
+
+
 

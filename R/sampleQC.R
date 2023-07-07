@@ -315,55 +315,9 @@ setMethod(
 
         object@filtered_samples <- rownames(object@stats[object@stats$qcpass == TRUE, ])
 
-        return(object)
-    }
-)
-
-#' initialize function
-setGeneric("run_sample_qc_deseq2", function(object, ...) {
-  standardGeneric("run_sample_qc_deseq2")
-})
-
-#' run DESeq2 for the list of samples
-#'
-#' @export
-#' @param object     sampleQC object
-#' @param ds_coldata a data frame of col data for deseq2
-#' @param ds_ref     the reference condition, eg. D4
-#' @return object
-setMethod(
-    "run_sample_qc_deseq2",
-    signature = "sampleQC",
-    definition = function(object,
-                          ds_coldata,
-                          ds_ref) {
-        #----------#
-        # checking #
-        #----------#
-        if (length(object@filtered_samples) == 0) {
-            stop(paste0("====> Error: please run run_sample_qc first!"))
-        }
-
-        if (nrow(object@samples[[1]]@vep_anno) == 0) {
-            stop(paste0("====> Error: no consequence annotation found!"))
-        }
-
-        if ("condition" %nin% colnames(ds_coldata)) {
-            stop(paste0("====> Error: coldata must have condition values!"))
-        } else {
-            ds_coldata <- as.data.frame(ds_coldata)
-
-            ds_coldata$condition <- factor(ds_coldata$condition)
-            ds_coldata$condition <- factor(ds_coldata$condition, levels = mixsort(levels(ds_coldata$condition)))
-
-            ds_coldata$replicate <- factor(ds_coldata$replicate)
-            ds_coldata$replicate <- factor(ds_coldata$replicate, levels = mixsort(levels(ds_coldata$replicate)))
-        }
-
-        #------------------------#
-        # 1. map vep consequence #
-        #------------------------#
-        cat("Mapping consequencing annotation...", "\n", sep = "")
+        #-------------------------#
+        # 10. map vep consequence #
+        #-------------------------#
 
         # main issue:
         # meta_consequence seqs are reverse complement, fix it in create_sge_object
@@ -372,99 +326,43 @@ setMethod(
         # a seq has a consequence, but has many names, don't which name is right
         # so, vep must have right seq, otherwise cannot determine the consequence
 
-        # assuming all the samples have the sample library sequences and corresponding consequences
-        # using sequences in vep annotation to identify consequences
-        vep_anno <- object@samples[[1]]@vep_anno[, c("unique_oligo_name", "seq", "summary_plot")]
-        colnames(vep_anno) <- c("oligo_name", "seq", "consequence")
-        vep_anno <- as.data.table(vep_anno)
+        # if plasmid qc, don't apply
+        if (qc_type == "screen") {
+            cat("Mapping consequencing annotation...", "\n", sep = "")
 
-        # merge counts, but use data table in case rownames of data frame is not unique
-        library_counts_anno <- merge_list_to_df(object@library_counts)
-        library_counts_anno[is.na(library_counts_anno)] <- 0
+            # assuming all the samples have the sample library sequences and corresponding consequences
+            # using sequences in vep annotation to identify consequences
+            vep_anno <- object@samples[[1]]@vep_anno[, c("unique_oligo_name", "seq", "summary_plot")]
+            colnames(vep_anno) <- c("oligo_name", "seq", "consequence")
+            vep_anno <- as.data.table(vep_anno)
 
-        library_counts_anno$seq <- rownames(library_counts_anno)
-        library_counts_anno <- as.data.table(library_counts_anno)
+            # merge counts, but use data table in case rownames of data frame is not unique
+            library_counts_anno <- merge_list_to_df(object@library_counts)
+            library_counts_anno[is.na(library_counts_anno)] <- 0
 
-        library_counts_anno[vep_anno, consequence := i.consequence, on = .(seq)]
-        object@library_counts_anno <- library_counts_anno
+            library_counts_anno$seq <- rownames(library_counts_anno)
+            library_counts_anno <- as.data.table(library_counts_anno)
 
-        # merge all the sorted library counts
-        library_counts_pos_anno <- data.table()
-        for (s in object@samples) {
-            tmp_pos <- object@library_counts_pos[[s@sample]]
-            tmp_pos <- tmp_pos[, c("seq", "position", "count")]
-            colnames(tmp_pos) <- c("seq", "position", s@sample)
+            library_counts_anno[vep_anno, consequence := i.consequence, on = .(seq)]
+            object@library_counts_anno <- library_counts_anno
 
-            if (nrow(library_counts_pos_anno) == 0) {
-                library_counts_pos_anno <- tmp_pos
-            } else {
-                library_counts_pos_anno <- merge(library_counts_pos_anno, tmp_pos, by = c("seq", "position"), all = TRUE)
+            # merge all the sorted library counts
+            library_counts_pos_anno <- data.table()
+            for (s in object@samples) {
+                tmp_pos <- object@library_counts_pos[[s@sample]]
+                tmp_pos <- tmp_pos[, c("seq", "position", "count")]
+                colnames(tmp_pos) <- c("seq", "position", s@sample)
+
+                if (nrow(library_counts_pos_anno) == 0) {
+                    library_counts_pos_anno <- tmp_pos
+                } else {
+                    library_counts_pos_anno <- merge(library_counts_pos_anno, tmp_pos, by = c("seq", "position"), all = TRUE)
+                }
             }
+
+            library_counts_pos_anno[vep_anno, consequence := i.consequence, on = .(seq)]
+            object@library_counts_pos_anno <- library_counts_pos_anno
         }
-
-        # any better way to do this?
-        # keep NA for now
-        #library_counts_pos_anno <- as.data.frame(library_counts_pos_anno)
-        #library_counts_pos_anno[is.na(library_counts_pos_anno)] <- 0
-        #library_counts_pos_anno <- as.data.table(library_counts_pos_anno)
-
-        library_counts_pos_anno[vep_anno, consequence := i.consequence, on = .(seq)]
-        object@library_counts_pos_anno <- library_counts_pos_anno
-
-        #-------------------#
-        # 2. DESeq2 process #
-        #-------------------#
-
-        # run control
-        cat("Running control deseq2 to get size factor...", "\n", sep = "")
-
-        library_counts_anno <- as.data.frame(library_counts_anno)
-
-        # rownames are necessary for DESeq2, otherwise error happens to assign values in function
-        rownames(library_counts_anno) <- library_counts_anno$seq
-
-        syn_counts <- library_counts_anno[library_counts_anno$consequence == "Synonymous_Variant", rownames(ds_coldata)]
-
-        syn_ds_obj <- DESeqDataSetFromMatrix(countData = syn_counts, colData = ds_coldata, design = ~condition)
-        syn_ds_obj <- syn_ds_obj[rowSums(counts(syn_ds_obj)) > 0, ]
-        syn_ds_obj$condition <- factor(syn_ds_obj$condition, levels = mixsort(levels(syn_ds_obj$condition)))
-        syn_ds_obj$condition <- relevel(syn_ds_obj$condition, ref = ds_ref)
-        syn_ds_obj <- estimateSizeFactors(syn_ds_obj)
-
-        # run all
-        cat("Running deseq2 on all the filtered samples...", "\n", sep = "")
-        deseq_counts <- library_counts_anno[, rownames(ds_coldata)]
-
-        ds_obj <- DESeqDataSetFromMatrix(countData = deseq_counts, colData = ds_coldata, design = ~condition)
-        ds_obj <- ds_obj[rowSums(counts(ds_obj)) > 0, ]
-        ds_obj$condition <- factor(ds_obj$condition, levels = mixsort(levels(ds_obj$condition)))
-        ds_obj$condition <- relevel(ds_obj$condition, ref = ds_ref)
-        sizeFactors(ds_obj) <- sizeFactors(syn_ds_obj)
-
-        ds_obj <- DESeq(ds_obj, fitType = "local", quiet = TRUE)
-        ds_rlog <- rlog(ds_obj)
-
-        object@deseq_rlog <- as.data.frame(assay(ds_rlog))
-
-        cat("Creating comparision and calculating logFC...", "\n", sep = "")
-        conds <- levels(ds_coldata$condition)
-        ds_contrast <- list()
-        for (i in 1:length(conds)) {
-            if (conds[i] != ds_ref) {
-                ds_contrast <- append(ds_contrast, paste0("condition_", conds[i], "_vs_", ds_ref))
-            }
-        }
-
-        ds_res <- degComps(ds_obj,
-                           combs = "condition",
-                           contrast = ds_contrast,
-                           alpha = 0.05,
-                           skip = FALSE,
-                           type = "apeglm",
-                           pairs = FALSE,
-                           fdr = "default")
-
-        object@deseq_res <- ds_res
 
         return(object)
     }
