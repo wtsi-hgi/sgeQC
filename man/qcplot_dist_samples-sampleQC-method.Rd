@@ -4,7 +4,7 @@
 \alias{qcplot_dist_samples,sampleQC-method}
 \title{create the heatmap of samples}
 \usage{
-\S4method{qcplot_dist_samples}{sampleQC}(object, plotdir)
+\S4method{qcplot_dist_samples}{sampleQC}(object, plotdir = NULL)
 }
 \arguments{
 \item{object}{sampleQC object}

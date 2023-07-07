@@ -10,7 +10,7 @@
   pcut = 0.05,
   dcut = 0,
   ecut = 0,
-  plotdir
+  plotdir = NULL
 )
 }
 \arguments{

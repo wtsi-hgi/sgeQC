@@ -4,7 +4,7 @@
 \alias{qcplot_readlens,sampleQC-method}
 \title{create the read length plot}
 \usage{
-\S4method{qcplot_readlens}{sampleQC}(object, len_bins = seq(0, 300, 50), plotdir)
+\S4method{qcplot_readlens}{sampleQC}(object, len_bins = seq(0, 300, 50), plotdir = NULL)
 }
 \arguments{
 \item{object}{sampleQC object}

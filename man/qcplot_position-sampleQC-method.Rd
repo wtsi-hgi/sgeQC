@@ -4,7 +4,7 @@
 \alias{qcplot_position,sampleQC-method}
 \title{create the position plot}
 \usage{
-\S4method{qcplot_position}{sampleQC}(object, qctype = "screen", plotdir)
+\S4method{qcplot_position}{sampleQC}(object, qctype = "screen", plotdir = NULL)
 }
 \arguments{
 \item{object}{sampleQC object}
