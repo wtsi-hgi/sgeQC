@@ -6,6 +6,7 @@
 #' @import ggplot2
 #' @import plotly
 #' @import ggcorrplot
+#' @import corrplot
 #' @import DESeq2
 #' @import DEGreport
 #' @import apeglm
