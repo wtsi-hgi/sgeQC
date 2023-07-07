@@ -64,19 +64,6 @@ samqc <- run_sample_qc(samqc, "screen")
 samqc
 ```
 
-`coldata` is necessary for DESeq2. Example like below:
-```{r, echo = FALSE, results = "asis"}
-library(knitr)
-coldata <- read.table("/Users/fs18/Desktop/Sang/HGI/codesRep/sgeQC/test/screen/sample_coldata.tsv", header = TRUE, row.names = 1)
-kable(coldata)
-```
-
-`run_sample_qc_deseq2` runs DESeq2 analysis by conditions in the coldata.
-
-```{r, echo = TRUE, message = FALSE}
-samqc <- run_sample_qc_deseq2(samqc, coldata, "D4")
-```
-
 <br>
 
 #### Create Plots & Tables
@@ -84,17 +71,18 @@ The output directory is required for plotting using the QC object.
 
 <br>
 
-* ##### Read Length Distrubtion
-
 ```{r, echo = FALSE}
 outputdir <- "~/Desktop/test"
 ```
 
+* ##### Read Length Distrubtion
 ```{r, echo = TRUE, results = FALSE}
 qcplot_readlens(samqc, plotdir = outputdir)
 ```
 
-![](/Users/fs18/Desktop/test/sample_qc_read_length.png)
+```{r, echo = FALSE}
+qcplot_readlens(samqc)
+```
 
 ```{r, echo = TRUE}
 qcout_sampleqc_length(samqc)
@@ -102,23 +90,27 @@ qcout_sampleqc_length(samqc)
 
 <br>
 
-* ##### Basic Statistic
-
+* ##### Total Reads
 ```{r, echo = TRUE, results = FALSE}
 qcplot_stats_total(samqc, plotdir = outputdir)
 ```
 
-![](/Users/fs18/Desktop/test/sample_qc_stats_total.png)
+```{r, echo = FALSE}
+qcplot_stats_total(samqc)
+```
 
 ```{r, echo = TRUE}
 qcout_sampleqc_total(samqc)
 ```
 
+* ##### Accepted Reads
 ```{r, echo = TRUE, results = FALSE}
 qcplot_stats_accepted(samqc, plotdir = outputdir)
 ```
 
-![](/Users/fs18/Desktop/test/sample_qc_stats_accepted.png)
+```{r, echo = FALSE}
+qcplot_stats_accepted(samqc)
+```
 
 ```{r, echo = TRUE}
 qcout_sampleqc_library(samqc)
@@ -128,7 +120,6 @@ qcout_sampleqc_cov(samqc)
 <br>
 
 * ##### Genomic Coverage
-
 ```{r, echo = TRUE, results = FALSE}
 qcplot_position(samqc, "screen", plotdir = outputdir)
 ```
@@ -141,28 +132,7 @@ qcout_sampleqc_pos_cov(samqc)
 
 <br>
 
-* ##### Sample Correlations
-
-```{r, echo = TRUE, results = FALSE}
-qcplot_dist_samples(samqc, plotdir = outputdir)
-```
-
-![](/Users/fs18/Desktop/test/sample_qc_samples_corr.png)
-
-<br>
-
-* ##### Sample PCA
-
-```{r, echo = TRUE, results = FALSE, warning = FALSE}
-qcplot_pca_samples(samqc, coldata, ntop = 500, plotdir = outputdir)
-```
-
-![](/Users/fs18/Desktop/test/sample_qc_pca_samples.png)
-
-<br>
-
 * ##### Genomic Position Percentage
-
 ```{r, echo = TRUE, results = FALSE, warning = FALSE}
 qcplot_position_anno(samqc, c("hgsm3_d4_r1", "hgsm3_d4_r2", "hgsm3_d4_r3"), type = "lof", plotdir = outputdir)
 ```
@@ -175,5 +145,56 @@ qcout_sampleqc_pos_per(samqc)
 
 <br>
 
+#### Run Experiment QC
+`coldata` is necessary for DESeq2. Example like below:
+```{r, echo = FALSE, results = "asis"}
+library(knitr)
+coldata <- read.table("/Users/fs18/Desktop/Sang/HGI/codesRep/sgeQC/test/screen/sample_coldata.tsv", header = TRUE, row.names = 1)
+kable(coldata)
+```
 
+`run_sample_qc_deseq2` runs DESeq2 analysis by conditions in the coldata.
 
+```{r, echo = TRUE, message = FALSE}
+expqc <- create_experimentqc_object(samqc, coldata, "D4")
+expqc <- run_experiment_qc(expqc)
+```
+
+<br>
+
+#### Create Plots & Tables
+The output directory is required for plotting using the QC object.
+
+<br>
+
+```{r, echo = FALSE}
+outputdir <- "~/Desktop/test"
+```
+
+* ##### Sample Correlations
+```{r, echo = TRUE, results = FALSE}
+qcplot_dist_samples(expqc, plotdir = outputdir)
+```
+
+```{r, echo = FALSE}
+qcplot_dist_samples(expqc)
+```
+
+<br>
+
+* ##### Sample PCA
+```{r, echo = TRUE, results = FALSE, warning = FALSE}
+qcplot_pca_samples(expqc, ntop = 500, plotdir = outputdir)
+```
+
+![](/Users/fs18/Desktop/test/sample_qc_pca_samples.png)
+
+<br>
+
+* ##### Fold Changes
+```{r, echo = TRUE, results = FALSE, warning = FALSE}
+qcplot_deseq_fc(expqc, plotdir = outputdir)
+```
+
+![](/Users/fs18/Desktop/test/sample_qc_deseq_fc.condition_D7_vs_D4.violin.png)
+![](/Users/fs18/Desktop/test/sample_qc_deseq_fc.condition_D15_vs_D4.violin.png)
