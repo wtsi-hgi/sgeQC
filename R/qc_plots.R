@@ -591,11 +591,11 @@ setGeneric("qcplot_dist_samples", function(object, ...) {
 #' create the heatmap of samples
 #'
 #' @export
-#' @param object  sampleQC object
+#' @param object  experimentQC object
 #' @param plotdir the output plot directory
 setMethod(
     "qcplot_dist_samples",
-    signature = "sampleQC",
+    signature = "experimentQC",
     definition = function(object,
                           plotdir = NULL) {
         sample_dist <- as.matrix(dist(t(object@deseq_rlog)))
@@ -680,35 +680,17 @@ setGeneric("qcplot_pca_samples", function(object, ...) {
 #' create the pca of samples
 #'
 #' @export
-#' @param object     sampleQC object
-#' @param ds_coldata deseq coldata
+#' @param object     experimentQC object
 #' @param ntop       the number of top variances
 #' @param plotdir    the output plot directory
 setMethod(
     "qcplot_pca_samples",
-    signature = "sampleQC",
+    signature = "experimentQC",
     definition = function(object,
-                          ds_coldata = NULL,
                           ntop = 500,
                           plotdir = NULL) {
-        if (is.null(ds_coldata)) {
-            stop(paste0("====> Error: coldata is not provided, for DESeq2."))
-        }       
-        
         if (is.null(plotdir)) {
             stop(paste0("====> Error: plotdir is not provided, no output directory."))
-        }
-
-        if ("condition" %nin% colnames(ds_coldata)) {
-            stop(paste0("====> Error: coldata must have condition values!"))
-        } else {
-            ds_coldata <- as.data.frame(ds_coldata)
-
-            ds_coldata$condition <- factor(ds_coldata$condition)
-            ds_coldata$condition <- factor(ds_coldata$condition, levels = mixsort(levels(ds_coldata$condition)))
-
-            ds_coldata$replicate <- factor(ds_coldata$replicate)
-            ds_coldata$replicate <- factor(ds_coldata$replicate, levels = mixsort(levels(ds_coldata$replicate)))
         }
 
         pca_input <- as.matrix(object@deseq_rlog)
@@ -723,6 +705,7 @@ setMethod(
         pc2_set <- c((min(pca$x[, 2]) - sd(pca$x[, 2])), (max(pca$x[, 2]) + sd(pca$x[, 2])))
         pc3_set <- c((min(pca$x[, 3]) - sd(pca$x[, 3])), (max(pca$x[, 3]) + sd(pca$x[, 3])))
 
+        ds_coldata <- object@coldata
         # mark conditions
         default_colors <- c("tomato", "royalblue", "yellowgreen", "orange", "pink", "purple", "coral", "cyan")
         select_colors <- default_colors[1:length(levels(ds_coldata$condition))]
@@ -766,7 +749,7 @@ setGeneric("qcplot_deseq_fc", function(object, ...) {
 #' create fold change and consequence plot
 #'
 #' @export
-#' @param object  sampleQC object
+#' @param object  experimentQC object
 #' @param cons    a vector of consequences showed in the figure
 #' @param pcut    the padj cutoff
 #' @param dcut    the depleted cutoff
@@ -774,7 +757,7 @@ setGeneric("qcplot_deseq_fc", function(object, ...) {
 #' @param plotdir the output plot directory
 setMethod(
     "qcplot_deseq_fc",
-    signature = "sampleQC",
+    signature = "experimentQC",
     definition = function(object,
                           cons = c("Synonymous_Variant", "LOF", "Missense_Variant"),
                           pcut = 0.05,
