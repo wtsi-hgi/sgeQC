@@ -637,7 +637,7 @@ setMethod(
                         hc.order = TRUE,
   		                lab = TRUE,
   		                lab_col = "black",
-  		                lab_size = 4,
+  		                lab_size = 3,
 		                p.mat = cor_pmat(sample_corr),
 		                sig.level = 0.05,
                         tl.col = "black",
@@ -653,7 +653,20 @@ setMethod(
             ggplotly(p1)
         } else {
             png(paste0(plotdir, "/", "sample_qc_samples_corr.png"), width = 1200, height = 1200, res = 200)
-            print(p1)
+            corrplot(sample_corr,
+                     method = "color",
+                     order = "hclust",
+                     col = colorpanel(100, "royalblue", "ivory", "tomato"),
+                     col.lim = c(min_corr, 1),
+                     is.corr = FALSE,
+                     addrect = 3,
+                     rect.col = "black",
+                     rect.lwd = 1.5,
+                     addgrid.col = "white",
+                     tl.col = "black",
+                     tl.cex = 0.75,
+                     addCoef.col = "black",
+                     number.cex = 0.75)
             dev.off()
         }
     }

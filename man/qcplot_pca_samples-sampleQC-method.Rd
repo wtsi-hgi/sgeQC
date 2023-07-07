@@ -4,7 +4,7 @@
 \alias{qcplot_pca_samples,sampleQC-method}
 \title{create the pca of samples}
 \usage{
-\S4method{qcplot_pca_samples}{sampleQC}(object, ds_coldata, ntop = 500, plotdir)
+\S4method{qcplot_pca_samples}{sampleQC}(object, ds_coldata = NULL, ntop = 500, plotdir = NULL)
 }
 \arguments{
 \item{object}{sampleQC object}
