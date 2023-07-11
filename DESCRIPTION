@@ -1,6 +1,6 @@
 Package: sgeQC
 Title: A R package for SGE QC
-Version: 0.1
+Version: 0.1.0
 Authors@R: 
     person("Fei", "Sang", , "fei.sang@sanger.ac.uk", 
             role = c("aut", "cre"),
