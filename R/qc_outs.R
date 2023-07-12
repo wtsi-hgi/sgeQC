@@ -18,7 +18,7 @@ setMethod(
         }
 
         write.table(object@cutoffs,
-                    file = paste0(outdir, "/", "sampleqc_cutoffs.tsv"),
+                    file = paste0(outdir, "/", "sample_qc_cutoffs.tsv"),
                     quote = FALSE,
                     sep = "\t",
                     row.names = FALSE,
@@ -135,7 +135,7 @@ setMethod(
                      )
         } else {
             write.table(df_outs,
-                        file = paste0(outdir, "/", "sampleqc_read_length.tsv"),
+                        file = paste0(outdir, "/", "sample_qc_read_length.tsv"),
                         quote = FALSE,
                         sep = "\t",
                         row.names = FALSE,
@@ -210,7 +210,7 @@ setMethod(
                      )
         } else {
             write.table(df_outs,
-                        file = paste0(outdir, "/", "sampleqc_stats_total.tsv"),
+                        file = paste0(outdir, "/", "sample_qc_stats_total.tsv"),
                         quote = FALSE,
                         sep = "\t",
                         row.names = FALSE,
@@ -283,7 +283,7 @@ setMethod(
                      )
         } else {
             write.table(df_outs,
-                        file = paste0(outdir, "/", "sampleqc_stats_accepted.tsv"),
+                        file = paste0(outdir, "/", "sample_qc_stats_accepted.tsv"),
                         quote = FALSE,
                         sep = "\t",
                         row.names = FALSE,
@@ -351,7 +351,7 @@ setMethod(
                      )
         } else {
             write.table(df_outs,
-                        file = paste0(outdir, "/", "sampleqc_stats_coverage.tsv"),
+                        file = paste0(outdir, "/", "sample_qc_stats_coverage.tsv"),
                         quote = FALSE,
                         sep = "\t",
                         row.names = FALSE,
@@ -440,7 +440,7 @@ setMethod(
                      )
         } else {
             write.table(df_outs,
-                        file = paste0(outdir, "/", "sampleqc_stats_pos_coverage.tsv"),
+                        file = paste0(outdir, "/", "sample_qc_stats_pos_coverage.tsv"),
                         quote = FALSE,
                         sep = "\t",
                         row.names = FALSE,
@@ -542,7 +542,7 @@ setMethod(
                      )
         } else {
             write.table(df_outs,
-                        file = paste0(outdir, "/", "sampleqc_stats_pos_percentage.tsv"),
+                        file = paste0(outdir, "/", "sample_qc_stats_pos_percentage.tsv"),
                         quote = FALSE,
                         sep = "\t",
                         row.names = FALSE,
