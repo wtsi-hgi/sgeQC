@@ -4,17 +4,10 @@
 \alias{create_qc_reports}
 \title{create QC reports}
 \usage{
-create_qc_reports(
-  samplesheet = NULL,
-  samqc_cutoffs = NULL,
-  qctype = "screen",
-  qcdir = NULL
-)
+create_qc_reports(samplesheet = NULL, qctype = "screen", qcdir = NULL)
 }
 \arguments{
 \item{samplesheet}{the path of sample sheet file}
-
-\item{samqc_cutoffs}{the path of sample QC cutoffs (created by function qcout_cutoffs)}
 
 \item{qctype}{screen or plasmid}
 
