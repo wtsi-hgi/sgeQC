@@ -59,9 +59,9 @@ create_qc_reports <- function(samplesheet = NULL,
         cat("\n", sep = "")
 
         if (qctype == "screen") {
-            cat("### 2. Screen QC", "\n", sep = "")
+            cat("## 2. Screen QC", "\n", sep = "")
         } else {
-            cat("### 2. Plasmid QC", "\n", sep = "")
+            cat("## 2. Plasmid QC", "\n", sep = "")
         }
         cat("Displays QC plots and statistics for all samples for QC.", "\n", sep = "")
         cat("\n", sep = "")
@@ -71,7 +71,7 @@ create_qc_reports <- function(samplesheet = NULL,
         cat("<br>", "\n", sep = "")
         cat("\n", sep = "")
 
-        cat("#### 2.1. Sample Sheet", "\n", sep = "")
+        cat("### 2.1. Sample Sheet", "\n", sep = "")
         cat("\n", sep = "")
         cat("```{r, echo = FALSE}", "\n", sep = "")
         cat("df <- as.data.frame(read.table(\"", samplesheet, "\", header = TRUE, sep = \"\\t\", check.names = FALSE))", "\n", sep = "")
@@ -81,9 +81,9 @@ create_qc_reports <- function(samplesheet = NULL,
         cat("<br>", "\n", sep = "")
         cat("\n", sep = "")
 
-        cat("#### 2.2. Run Sample QC", "\n", sep = "")
+        cat("### 2.2. Run Sample QC", "\n", sep = "")
         cat("\n", sep = "")
-        cat("##### 2.2.1. Read Length Distrubtion", "\n", sep = "")
+        cat("#### 2.2.1. Read Length Distrubtion", "\n", sep = "")
         cat("Displays the percentage of reads for each sample, based on 50 nucleotide increments.", "\n", sep = "")
         cat("\n", sep = "")
 
@@ -102,7 +102,7 @@ create_qc_reports <- function(samplesheet = NULL,
         cat("<br>", "\n", sep = "")
         cat("\n", sep = "")
 
-        cat("##### 2.2.2. Total Reads", "\n", sep = "")
+        cat("#### 2.2.2. Total Reads", "\n", sep = "")
         cat("Displays the total number of reads per sample. ",
             "Filtering based on 1-dimensional Kmean clustering that excludes unique sequences with low read counts.", "\n", sep = "")
         cat("\n", sep = "")
@@ -136,7 +136,7 @@ create_qc_reports <- function(samplesheet = NULL,
         cat("<br>", "\n", sep = "")
         cat("\n", sep = "")
 
-        cat("##### 2.2.3. Accepted Reads", "\n", sep = "")
+        cat("#### 2.2.3. Accepted Reads", "\n", sep = "")
         cat("Displays the percentage of library reads vs non-library reads (ie. Reference, PAM and Unmapped) for Accepted Reads.", "\n", sep = "")
         cat("\n", sep = "")
         cat("* **Library Reads**: Percentage reads mapping to template oligo sequences, including intended variants.", "\n", sep = "")
@@ -189,7 +189,7 @@ create_qc_reports <- function(samplesheet = NULL,
         cat("<br>", "\n", sep = "")
         cat("\n", sep = "")
 
-        cat("##### 2.2.4. Genomic Coverage", "\n", sep = "")
+        cat("#### 2.2.4. Genomic Coverage", "\n", sep = "")
         cat("Distribution of variants across targeton region based on log2(count+1) values.", "\n", sep = "")
         cat("\n", sep = "")
 
@@ -220,7 +220,7 @@ create_qc_reports <- function(samplesheet = NULL,
         cat("\n", sep = "")
 
         if (qctype == "screen") {
-            cat("##### 2.2.5. Genomic Position Percentage", "\n", sep = "")
+            cat("#### 2.2.5. Genomic Position Percentage", "\n", sep = "")
             cat("Displays distribution of \"LOF\" (loss-of-function) vs all \"Other\" variants across the targeton region, ",
                 "based on read percentages for reference timepoint. ",
                 "Requires concordant distribution of LOF and Other variants.", "\n", sep = "")
@@ -254,9 +254,9 @@ create_qc_reports <- function(samplesheet = NULL,
             cat("<br>", "\n", sep = "")
             cat("\n", sep = "")
 
-            cat("#### 2.3. Run Experiment QC", "\n", sep = "")
+            cat("### 2.3. Run Experiment QC", "\n", sep = "")
             cat("\n", sep = "")
-            cat("##### 2.3.1. Sample Correlations", "\n", sep = "")
+            cat("#### 2.3.1. Sample Correlations", "\n", sep = "")
             cat("\n", sep = "")
             cat("```{r, echo = FALSE, out.height = \"50%\", out.width = \"50%\"}", "\n", sep = "")
             cat("knitr::include_graphics(paste0(outdir, \"/sample_qc_samples_corr.png\"), rel_path = FALSE)", "\n", sep = "")
@@ -264,7 +264,7 @@ create_qc_reports <- function(samplesheet = NULL,
             cat("<br>", "\n", sep = "")
             cat("\n", sep = "")
 
-            cat("##### 2.3.2. Sample PCA", "\n", sep = "")
+            cat("#### 2.3.2. Sample PCA", "\n", sep = "")
             cat("\n", sep = "")
             cat("```{r, echo = FALSE, out.height = \"75%\", out.width = \"75%\"}", "\n", sep = "")
             cat("knitr::include_graphics(paste0(outdir, \"/sample_qc_pca_samples.png\"), rel_path = FALSE)", "\n", sep = "")
@@ -272,7 +272,7 @@ create_qc_reports <- function(samplesheet = NULL,
             cat("<br>", "\n", sep = "")
             cat("\n", sep = "")
 
-            cat("##### 2.3.3. Folder Change", "\n", sep = "")
+            cat("#### 2.3.3. Folder Change", "\n", sep = "")
             cat("\n", sep = "")
             cat("```{r, echo = FALSE, out.height = \"75%\", out.width = \"75%\"}", "\n", sep = "")
             cat("figs <- list.files(path = outdir, pattern = \"sample_qc_deseq_fc.*.violin.png\", full.names = TRUE)", "\n", sep = "")

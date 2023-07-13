@@ -236,6 +236,7 @@ setMethod(
         df_cov <- object@stats[, c("total_reads", "library_reads", "library_cov")]
         colnames(df_cov) <- c("num_total_reads", "num_library_reads", "library_cov")
         df_cov$samples <- rownames(df_cov)
+        df_cov$type <- "coverage"
 
         select_colors <- select_colorblind("col8")[1:4]
         fill_colors <- sapply(select_colors, function(x) t_col(x, 0.5), USE.NAMES = FALSE)
@@ -244,11 +245,11 @@ setMethod(
 
         p1 <- ggplot(dt_filtered,  aes(x = samples, y = percent, fill = types)) +
                 geom_bar(stat = "identity", position = "fill") +
-                geom_line(data = df_cov, aes(x = samples, y = library_cov / y_scale, group = 1, linetype = "coverage"), linetype = "dashed", color = "red", inherit.aes = FALSE) +
-                geom_point(data = df_cov, aes(x = samples, y = library_cov / y_scale, group = 1), shape = 18, color = "red", size = 2, inherit.aes = FALSE) +
+                geom_line(data = df_cov, aes(x = samples, y = library_cov / y_scale, group = 1), linetype = "dashed", color = "red", inherit.aes = FALSE) +
+                geom_point(data = df_cov, aes(x = samples, y = library_cov / y_scale, color = type), shape = 18, size = 3, inherit.aes = FALSE) +
                 scale_y_continuous(labels = scales::percent, sec.axis = sec_axis(~. * y_scale, name = "library coverage")) +
                 scale_fill_manual(values = fill_colors) +
-                scale_color_manual(values = select_colors, guide = guide_legend(override.aes = list(fill = NA))) +
+                scale_color_manual(values = "red") +
                 labs(x = "samples", y = "percent", title = "Sample QC Stats") +
                 theme(legend.position = "right", legend.title = element_blank()) +
                 theme(panel.background = element_rect(fill = "ivory", colour = "white")) +
